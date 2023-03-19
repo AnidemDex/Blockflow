@@ -16,23 +16,30 @@ I'll make sure to point where it'll be in future release, after defining the
 plugin structure.
 
 ## For now, this thing can...
+
 ### With code:
-	- Create timeline (`Timeline.new()`).
-	- Create a command (`Command.new()`).
-	- Add a command to the timeline `<Timeline>.add_command(<Command>)`.
-	- Create custom commands (`extends Command`).
-	- Define the name and the icon of the command (`_get_command_name()` and
-	`_get_command_icon()`).
+
+- Create timeline (`Timeline.new()`).
+- Create a command (`Command.new()`).
+- Add a command to the timeline `<Timeline>.add_command(<Command>)`.
+- Create custom commands (`extends Command`).
+- Define the name and the icon of the command (`_get_command_name()` and
+`_get_command_icon()`).
 
 ### With editor:
-	- See a timeline (See [timeline_displayer.gd`](timeline_displayer.gd)).
-	- Display a bunch of buttons that are tied to a command to add them into the
-	current timeline when you press them (See [`command_list.gd`](command_list.gd)).
-	- Make appear a context menu when you right press an item in the timeline.
+
+- See a timeline (See [timeline_displayer.gd`](timeline_displayer.gd)).
+- Display a bunch of buttons that are tied to a command to add them into the
+current timeline when you press them (See [`command_list.gd`](command_list.gd)).
+- Make appear a context menu when you right press an item in the timeline.
 
 ## This should be doing:
+
 ### With code:
-	-[] Executing the command behaviour.
-	-[] Managing the execution of the command behaviour.
+
+- [ ] Executing the command behaviour.
+- [ ] Managing the execution of the command behaviour.
+
 ### With editor:
-	-[] Modifying the timeline structure with the context menu.
+
+- [ ] Modifying the timeline structure with the context menu.
