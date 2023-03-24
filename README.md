@@ -3,6 +3,7 @@
 > CommandTimeline and GodotBlockFlow are potential names
 
 <!-- Gosh, somebody help me here, I have no words for now -->
+<!-- Update: Still have no words -->
 [UnnamedPlugin] is a visual [DESCRIPTION]
 
 Hi future devs!
@@ -32,6 +33,8 @@ plugin structure.
 - Display a bunch of buttons that are tied to a command to add them into the
 current timeline when you press them (See [`command_list.gd`](command_list.gd)).
 - Make appear a context menu when you right press an item in the timeline.
+  - Modify the timeline structure with this context menu.
+- Drag and drop items to modify the structure.
 
 ## This should be doing:
 
@@ -42,4 +45,4 @@ current timeline when you press them (See [`command_list.gd`](command_list.gd)).
 
 ### With editor:
 
-- [ ] Modifying the timeline structure with the context menu.
+- [x] Modifying the timeline structure with the context menu.
