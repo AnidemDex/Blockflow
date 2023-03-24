@@ -5,7 +5,7 @@ func _execution_steps(manager) -> void:
 
 
 func _get_command_name() -> String:
-	return "CUSTOM_COMMAND"
+	return "Wait"
 
 
 func _get_command_icon() -> Texture:
