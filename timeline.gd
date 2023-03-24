@@ -34,6 +34,53 @@ func insert_command(command:Command, at_position:int) -> void:
 	emit_changed()
 
 
+## Moves an [code]command[/code] to position.
+func move_command(command, to_position:int) -> void:
+	if !has(command):
+		push_error("move_command: Trying to move an command in the timeline, but the command is not added.")
+		return
+	
+	var old_position:int = get_command_idx(command)
+	if old_position < 0:
+		return
+	
+	to_position = to_position if to_position > -1 else commands.size()
+	if to_position == old_position:
+		emit_changed()
+		return
+	
+	commands.remove_at(old_position)
+	
+	if to_position < 0 or to_position > commands.size():
+		to_position = commands.size()
+	
+	commands.insert(to_position, command)
+	
+	emit_changed()
+	notify_property_list_changed()
+
+## Get the command at [code]position[/code]
+func get_command(position:int) -> Resource:
+	if position < commands.size():
+		return commands[position]
+	
+	push_error("get_command: Tried to get an command on a non-existing position.")
+	return null
+
+## Removes an command from the timeline.
+func erase_command(command) -> void:
+	commands.erase(command)
+	emit_changed()
+
+## Removes an command at [code]position[/code] from the timelin
+func remove_command(position:int) -> void:
+	commands.remove_at(position)
+	emit_changed()
+
+## Returns the command position in the timeline.
+func get_command_idx(command) -> int:
+	return commands.find(command)
+
 func has(value:Command) -> bool:
 	return commands.has(value)
 
