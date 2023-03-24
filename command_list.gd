@@ -1,17 +1,25 @@
 extends HFlowContainer
 
-# TODO: This should be replaced with a generation
-# made from reading scripts from specific folder
-@export var scripts:Array[Script] = []
+# TODO
+# This list can be a dynamic one to load custom made ones.
+var scripts:Array[Script] = [
+	load("res://addons/blockflow/commands/command_call.gd") as Script,
+	load("res://addons/blockflow/commands/command_comment.gd") as Script,
+	load("res://addons/blockflow/commands/command_condition.gd") as Script,
+	load("res://addons/blockflow/commands/command_goto.gd") as Script,
+	load("res://addons/blockflow/commands/command_return.gd") as Script,
+	load("res://addons/blockflow/commands/command_set.gd") as Script,
+	load("res://addons/blockflow/commands/command_wait.gd") as Script,
+	]
 
-# Editor should define who is it.
-@export var editor:Node
+var command_button_list_pressed:Callable
 
 func _ready() -> void:
 	for command_script in scripts:
 		var command:Command = command_script.new()
-		var button = Button.new()
-		add_child(button)
+		var button:Button = Button.new()
 		button.text = command.get_command_name()
+		add_child(button)
 		
-		button.pressed.connect(editor.command_button_list_pressed.bind(command_script))
+		if command_button_list_pressed.is_valid():
+			button.pressed.connect(command_button_list_pressed.bind(command_script))
