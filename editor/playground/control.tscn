@@ -1,0 +1,31 @@
+[gd_scene load_steps=3 format=3 uid="uid://o48crepx43jr"]
+
+[ext_resource type="Script" path="res://addons/blockflow/editor/playground/playground.gd" id="2_afult"]
+[ext_resource type="Script" path="res://addons/blockflow/editor/editor.gd" id="2_rvx6h"]
+
+[node name="Playground" type="VBoxContainer"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("2_afult")
+
+[node name="Toolbar" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="Do" type="Button" parent="Toolbar"]
+layout_mode = 2
+text = "Do"
+
+[node name="Undo" type="Button" parent="Toolbar"]
+layout_mode = 2
+text = "Undo"
+
+[node name="Editor" type="VBoxContainer" parent="."]
+layout_mode = 2
+size_flags_vertical = 3
+script = ExtResource("2_rvx6h")
+
+[connection signal="pressed" from="Toolbar/Do" to="." method="_on_do_pressed"]
+[connection signal="pressed" from="Toolbar/Undo" to="." method="_on_undo_pressed"]
