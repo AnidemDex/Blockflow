@@ -4,3 +4,6 @@ extends Command
 
 func _get_command_name() -> String:
 	return "Comment"
+
+func _get_command_icon() -> Texture:
+	return load("res://addons/blockflow/icons/comment.svg")
