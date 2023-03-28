@@ -1,6 +1,6 @@
 extends Control
 
-const TimelineDisplayer = preload("res://timeline_displayer.gd")
+const TimelineDisplayer = preload("res://addons/blockflow/editor/timeline_displayer.gd")
 const CommandList = preload("res://addons/blockflow/command_list.gd")
 
 enum _ItemPopup {
@@ -103,7 +103,7 @@ func _item_popup_id_pressed(id:int) -> void:
 	var command_idx:int = _current_timeline.get_command_idx(command)
 	match id:
 		_ItemPopup.MOVE_UP:
-			move_command(command, command_idx - 1)
+			move_command(command, max(0, command_idx - 1))
 			
 		_ItemPopup.MOVE_DOWN:
 			move_command(command, command_idx + 1)
@@ -177,18 +177,21 @@ func _timeline_displayer_drop_data(at_position: Vector2, data) -> void:
 	var ref_item:TreeItem = timeline_displayer.get_item_at_position(at_position)
 	var cmd_idx:int = _current_timeline.get_command_idx(command)
 	var ref_idx:int = NAN if not ref_item else ref_item.get_index()
-	
+
 	match section:
 		_DropSection.NO_ITEM:
 			move_command(command, -1)
 		
 		_DropSection.ABOVE_ITEM:
-			pass
+			if ref_idx != NAN:
+				move_command(command, ref_idx - int(ref_idx >= cmd_idx))
 		
 		_DropSection.IN_ITEM, _DropSection.UNDER_ITEM:
 			if ref_item == timeline_displayer.root:
 				move_command(command, 0)
 				return
+			if ref_idx != NAN:
+				move_command(command, ref_idx + int(ref_idx < cmd_idx))
 
 
 func _init() -> void:
