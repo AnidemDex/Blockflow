@@ -9,4 +9,4 @@ func _get_command_name() -> String:
 
 
 func _get_command_icon() -> Texture:
-	return load("res://icon.svg")
+	return load("res://addons/blockflow/icons/function.svg")
