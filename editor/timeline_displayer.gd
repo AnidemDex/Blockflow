@@ -1,3 +1,4 @@
+@tool
 extends Tree
 
 const TimelineClass = preload("res://addons/blockflow/timeline.gd")

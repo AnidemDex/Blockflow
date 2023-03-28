@@ -1,3 +1,4 @@
+@tool
 extends HFlowContainer
 
 const FALLBACK_ICON = preload("res://icon.svg")

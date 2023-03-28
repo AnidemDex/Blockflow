@@ -1,3 +1,4 @@
+@tool
 extends Command
 
 func _execution_steps(manager) -> void:
