@@ -4,6 +4,7 @@ extends HFlowContainer
 # This list can be a dynamic one to load custom made ones.
 var scripts:Array[Script] = [
 	load("res://addons/blockflow/commands/command_call.gd") as Script,
+	load("res://addons/blockflow/commands/command_animate.gd") as Script,
 	load("res://addons/blockflow/commands/command_comment.gd") as Script,
 	load("res://addons/blockflow/commands/command_condition.gd") as Script,
 	load("res://addons/blockflow/commands/command_goto.gd") as Script,
