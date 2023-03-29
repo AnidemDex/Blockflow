@@ -12,3 +12,7 @@ func _get_command_desc() -> String:
 
 func _get_command_icon() -> Texture:
 	return load("res://addons/blockflow/icons/comment.svg")
+
+
+func _get_command_desc_icon() -> Texture:
+	return load("res://addons/blockflow/icons/bookmark.svg")

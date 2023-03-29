@@ -23,6 +23,9 @@ func get_command_icon() -> Texture:
 func get_command_desc() -> String:
 	return _get_command_desc()
 
+func get_command_desc_icon() -> Texture:
+	return _get_command_desc_icon()
+
 ## 
 func _execution_steps(manager) -> void:
 	pass
@@ -38,6 +41,9 @@ func _get_command_icon() -> Texture:
 func _get_command_desc() -> String:
 	assert(false, "_get_command_desc()")
 	return ""
+
+func _get_command_desc_icon() -> Texture:
+	return null
 
 func _execute() -> void:
 	assert(false, "_execute")

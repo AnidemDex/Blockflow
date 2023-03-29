@@ -54,6 +54,9 @@ func _reload() -> void:
 		if not command_icon:
 			command_icon = FALLBACK_ICON
 		var command_desc:String = command.get_command_desc()
+		var command_desc_icon:Texture = command.get_command_desc_icon()
+		if not command_desc_icon:
+			command_desc_icon = null
 		
 		item.set_icon_max_width(0, 32)
 		item.set_text(0, command_name)
@@ -62,7 +65,7 @@ func _reload() -> void:
 		
 		item.set_icon_max_width(1, 32)
 		item.set_text(1, command_desc)
-		item.set_icon(1, FALLBACK_ICON)
+		item.set_icon(1, command_desc_icon)
 		
 		item.set_text(columns-1, str(_current_timeline.get_command_idx(command)))
 		item.set_custom_color(columns-1, get_theme_color("disabled_font_color", "Editor"))
