@@ -1,3 +1,4 @@
+@tool
 extends Command
 
 @export_multiline var comment:String

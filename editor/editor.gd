@@ -1,4 +1,5 @@
-extends Control
+@tool
+extends PanelContainer
 
 const TimelineDisplayer = preload("res://addons/blockflow/editor/timeline_displayer.gd")
 const CommandList = preload("res://addons/blockflow/command_list.gd")
@@ -27,6 +28,8 @@ var undo_redo:UndoRedo:
 		
 		return undo_redo
 
+var editor_undoredo:EditorUndoRedoManager
+
 var timeline_displayer:TimelineDisplayer
 var command_list:CommandList
 var title_label:Label
@@ -38,36 +41,51 @@ var _moving_command:bool = false
 
 func edit_timeline(timeline:Timeline) -> void:
 	var load_function:Callable = timeline_displayer.load_timeline
+	var path_hint:String = ""
 	
 	if _current_timeline:
 		if _current_timeline.changed.is_connected(load_function):
 			_current_timeline.changed.disconnect(load_function)
 	
-	load_function.call(timeline)
 	_current_timeline = timeline
 	
 	if _current_timeline:
 		if not timeline.changed.is_connected(load_function):
 			timeline.changed.connect(load_function.bind(timeline), CONNECT_DEFERRED)
+		path_hint = _current_timeline.resource_path
 	
-	title_label.text = _current_timeline.resource_path
-	timeline.emit_changed()
+	title_label.text = path_hint
+	load_function.call(timeline)
 
 
 func add_command(command:Command, at_position:int = -1) -> void:
 	if not _current_timeline: return
 	if not command: return
 	
-	undo_redo.create_action("Add command '%s'" % [command.get_command_name()])
+	var action_name:String = "Add command '%s'" % [command.get_command_name()]
 	
-	if at_position < 0:
-		undo_redo.add_do_method(_current_timeline.add_command.bind(command))
+	if Engine.is_editor_hint():
+		editor_undoredo.create_action(action_name)
+		
+		if at_position < 0:
+			editor_undoredo.add_do_method(_current_timeline, "add_command", command)
+		else:
+			editor_undoredo.add_do_method(_current_timeline, "insert_command", command, at_position)
+		
+		editor_undoredo.add_undo_method(_current_timeline, "erase_command", command)
+		editor_undoredo.commit_action()
+		
 	else:
-		undo_redo.add_do_method(_current_timeline.insert_command.bind(command, at_position))
-	
-	undo_redo.add_undo_method(_current_timeline.erase_command.bind(command))
-	
-	undo_redo.commit_action()
+		undo_redo.create_action(action_name)
+		
+		if at_position < 0:
+			undo_redo.add_do_method(_current_timeline.add_command.bind(command))
+		else:
+			undo_redo.add_do_method(_current_timeline.insert_command.bind(command, at_position))
+		
+		undo_redo.add_undo_method(_current_timeline.erase_command.bind(command))
+		
+		undo_redo.commit_action()
 
 
 func move_command(command:Command, to_position:int) -> void:
@@ -75,13 +93,20 @@ func move_command(command:Command, to_position:int) -> void:
 	if not command: return
 	
 	var old_position:int = _current_timeline.get_command_idx(command)
+	var action_name:String = "Move command '%s'" % [command.get_command_name()]
 	
-	undo_redo.create_action("Move command '%s'" % [command.get_command_name()])
-	
-	undo_redo.add_do_method(_current_timeline.move_command.bind(command, to_position))
-	undo_redo.add_undo_method(_current_timeline.move_command.bind(command, old_position))
-	
-	undo_redo.commit_action()
+	if Engine.is_editor_hint():
+		editor_undoredo.create_action(action_name)
+		editor_undoredo.add_do_method(_current_timeline, "move_command", command, to_position)
+		editor_undoredo.add_undo_method(_current_timeline, "move_command", command, old_position)
+		editor_undoredo.commit_action()
+	else:
+		undo_redo.create_action(action_name)
+		
+		undo_redo.add_do_method(_current_timeline.move_command.bind(command, to_position))
+		undo_redo.add_undo_method(_current_timeline.move_command.bind(command, old_position))
+		
+		undo_redo.commit_action()
 
 
 func remove_command(command:Command) -> void:
@@ -89,13 +114,20 @@ func remove_command(command:Command) -> void:
 	if not command: return
 	
 	var command_idx:int = _current_timeline.get_command_idx(command)
+	var action_name:String = "Remove command '%s'" % [command.get_command_name()]
 	
-	undo_redo.create_action("Remove command '%s'" % [command.get_command_name()])
-	
-	undo_redo.add_do_method(_current_timeline.remove_command.bind(command_idx))
-	undo_redo.add_undo_method(_current_timeline.insert_command.bind(command, command_idx))
-	
-	undo_redo.commit_action()
+	if Engine.is_editor_hint():
+		editor_undoredo.create_action(action_name)
+		editor_undoredo.add_do_method(_current_timeline, "remove_command", command_idx)
+		editor_undoredo.add_undo_method(_current_timeline, "insert_command", command, command_idx)
+		editor_undoredo.commit_action()
+	else:
+		undo_redo.create_action(action_name)
+		
+		undo_redo.add_do_method(_current_timeline.remove_command.bind(command_idx))
+		undo_redo.add_undo_method(_current_timeline.insert_command.bind(command, command_idx))
+		
+		undo_redo.commit_action()
 
 
 func _item_popup_id_pressed(id:int) -> void:
@@ -195,15 +227,14 @@ func _timeline_displayer_drop_data(at_position: Vector2, data) -> void:
 
 
 func _init() -> void:
-#	if !Engine.is_editor_hint():
-#		return
-	title_label = Label.new()
-	title_label.name = "TitleLabel"
-	title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	var stbx:StyleBoxFlat = StyleBoxFlat.new()
-	stbx.bg_color = Color("353535")
-	title_label.add_theme_stylebox_override("normal", stbx)
-	add_child(title_label)
+	name = "TimelineEditor"
+	size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	size_flags_vertical = Control.SIZE_EXPAND_FILL
+	
+	var vb = VBoxContainer.new()
+	vb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	vb.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	add_child(vb)
 	
 	_item_popup = PopupMenu.new()
 	_item_popup.name = "ItemPopup"
@@ -211,9 +242,17 @@ func _init() -> void:
 	_item_popup.id_pressed.connect(_item_popup_id_pressed, CONNECT_DEFERRED)
 	add_child(_item_popup)
 	
+	title_label = Label.new()
+	title_label.name = "TitleLabel"
+	title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var stbx:StyleBoxFlat = StyleBoxFlat.new()
+	stbx.bg_color = Color("353535")
+	title_label.add_theme_stylebox_override("normal", stbx)
+	vb.add_child(title_label)
+	
 	var hb:HBoxContainer = HBoxContainer.new()
 	hb.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	add_child(hb)
+	vb.add_child(hb)
 	
 	command_list = CommandList.new()
 	command_list.name = "CommandList"
