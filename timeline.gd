@@ -88,5 +88,5 @@ func has(value:Command) -> bool:
 
 func _get_property_list() -> Array:
 	var p:Array = []
-	p.append({"name":"_commands", "type":TYPE_ARRAY, "usage":PROPERTY_USAGE_NO_EDITOR|PROPERTY_USAGE_SCRIPT_VARIABLE})
+	p.append({"name":"commands", "type":TYPE_ARRAY, "usage":PROPERTY_USAGE_NO_EDITOR|PROPERTY_USAGE_SCRIPT_VARIABLE})
 	return p
