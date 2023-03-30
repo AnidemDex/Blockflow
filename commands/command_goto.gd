@@ -8,6 +8,13 @@ func _get_command_name() -> String:
 	return "Go To"
 
 
+func _get_command_desc() -> String:
+	return "go to #-1"
+
+
 func _get_command_icon() -> Texture:
 	return load("res://addons/blockflow/icons/jump.svg")
 
+
+func _get_command_desc_icon() -> Texture:
+	return load("res://addons/blockflow/icons/bookmark.svg")
