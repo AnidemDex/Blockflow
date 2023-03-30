@@ -1,7 +1,11 @@
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <!-- Uploaded to: SVG Repo, www.svgrepo.com, Transformed by: SVG Repo Mixer Tools -->
-<svg width="800px" height="800px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g id="SVGRepo_bgCarrier" stroke-width="0"/>
-<g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"/>
-<g id="SVGRepo_iconCarrier"> <path d="M13.5 4.50012C10.5 3.50012 9.5 7.00012 9.5 7.00012L7 16.0001C7 16.0001 5.5 20.0001 2.5 19.0001M5.5 9.00007H14L16 15.0001C16 15.0001 17 17.0001 18.5 15.5001M11 15.5C13.5 16.5 16.5 8.50001 19 9.00001" stroke="#E0E0E0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/> </g>
-</svg>
+<svg width="100px" height="100px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+
+<g id="SVGRepo_bgCarrier" stroke-width="0"/>
+
+<g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"/>
+
+<g id="SVGRepo_iconCarrier"> <path d="M13.5 4.50012C10.5 3.50012 9.5 7.00012 9.5 7.00012L7 16.0001C7 16.0001 5.5 20.0001 2.5 19.0001M5.5 9.00007H14L16 15.0001C16 15.0001 17 17.0001 18.5 15.5001M11 15.5C13.5 16.5 16.5 8.50001 19 9.00001" stroke="#E0E0E0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/> </g>
+
+</svg>
