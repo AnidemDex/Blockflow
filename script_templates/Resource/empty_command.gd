@@ -7,9 +7,9 @@ func _execution_steps(manager) -> void:
 	pass
 
 
-func _get_command_name() -> String:
+func _get_name() -> String:
 	return "CUSTOM_COMMAND"
 
 
-func _get_command_icon() -> Texture:
+func _get_icon() -> Texture:
 	return load("res://icon.svg")

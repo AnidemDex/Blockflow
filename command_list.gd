@@ -26,7 +26,7 @@ func _ready() -> void:
 		button.set_custom_minimum_size(Vector2(160, 0))
 		button.text = command.get_command_name()
 
-		var command_icon:Texture = command.get_command_icon()
+		var command_icon:Texture = command.get_icon()
 		if not command_icon:
 			command_icon = FALLBACK_ICON
 		button.expand_icon = true
