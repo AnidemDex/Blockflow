@@ -4,6 +4,8 @@ extends EditorPlugin
 const TimelineEditor = preload("res://addons/blockflow/editor/editor.gd")
 
 var timeline_editor:TimelineEditor
+var last_edited_timeline:Timeline
+var last_handled_object:Object
 
 func _enter_tree():
 	get_editor_interface().get_editor_main_screen().add_child(timeline_editor)
@@ -11,19 +13,24 @@ func _enter_tree():
 
 
 func _handles(object: Object) -> bool:
-	var o:Timeline = object as Timeline
+	var o:Resource = object as Resource
+	if not o: return false
+	var condition:bool = false
+	condition = is_instance_of(object, Timeline) or is_instance_of(object, Command)
 	
-	if o == null: return false
+	last_handled_object = object
 	
-	if o.resource_path.is_empty(): return false
-	
-	return o is Timeline
+	return condition
 
 
 func _edit(object: Object) -> void:
-	timeline_editor.editor_undoredo = get_undo_redo()
-	timeline_editor.edit_timeline(object as Timeline)
+	if last_edited_timeline == object:
+		return
 	
+	if object is Timeline:
+		timeline_editor.editor_undoredo = get_undo_redo()
+		timeline_editor.edit_timeline(object as Timeline)
+		last_edited_timeline = object
 
 
 func _make_visible(visible: bool) -> void:
@@ -50,5 +57,6 @@ func _exit_tree():
 
 func _init() -> void:
 	timeline_editor = TimelineEditor.new()
+	timeline_editor.edit_callback = Callable(get_editor_interface(), "edit_resource")
 	timeline_editor.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	timeline_editor.size_flags_vertical = Control.SIZE_EXPAND_FILL

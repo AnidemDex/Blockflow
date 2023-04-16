@@ -33,6 +33,7 @@ var editor_undoredo:EditorUndoRedoManager
 var timeline_displayer:TimelineDisplayer
 var command_list:CommandList
 var title_label:Label
+var edit_callback:Callable
 
 var _current_timeline:Timeline
 
@@ -162,6 +163,15 @@ func _timeline_displayer_item_mouse_selected(_position:Vector2, button_index:int
 		_item_popup.popup()
 
 
+func _timeline_displayer_item_selected() -> void:
+	if edit_callback.is_null():
+		push_error("TimelineEditor: No edit callback was defined.")
+		return
+	
+	var selected_command = timeline_displayer.get_selected().get_metadata(0)
+	edit_callback.bind(selected_command).call_deferred()
+
+
 func _timeline_displayer_get_drag_data(at_position: Vector2):
 	var item:TreeItem = timeline_displayer.get_item_at_position(at_position)
 
@@ -263,5 +273,6 @@ func _init() -> void:
 	timeline_displayer.name = "TimelineDisplayer"
 	timeline_displayer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	timeline_displayer.item_mouse_selected.connect(_timeline_displayer_item_mouse_selected)
+	timeline_displayer.item_selected.connect(_timeline_displayer_item_selected)
 	timeline_displayer.set_drag_forwarding(_timeline_displayer_get_drag_data, _timeline_displayer_can_drop_data, _timeline_displayer_drop_data)
 	hb.add_child(timeline_displayer)
