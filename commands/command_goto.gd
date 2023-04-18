@@ -4,7 +4,7 @@ extends Command
 @export var timeline:Timeline
 @export var command_label:String
 
-func _execution_steps(manager) -> void:
+func _execution_steps() -> void:
 	pass
 
 
@@ -18,7 +18,3 @@ func _get_hint() -> String:
 
 func _get_icon() -> Texture:
 	return load("res://addons/blockflow/icons/jump.svg")
-
-
-func _get_hint_icon() -> Texture:
-	return load("res://addons/blockflow/icons/bookmark.svg")

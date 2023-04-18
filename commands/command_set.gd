@@ -4,8 +4,12 @@ extends Command
 @export var property:String
 var value
 
-func _execution_steps(manager) -> void:
-	pass
+func _execution_steps() -> void:
+	command_started.emit()
+	
+	target_node.set(property, value)
+	
+	command_finished.emit()
 
 
 func _get_name() -> String:

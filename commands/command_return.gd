@@ -1,7 +1,7 @@
 @tool
 extends Command
 
-func _execution_steps(manager) -> void:
+func _execution_steps() -> void:
 	pass
 
 
