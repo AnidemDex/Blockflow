@@ -3,8 +3,18 @@
 # meta-default: true
 extends Command
 
-func _execution_steps(manager) -> void:
-	pass
+func _execution_steps() -> void:
+	## Always notify that your command started. You have total control on
+	## where to emit this signal, but be sure to emit it once.
+	command_started.emit() # Notify that your command started
+	
+	## Implement your command execution in this space
+	#print("Hello")
+	
+	## Never forget to notify that you command have finished in order
+	## to let the command manager know that is safe to continue to
+	## the next event.
+	command_finished.emit() # Notify that your command finished
 
 
 func _get_name() -> String:
