@@ -1,21 +1,20 @@
 @tool
 extends Command
 
-func _execution_steps(manager) -> void:
-	pass
+@export var property:String
+var value
+
+func _execution_steps() -> void:
+	command_started.emit()
+	
+	target_node.set(property, value)
+	
+	command_finished.emit()
 
 
-func _get_command_name() -> String:
+func _get_name() -> String:
 	return "Set Variable"
 
 
-func _get_command_desc() -> String:
-	return "bleh to true on Player/Sprite"
-
-
-func _get_command_icon() -> Texture:
+func _get_icon() -> Texture:
 	return load("res://addons/blockflow/icons/sliders.svg")
-
-
-func _get_command_desc_icon() -> Texture:
-	return load("res://addons/blockflow/icons/bookmark.svg")

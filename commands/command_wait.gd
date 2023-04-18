@@ -1,21 +1,17 @@
 @tool
 extends Command
 
-func _execution_steps(manager) -> void:
-	pass
+@export var wait_time:float
+
+func _execution_steps() -> void:
+	command_started.emit()
+	var timer:SceneTreeTimer = command_manager.get_tree().create_timer(wait_time)
+	timer.timeout.connect( emit_signal.bind("command_finished") )
 
 
-func _get_command_name() -> String:
+func _get_name() -> String:
 	return "Wait"
 
 
-func _get_command_desc() -> String:
-	return "2.45 seconds"
-
-
-func _get_command_icon() -> Texture:
+func _get_icon() -> Texture:
 	return load("res://addons/blockflow/icons/Timer.svg")
-
-
-func _get_command_desc_icon() -> Texture:
-	return load("res://addons/blockflow/icons/bookmark.svg")

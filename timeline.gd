@@ -65,7 +65,7 @@ func get_command(position:int) -> Resource:
 	if position < commands.size():
 		return commands[position]
 	
-	push_error("get_command: Tried to get an command on a non-existing position.")
+	push_error("get_command: Tried to get an command on a non-existing position: ", position)
 	return null
 
 ## Removes an command from the timeline.

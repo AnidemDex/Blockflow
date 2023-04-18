@@ -32,7 +32,7 @@ signal timeline_finished(timeline_resource)
 
 
 ## Current executed command.
-var current_command
+var current_command:Command
 ## The current command index relative to [member timeline] resource.
 var current_command_idx:int = -1
 
@@ -50,6 +50,8 @@ func _ready() -> void:
 ## where the timeline should start.
 func start_timeline(from_command_index:int=0) -> void:
 	_commands = timeline.commands
+	current_command = null
+	current_command_idx = from_command_index
 	_notify_timeline_start()
 	go_to_next_command()
 
@@ -62,10 +64,11 @@ func go_to_next_command() -> void:
 		assert(false)
 		return
 	
-	
+	current_command_idx = max(0, current_command_idx)
 	if current_command:
 		current_command_idx += 1
 	
+	command = timeline.get_command(current_command_idx)
 	current_command = command
 	
 	if current_command == null:
@@ -81,13 +84,22 @@ func _execute_command(command:Command) -> void:
 		return
 	
 	var node:Node = get_node(command_node_fallback_path)
-	# This is a crime, needs to be modified in future versions
-	command.set("_command_manager", self)
-	command.set("_command_node_fallback", node)
 	
 	_connect_command_signals(command)
 	
-	command.execute()
+	command.command_manager = self
+	var ref_node:Node = owner
+	if not is_instance_valid(ref_node):
+		ref_node = get_tree().current_scene
+	
+	var target_node:Node = ref_node.get_node_or_null(command.target)
+	if not is_instance_valid(target_node):
+		target_node = get_node_or_null(command_node_fallback_path)
+	if not is_instance_valid(target_node):
+		target_node = self
+	command.target_node = target_node
+	
+	command.execution_steps.call()
 
 
 func _connect_command_signals(command:Command) -> void:
@@ -98,11 +110,11 @@ func _connect_command_signals(command:Command) -> void:
 
 
 func _on_command_started(command:Command) -> void:
-	emit_signal("command_started", command)
+	command_started.emit(command)
 
 
 func _on_command_finished(command:Command) -> void:
-	command_finished.emit()
+	command_finished.emit(command)
 	if command.continue_at_end:
 		go_to_next_command()
 
