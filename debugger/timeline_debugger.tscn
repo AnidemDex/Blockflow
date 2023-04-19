@@ -1,0 +1,95 @@
+[gd_scene load_steps=3 format=3 uid="uid://d2t2hha81ptiu"]
+
+[ext_resource type="Script" path="res://addons/blockflow/debugger/timeline_debugger.gd" id="1_0ph2s"]
+[ext_resource type="Script" path="res://addons/blockflow/editor/timeline_displayer.gd" id="3_ub5fw"]
+
+[node name="TimelineDebugger" type="Node"]
+script = ExtResource("1_0ph2s")
+
+[node name="Control" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Control"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="InformationPanel" type="PanelContainer" parent="Control/VBoxContainer"]
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Control/VBoxContainer/InformationPanel"]
+layout_mode = 2
+alignment = 1
+
+[node name="TimelineName" type="Label" parent="Control/VBoxContainer/InformationPanel/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Debugging {TIMELINE_NAME}"
+horizontal_alignment = 1
+clip_text = true
+
+[node name="VSeparator" type="VSeparator" parent="Control/VBoxContainer/InformationPanel/HBoxContainer"]
+layout_mode = 2
+
+[node name="CurrentCommand" type="Label" parent="Control/VBoxContainer/InformationPanel/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Current command: {COMMAND} {COMMAND_INDEX}"
+horizontal_alignment = 1
+clip_text = true
+
+[node name="VSeparator2" type="VSeparator" parent="Control/VBoxContainer/InformationPanel/HBoxContainer"]
+layout_mode = 2
+
+[node name="CommandManagerStatus" type="Label" parent="Control/VBoxContainer/InformationPanel/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "CommandManagerStatus: {STATUS}"
+horizontal_alignment = 1
+clip_text = true
+
+[node name="VSeparator3" type="VSeparator" parent="Control/VBoxContainer/InformationPanel/HBoxContainer"]
+layout_mode = 2
+
+[node name="TimelineDisplayer" type="Tree" parent="Control/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+columns = 3
+allow_rmb_select = true
+select_mode = 1
+scroll_horizontal_enabled = false
+script = ExtResource("3_ub5fw")
+
+[node name="ToolPanel" type="PanelContainer" parent="Control/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Control/VBoxContainer/ToolPanel"]
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Control/VBoxContainer/ToolPanel"]
+layout_mode = 2
+
+[node name="PrevButton" type="Button" parent="Control/VBoxContainer/ToolPanel/HBoxContainer"]
+layout_mode = 2
+text = "Previous"
+
+[node name="NextButton" type="Button" parent="Control/VBoxContainer/ToolPanel/HBoxContainer"]
+layout_mode = 2
+text = "Next"
+
+[node name="PlayButton" type="Button" parent="Control/VBoxContainer/ToolPanel/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 10
+text = "Play"
+
+[connection signal="pressed" from="Control/VBoxContainer/ToolPanel/HBoxContainer/PrevButton" to="." method="_on_prev_button_pressed"]
+[connection signal="pressed" from="Control/VBoxContainer/ToolPanel/HBoxContainer/NextButton" to="." method="_on_next_button_pressed"]
+[connection signal="pressed" from="Control/VBoxContainer/ToolPanel/HBoxContainer/PlayButton" to="." method="_on_play_button_pressed"]
