@@ -1,9 +1,9 @@
-[gd_scene load_steps=3 format=3 uid="uid://o48crepx43jr"]
+[gd_scene load_steps=3 format=3]
 
-[ext_resource type="Script" path="res://addons/blockflow/editor/playground/playground.gd" id="2_afult"]
+[ext_resource type="Script" path="res://addons/blockflow/editor/playground/editor_playground.gd" id="2_afult"]
 [ext_resource type="Script" path="res://addons/blockflow/editor/editor.gd" id="2_rvx6h"]
 
-[node name="Playground" type="VBoxContainer"]
+[node name="EditorPlayground" type="VBoxContainer"]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0

@@ -1,0 +1,20 @@
+[gd_scene load_steps=4 format=3 uid="uid://berhkuawcuwt5"]
+
+[ext_resource type="Script" path="res://addons/blockflow/editor/playground/all_commands.gd" id="1_midh4"]
+[ext_resource type="PackedScene" uid="uid://d2t2hha81ptiu" path="res://addons/blockflow/debugger/timeline_debugger.tscn" id="1_o1eye"]
+[ext_resource type="Script" path="res://addons/blockflow/command_manager.gd" id="2_77huk"]
+
+[node name="Watcher" type="Node"]
+script = ExtResource("1_midh4")
+
+[node name="Window" type="Window" parent="."]
+disable_3d = true
+initial_position = 2
+title = "TimelineDebugger"
+size = Vector2i(720, 400)
+
+[node name="TimelineDebugger" parent="Window" instance=ExtResource("1_o1eye")]
+
+[node name="CommandManager" type="Node" parent="."]
+script = ExtResource("2_77huk")
+command_node_fallback_path = NodePath("..")
