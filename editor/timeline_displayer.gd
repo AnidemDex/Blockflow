@@ -10,6 +10,9 @@ var _current_timeline:TimelineClass
 var root:TreeItem
 
 func load_timeline(timeline:TimelineClass) -> void:
+	if _current_timeline:
+		if _current_timeline.changed.is_connected(_timeline_changed):
+			_current_timeline.changed.disconnect(_timeline_changed)
 	_current_timeline = timeline
 	_reload()
 
@@ -33,9 +36,11 @@ func _reload() -> void:
 		root.set_expand_right(i, false)
 	
 	root.set_text(0, timeline_name)
-	root.set_expand_right(0, true)
 	root.set_text_alignment(0, HORIZONTAL_ALIGNMENT_LEFT)
 	root.set_text(columns-1, str(_current_timeline.commands.size()))
+	root.set_editable(0, true)
+	if not _current_timeline.changed.is_connected(_timeline_changed):
+		_current_timeline.changed.connect(_timeline_changed)
 	# See this little trick here? Is to remove the column expand.
 	# I hate it.
 	#root.set_text(columns-1, " ")
@@ -90,6 +95,25 @@ func _build_item(item:TreeItem, command:Command) -> void:
 	item.set_tooltip_text(2, hint)
 
 
+func _gui_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.double_click:
+		if get_selected() == root:
+			edit_selected()
+			accept_event()
+
+
+func _timeline_changed() -> void:
+	var timeline_name:String = _current_timeline.resource_name
+	if timeline_name.is_empty():
+		timeline_name = _current_timeline.resource_path.get_file()
+	root.set_text(0, timeline_name)
+
+
+func _on_item_edited() -> void:
+	if get_selected() == root:
+		_current_timeline.resource_name = root.get_text(0)
+
+
 func _init() -> void:
 	columns = 3
 	allow_rmb_select = true
@@ -99,4 +123,6 @@ func _init() -> void:
 	set_column_expand(0, false)
 	set_column_expand(1, true)
 	set_column_expand(2, false)
+	
+	item_edited.connect(_on_item_edited)
 	
