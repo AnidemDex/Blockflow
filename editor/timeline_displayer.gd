@@ -3,6 +3,7 @@ extends Tree
 
 const TimelineClass = preload("res://addons/blockflow/timeline.gd")
 const FALLBACK_ICON = preload("res://icon.svg")
+enum ButtonHint {CONTINUE_AT_END}
 
 
 var _current_timeline:TimelineClass
@@ -71,6 +72,7 @@ func _build_item(item:TreeItem, command:Command) -> void:
 		command_icon = FALLBACK_ICON
 	var command_hint:String = command.get_hint()
 	var command_hint_icon:Texture = command.get_hint_icon()
+	var last_column = columns-1
 	
 	if not command.label.is_empty():
 		hint += "Label:\n"+command.label
@@ -86,13 +88,21 @@ func _build_item(item:TreeItem, command:Command) -> void:
 	item.set_icon(1, command_hint_icon)
 	
 	var disabled_color = get_theme_color("disabled_font_color", "Editor")
-	item.set_text(columns-1, str(_current_timeline.get_command_idx(command)))
-	item.set_custom_color(columns-1, disabled_color)
-	item.set_text_alignment(columns-1, HORIZONTAL_ALIGNMENT_RIGHT)
+	item.set_text(last_column, str(_current_timeline.get_command_idx(command)))
+	item.set_custom_color(last_column, disabled_color)
+	item.set_text_alignment(last_column, HORIZONTAL_ALIGNMENT_RIGHT)
 	
-	item.set_icon(2, bookmark)
-	item.set_icon_modulate(2, disabled_color)
-	item.set_tooltip_text(2, hint)
+	item.set_icon(last_column, bookmark)
+	item.set_icon_modulate(last_column, disabled_color)
+	item.set_tooltip_text(last_column, hint)
+	
+	if item.get_button_count(last_column) > 0:
+		item.erase_button(last_column, ButtonHint.CONTINUE_AT_END)
+	
+	hint = "CommandManager will stop when this command ends."
+	if command.continue_at_end:
+		hint = "CommandManager will continue automatically to next command when this command ends."
+	item.add_button(last_column, get_theme_icon("Stop", "EditorIcons"), ButtonHint.CONTINUE_AT_END, command.continue_at_end, hint)
 
 
 func _gui_input(event: InputEvent) -> void:
