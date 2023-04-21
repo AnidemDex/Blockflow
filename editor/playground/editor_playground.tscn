@@ -1,4 +1,4 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=3 format=3 uid="uid://bkcxryh7m1wri"]
 
 [ext_resource type="Script" path="res://addons/blockflow/editor/playground/editor_playground.gd" id="2_afult"]
 [ext_resource type="Script" path="res://addons/blockflow/editor/editor.gd" id="2_rvx6h"]
@@ -22,8 +22,9 @@ text = "Do"
 layout_mode = 2
 text = "Undo"
 
-[node name="Editor" type="VBoxContainer" parent="."]
+[node name="Editor" type="PanelContainer" parent="."]
 layout_mode = 2
+size_flags_horizontal = 3
 size_flags_vertical = 3
 script = ExtResource("2_rvx6h")
 
