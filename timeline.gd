@@ -34,6 +34,13 @@ func insert_command(command:Command, at_position:int) -> void:
 	
 	emit_changed()
 
+## Duplicates a [Command] to the timeline
+func duplicate_command(command:Command, to_position:int) -> void:
+	var duplicated = command.duplicate()
+	var idx = to_position if to_position > -1 else commands.size()
+	commands.insert(idx, duplicated)
+	
+	emit_changed()
 
 ## Moves an [code]command[/code] to position.
 func move_command(command, to_position:int) -> void:
