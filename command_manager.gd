@@ -55,27 +55,28 @@ func start_timeline(from_command_index:int=0) -> void:
 	_notify_timeline_start()
 	go_to_next_command()
 
-## Advances to the next command in the current timeline.
-func go_to_next_command() -> void:
-	var command
-	
+## Advances to a specific command in the current timeline.
+func go_to_command(command_idx:int) -> void:
 	if not timeline:
 		# For some reason, the timeline doesn't exist
 		assert(false)
 		return
 	
-	current_command_idx = max(0, current_command_idx)
-	if current_command:
-		current_command_idx += 1
-	
-	command = timeline.get_command(current_command_idx)
-	current_command = command
+	current_command = timeline.get_command(command_idx)
+	current_command_idx = command_idx
 	
 	if current_command == null:
 		_notify_timeline_end()
 		return
 	
-	_execute_command(command)
+	_execute_command(current_command)
+
+## Advances to the next command in the current timeline.
+func go_to_next_command() -> void:
+	current_command_idx = max(0, current_command_idx)
+	if current_command:
+		current_command_idx += 1
+	go_to_command(current_command_idx)
 
 
 func _execute_command(command:Command) -> void:

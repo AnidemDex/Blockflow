@@ -68,6 +68,16 @@ func get_command(position:int) -> Resource:
 	push_error("get_command: Tried to get an command on a non-existing position: ", position)
 	return null
 
+## Get the command [code]position[/code] from its [code]bookmark[/code]
+func get_command_by_bookmark(bookmark:String) -> Resource:
+	for command_idx in commands.size():
+		var command:Command = commands[command_idx] as Command
+		if command.bookmark == bookmark:
+			return command
+	
+	push_error("get_command_by_bookmark: Couldn't find command with a bookmark: ", bookmark)
+	return null
+
 ## Removes an command from the timeline.
 func erase_command(command) -> void:
 	commands.erase(command)

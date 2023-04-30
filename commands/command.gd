@@ -13,15 +13,15 @@ signal command_started
 ## Emmited when the command finishes its execution.
 signal command_finished
 
-## Marks this command with a [code]label[/code]. This label will be registered in
+## Marks this command with a [code]bookmark[/code]. This bookmark will be registered in
 ## the timeline when the timeline is loaded, and will be used when other
-## command refers to that specific label.
-## Labels should be unique.
-@export var label:String = "":
+## command refers to that specific bookmark.
+## Bookmarks should be unique.
+@export var bookmark:String = "":
 	set(value):
-		label = value
+		bookmark = value
 		emit_changed()
-	get: return label
+	get: return bookmark
 
 ## Determines if the command will go to next event inmediatly or not. 
 ## If value is true, the next event will be executed when command ends.
