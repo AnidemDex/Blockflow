@@ -1,6 +1,8 @@
 @tool
 extends Command
 
+const _Utils = preload("res://addons/blockflow/core/utils.gd")
+
 var use_bookmark:bool:
 	set(value):
 		use_bookmark = value
@@ -29,7 +31,28 @@ var timeline:Timeline:
 		emit_changed()
 	get: return timeline
 
+var on_condition:String:
+	set(value):
+		on_condition = value
+		emit_changed()
+	get:
+		return on_condition
+
 func _execution_steps() -> void:
+	command_started.emit()
+	
+	# A conditional is set on this command
+	if not on_condition.is_empty():
+		# TODO: replace with node variables, for ex. command_manager.get_property_list()
+		var variables:Dictionary = {}
+		var evaluated_condition = _Utils.evaluate(on_condition, command_manager, variables)
+		
+		# Do not move on unless the conditional is true
+		if not (evaluated_condition and (str(evaluated_condition) != on_condition)):
+			# The only time command_finished is emitted for goto event
+			command_finished.emit()
+			return
+
 	var target_idx = by_index
 	if go_to_timeline:
 		if use_bookmark:
@@ -41,8 +64,8 @@ func _execution_steps() -> void:
 		if use_bookmark:
 			var target_command = command_manager.timeline.get_command_by_bookmark(by_bookmark)
 			target_idx = command_manager.timeline.get_command_idx(target_command)
+		command_manager.go_to_command(target_idx)
 
-	command_manager.go_to_command(target_idx)
 
 
 func _get_name() -> String:
@@ -65,6 +88,8 @@ func _get_hint() -> String:
 				hint_str += "'" + timeline.resource_name + "'"
 		else:
 			hint_str += "<Invalid Timeline!>"
+	if on_condition:
+		hint_str += " if " + str(on_condition)
 	return hint_str
 
 
@@ -111,7 +136,12 @@ func _get_property_list():
 			"usage": tl_usage,
 			"hint": PROPERTY_HINT_RESOURCE_TYPE,
 			"hint_string": "Timeline"
-		}
+		},
+		{
+			"name": "on_condition",
+			"type": TYPE_STRING,
+			"usage": PROPERTY_USAGE_DEFAULT,
+		},
 	]
 
 	return properties
