@@ -19,8 +19,9 @@ func load_timeline(timeline:TimelineClass) -> void:
 
 
 func _reload() -> void:
-	for command_idx in _current_timeline.commands.size():
-		var command:Command = _current_timeline.commands[command_idx] as Command
+	var commands:Array = _current_timeline.commands
+	for command_idx in commands.size():
+		var command:Command = commands[command_idx] as Command
 		if command.changed.is_connected(_build_item):
 			command.changed.disconnect(_build_item)
 
@@ -43,7 +44,7 @@ func _reload() -> void:
 	
 	root.set_text(0, timeline_name)
 	root.set_text_alignment(0, HORIZONTAL_ALIGNMENT_LEFT)
-	root.set_text(columns-1, str(_current_timeline.commands.size()))
+	root.set_text(columns-1, str(commands.size()))
 	root.set_editable(0, false)
 	if not _current_timeline.changed.is_connected(_timeline_changed):
 		_current_timeline.changed.connect(_timeline_changed)
@@ -51,9 +52,9 @@ func _reload() -> void:
 	# I hate it.
 	#root.set_text(columns-1, " ")
 	
-	for command_idx in _current_timeline.commands.size():
+	for command_idx in commands.size():
 		var item:TreeItem = create_item(root)
-		var command:Command = _current_timeline.commands[command_idx] as Command
+		var command:Command = commands[command_idx] as Command
 		
 		if not command:
 			assert(command)
