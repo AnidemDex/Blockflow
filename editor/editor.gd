@@ -7,6 +7,7 @@ const CommandList = preload("res://addons/blockflow/command_list.gd")
 enum _ItemPopup {
 	MOVE_UP, 
 	MOVE_DOWN, 
+	DUPLICATE,
 	REMOVE,
 	}
 
@@ -110,6 +111,27 @@ func move_command(command:Command, to_position:int) -> void:
 		undo_redo.commit_action()
 
 
+func duplicate_command(command:Command, to_position:int) -> void:
+	if not _current_timeline: return
+	if not command: return
+	
+	var at_position:int = _current_timeline.get_command_idx(command)
+	var action_name:String = "Duplicate command '%s'" % [command.get_command_name()]
+	
+	if Engine.is_editor_hint():
+		editor_undoredo.create_action(action_name)
+		editor_undoredo.add_do_method(_current_timeline, "duplicate_command", command, to_position)
+		editor_undoredo.add_undo_method(_current_timeline, "erase_command", command)
+		editor_undoredo.commit_action()
+	else:
+		undo_redo.create_action(action_name)
+		
+		undo_redo.add_do_method(_current_timeline.duplicate_command.bind(command, to_position))
+		undo_redo.add_undo_method(_current_timeline.erase_command.bind(command))
+		
+		undo_redo.commit_action()
+
+
 func remove_command(command:Command) -> void:
 	if not _current_timeline: return
 	if not command: return
@@ -140,6 +162,9 @@ func _item_popup_id_pressed(id:int) -> void:
 			
 		_ItemPopup.MOVE_DOWN:
 			move_command(command, command_idx + 1)
+
+		_ItemPopup.DUPLICATE:
+			duplicate_command(command, command_idx + 1)
 			
 		_ItemPopup.REMOVE:
 			remove_command(command)
@@ -156,6 +181,7 @@ func _timeline_displayer_item_mouse_selected(_position:Vector2, button_index:int
 		_item_popup.add_item("Move up", _ItemPopup.MOVE_UP)
 		_item_popup.add_item("Move down", _ItemPopup.MOVE_DOWN)
 		_item_popup.add_separator()
+		_item_popup.add_item("Duplicate", _ItemPopup.DUPLICATE)
 		_item_popup.add_item("Remove", _ItemPopup.REMOVE)
 		
 		_item_popup.reset_size()
