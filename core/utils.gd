@@ -1,4 +1,4 @@
-extends Object
+## Util functions
 
 # Based on: https://www.askpython.com/python/built-in-methods/python-eval
 ## Evaluates a string, excecutes it and returns the result
