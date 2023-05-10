@@ -11,9 +11,12 @@ class_name Timeline
 var commands:Array[Command]:
 	set(value):
 		commands = value
+		update_bookmarks()
 		emit_changed()
 	get:
 		return commands
+
+var _bookmarks:Dictionary
 
 ## Adds a [Command] to the timeline
 func add_command(command:Command) -> void:
@@ -21,6 +24,7 @@ func add_command(command:Command) -> void:
 		push_error("add_command: Trying to add an command to the timeline, but the command is already added")
 		return
 	commands.append(command)
+	update_bookmarks()
 	emit_changed()
 
 ## Insert an [code]Command[/code] at position.
@@ -32,8 +36,16 @@ func insert_command(command:Command, at_position:int) -> void:
 	var idx = at_position if at_position > -1 else commands.size()
 	commands.insert(idx, command)
 	
+	update_bookmarks()
 	emit_changed()
 
+## Duplicates a [Command] to the timeline
+func duplicate_command(command:Command, to_position:int) -> void:
+	var duplicated = command.duplicate()
+	var idx = to_position if to_position > -1 else commands.size()
+	commands.insert(idx, duplicated)
+	
+	emit_changed()
 
 ## Moves an [code]command[/code] to position.
 func move_command(command, to_position:int) -> void:
@@ -57,6 +69,7 @@ func move_command(command, to_position:int) -> void:
 	
 	commands.insert(to_position, command)
 	
+	update_bookmarks()
 	emit_changed()
 	notify_property_list_changed()
 
@@ -68,14 +81,23 @@ func get_command(position:int) -> Resource:
 	push_error("get_command: Tried to get an command on a non-existing position: ", position)
 	return null
 
+## Get the command [code]position[/code] from its [code]bookmark[/code]
+func get_command_by_bookmark(bookmark:String) -> Resource:
+	if not bookmark in _bookmarks:
+		push_error("get_command_by_bookmark: Couldn't find command with a bookmark: ", bookmark)
+	
+	return _bookmarks.get(bookmark, null)
+
 ## Removes an command from the timeline.
 func erase_command(command) -> void:
 	commands.erase(command)
+	update_bookmarks()
 	emit_changed()
 
 ## Removes an command at [code]position[/code] from the timelin
 func remove_command(position:int) -> void:
 	commands.remove_at(position)
+	update_bookmarks()
 	emit_changed()
 
 ## Returns the command position in the timeline.
@@ -85,6 +107,10 @@ func get_command_idx(command) -> int:
 func has(value:Command) -> bool:
 	return commands.has(value)
 
+func update_bookmarks() -> void:
+	for command in commands:
+		if not command.bookmark.is_empty():
+			_bookmarks[command.bookmark] = command
 
 func _get_property_list() -> Array:
 	var p:Array = []
