@@ -185,7 +185,7 @@ func _timeline_displayer_item_mouse_selected(_position:Vector2, button_index:int
 		_item_popup.add_item("Remove", _ItemPopup.REMOVE)
 		
 		_item_popup.reset_size()
-		_item_popup.position = get_global_mouse_position()
+		_item_popup.position = DisplayServer.mouse_get_position()
 		_item_popup.popup()
 
 

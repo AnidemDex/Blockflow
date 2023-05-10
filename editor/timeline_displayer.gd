@@ -19,6 +19,12 @@ func load_timeline(timeline:TimelineClass) -> void:
 
 
 func _reload() -> void:
+	var commands:Array = _current_timeline.commands
+	for command_idx in commands.size():
+		var command:Command = commands[command_idx] as Command
+		if command.changed.is_connected(_build_item):
+			command.changed.disconnect(_build_item)
+
 	clear()
 	
 	if not _current_timeline:
@@ -38,15 +44,14 @@ func _reload() -> void:
 	
 	root.set_text(0, timeline_name)
 	root.set_text_alignment(0, HORIZONTAL_ALIGNMENT_LEFT)
-	root.set_text(columns-1, str(_current_timeline.commands.size()))
-	root.set_editable(0, true)
+	root.set_text(columns-1, str(commands.size()))
+	root.set_editable(0, false)
 	if not _current_timeline.changed.is_connected(_timeline_changed):
 		_current_timeline.changed.connect(_timeline_changed)
 	# See this little trick here? Is to remove the column expand.
 	# I hate it.
 	#root.set_text(columns-1, " ")
 	
-	var commands:Array = _current_timeline.commands
 	for command_idx in commands.size():
 		var item:TreeItem = create_item(root)
 		var command:Command = commands[command_idx] as Command
@@ -77,10 +82,10 @@ func _build_item(item:TreeItem, command:Command) -> void:
 	if not command.bookmark.is_empty():
 		hint += "Bookmark:\n"+command.bookmark
 		bookmark = load("res://addons/blockflow/icons/bookmark.svg")
-	
+
 	for i in columns:
 		item.set_icon_max_width(i, 32)
-	
+
 	item.set_text(0, command_name)
 	item.set_icon(0, command_icon)
 	
@@ -134,5 +139,7 @@ func _init() -> void:
 	set_column_expand(1, true)
 	set_column_expand(2, false)
 	
-	item_edited.connect(_on_item_edited)
+	set_column_custom_minimum_width(2, 64)
 	
+	item_edited.connect(_on_item_edited)
+
