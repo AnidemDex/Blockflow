@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://c1df7v3gra7q1"
-path="res://.godot/imported/Play.svg-d8ea6b946ce36a5fa1a5c95795c75e73.ctex"
+uid="uid://7ox5n3pwcths"
+path="res://.godot/imported/Stop.svg-a7ab617b96c8066f1d15ffb691436cf5.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://addons/blockflow/icons/Play.svg"
-dest_files=["res://.godot/imported/Play.svg-d8ea6b946ce36a5fa1a5c95795c75e73.ctex"]
+source_file="res://addons/blockflow/icons/Stop.svg"
+dest_files=["res://.godot/imported/Stop.svg-a7ab617b96c8066f1d15ffb691436cf5.ctex"]
 
 [params]
 
