@@ -45,7 +45,7 @@ func _reload() -> void:
 	root.set_text(0, timeline_name)
 	root.set_text_alignment(0, HORIZONTAL_ALIGNMENT_LEFT)
 	root.set_text(columns-1, str(commands.size()))
-	root.set_editable(0, false)
+	root.set_editable(0, true)
 	if not _current_timeline.changed.is_connected(_timeline_changed):
 		_current_timeline.changed.connect(_timeline_changed)
 	# See this little trick here? Is to remove the column expand.
