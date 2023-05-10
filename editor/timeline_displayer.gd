@@ -105,9 +105,11 @@ func _build_item(item:TreeItem, command:Command) -> void:
 		item.erase_button(last_column, ButtonHint.CONTINUE_AT_END)
 	
 	hint = "CommandManager will stop when this command ends."
+	var continue_icon = get_theme_icon("Stop", "EditorIcons")
 	if command.continue_at_end:
 		hint = "CommandManager will continue automatically to next command when this command ends."
-	item.add_button(last_column, get_theme_icon("Stop", "EditorIcons"), ButtonHint.CONTINUE_AT_END, command.continue_at_end, hint)
+		continue_icon = get_theme_icon("Play", "EditorIcons")
+	item.add_button(last_column, continue_icon, ButtonHint.CONTINUE_AT_END, false, hint)
 
 
 func _gui_input(event: InputEvent) -> void:
