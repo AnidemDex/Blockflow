@@ -74,8 +74,8 @@ func _build_item(item:TreeItem, command:Command) -> void:
 	var command_hint_icon:Texture = command.get_hint_icon()
 	var last_column = columns-1
 	
-	if not command.label.is_empty():
-		hint += "Label:\n"+command.label
+	if not command.bookmark.is_empty():
+		hint += "Bookmark:\n"+command.bookmark
 		bookmark = load("res://addons/blockflow/icons/bookmark.svg")
 	
 	for i in columns:
