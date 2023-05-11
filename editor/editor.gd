@@ -18,6 +18,12 @@ enum _DropSection {
 	UNDER_ITEM,
 	}
 
+enum ToolbarFileMenu {
+	NEW_TIMELINE,
+	OPEN_TIMELINE,
+	CLOSE_TIMELINE,
+}
+
 var undo_redo:UndoRedo:
 	set(value):
 		undo_redo = value
@@ -66,7 +72,9 @@ func edit_timeline(timeline:Timeline) -> void:
 			timeline.changed.connect(load_function.bind(timeline), CONNECT_DEFERRED)
 		path_hint = _current_timeline.resource_path
 		hide_help_panel()
+		_file_menu.set_item_disabled(_file_menu.get_item_index(ToolbarFileMenu.CLOSE_TIMELINE), false)
 	else:
+		_file_menu.set_item_disabled(_file_menu.get_item_index(ToolbarFileMenu.CLOSE_TIMELINE), true)
 		show_help_panel()
 	
 	title_label.text = path_hint
@@ -321,6 +329,17 @@ func _editor_file_dialog_file_selected(path:String) -> void:
 	edit_callback.bind(timeline).call_deferred()
 
 
+func _toolbar_file_menu_id_pressed(id:int) -> void:
+	match id:
+		ToolbarFileMenu.NEW_TIMELINE:
+			_request_new_timeline()
+		ToolbarFileMenu.OPEN_TIMELINE:
+			_request_load_timeline()
+		ToolbarFileMenu.CLOSE_TIMELINE:
+			edit_timeline(null)
+			edit_callback.get_object().call("edit_node", null)
+
+
 func _notification(what: int) -> void:
 	match what:
 		NOTIFICATION_ENTER_TREE, NOTIFICATION_THEME_CHANGED:
@@ -351,9 +370,12 @@ func _init() -> void:
 	
 	_file_menu = PopupMenu.new()
 	_file_menu.allow_search = false
-	_file_menu.add_item("New Timeline...")
-	_file_menu.add_item("Open Timeline...")
-	_file_menu.add_item("Close current timeline")
+	_file_menu.id_pressed.connect(_toolbar_file_menu_id_pressed)
+	_file_menu.add_item("New Timeline...", ToolbarFileMenu.NEW_TIMELINE)
+	_file_menu.add_item("Open Timeline...", ToolbarFileMenu.OPEN_TIMELINE)
+	_file_menu.add_separator()
+	_file_menu.add_item("Close current timeline", ToolbarFileMenu.CLOSE_TIMELINE)
+	_file_menu.set_item_disabled(_file_menu.get_item_index(ToolbarFileMenu.CLOSE_TIMELINE), true)
 	_toolbar.add_child(_file_menu)
 	
 	_toolbar.set_menu_title(0, "File")

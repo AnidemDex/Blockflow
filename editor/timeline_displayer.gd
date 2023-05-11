@@ -19,16 +19,16 @@ func load_timeline(timeline:TimelineClass) -> void:
 
 
 func _reload() -> void:
+	clear()
+	
+	if not _current_timeline:
+		return
+	
 	var commands:Array = _current_timeline.commands
 	for command_idx in commands.size():
 		var command:Command = commands[command_idx] as Command
 		if command.changed.is_connected(_build_item):
 			command.changed.disconnect(_build_item)
-
-	clear()
-	
-	if not _current_timeline:
-		return
 	
 	var timeline_name:String = _current_timeline.resource_name
 	if timeline_name.is_empty():
