@@ -52,6 +52,8 @@ func _reload() -> void:
 	# I hate it.
 	#root.set_text(columns-1, " ")
 	
+	root.set_metadata(0, _current_timeline)
+	
 	for command_idx in commands.size():
 		var item:TreeItem = create_item(root)
 		var command:Command = commands[command_idx] as Command
