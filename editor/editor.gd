@@ -18,6 +18,12 @@ enum _DropSection {
 	UNDER_ITEM,
 	}
 
+enum ToolbarFileMenu {
+	NEW_TIMELINE,
+	OPEN_TIMELINE,
+	CLOSE_TIMELINE,
+}
+
 var undo_redo:UndoRedo:
 	set(value):
 		undo_redo = value
@@ -41,6 +47,16 @@ var _current_timeline:Timeline
 var _item_popup:PopupMenu
 var _moving_command:bool = false
 
+var _help_panel:Container
+var _help_panel_new_btn:Button
+var _help_panel_load_btn:Button
+var _help_panel_label:Label
+
+var _toolbar:MenuBar
+var _file_menu:PopupMenu
+
+var _editor_file_dialog:EditorFileDialog
+
 func edit_timeline(timeline:Timeline) -> void:
 	var load_function:Callable = timeline_displayer.load_timeline
 	var path_hint:String = ""
@@ -55,6 +71,11 @@ func edit_timeline(timeline:Timeline) -> void:
 		if not timeline.changed.is_connected(load_function):
 			timeline.changed.connect(load_function.bind(timeline), CONNECT_DEFERRED)
 		path_hint = _current_timeline.resource_path
+		hide_help_panel()
+		_file_menu.set_item_disabled(_file_menu.get_item_index(ToolbarFileMenu.CLOSE_TIMELINE), false)
+	else:
+		_file_menu.set_item_disabled(_file_menu.get_item_index(ToolbarFileMenu.CLOSE_TIMELINE), true)
+		show_help_panel()
 	
 	title_label.text = path_hint
 	load_function.call(timeline)
@@ -151,6 +172,30 @@ func remove_command(command:Command) -> void:
 		undo_redo.add_undo_method(_current_timeline.insert_command.bind(command, command_idx))
 		
 		undo_redo.commit_action()
+
+
+func show_help_panel():
+	_help_panel.show()
+
+
+func hide_help_panel():
+	_help_panel.hide()
+
+
+func _request_load_timeline() -> void:
+	_editor_file_dialog.current_dir = ""
+	_editor_file_dialog.file_mode = EditorFileDialog.FILE_MODE_OPEN_FILE
+	_editor_file_dialog.filters = ["*.tres, *.res ; Resource file"]
+	_editor_file_dialog.title = "Load Timeline"
+	_editor_file_dialog.popup_centered_ratio(0.5)
+
+
+func _request_new_timeline() -> void:
+	_editor_file_dialog.current_dir = ""
+	_editor_file_dialog.file_mode = EditorFileDialog.FILE_MODE_SAVE_FILE
+	_editor_file_dialog.filters = ["*.tres, *.res ; Resource file"]
+	_editor_file_dialog.title = "New Timeline"
+	_editor_file_dialog.popup_centered_ratio(0.5)
 
 
 func _item_popup_id_pressed(id:int) -> void:
@@ -262,6 +307,47 @@ func _timeline_displayer_drop_data(at_position: Vector2, data) -> void:
 				move_command(command, ref_idx + int(ref_idx < cmd_idx))
 
 
+func _editor_file_dialog_file_selected(path:String) -> void:
+	var timeline:Timeline
+	
+	if _editor_file_dialog.file_mode == EditorFileDialog.FILE_MODE_SAVE_FILE:
+		timeline = Timeline.new()
+		timeline.resource_name = path.get_file()
+		
+		var err:int = ResourceSaver.save(timeline, path)
+		if err != 0:
+			push_error("Saving timeline failed with Error '%s'" % err)
+			return
+		timeline = load(path)
+	
+	timeline = load(path) as Timeline
+	
+	if not timeline:
+		push_error("TimelineEditor: '%s' is not a valid Timeline" % path)
+		return
+	
+	edit_callback.bind(timeline).call_deferred()
+
+
+func _toolbar_file_menu_id_pressed(id:int) -> void:
+	match id:
+		ToolbarFileMenu.NEW_TIMELINE:
+			_request_new_timeline()
+		ToolbarFileMenu.OPEN_TIMELINE:
+			_request_load_timeline()
+		ToolbarFileMenu.CLOSE_TIMELINE:
+			edit_timeline(null)
+			edit_callback.get_object().call("edit_node", null)
+
+
+func _notification(what: int) -> void:
+	match what:
+		NOTIFICATION_ENTER_TREE, NOTIFICATION_THEME_CHANGED:
+			_help_panel_load_btn.icon = get_theme_icon("Object", "EditorIcons")
+			_help_panel_new_btn.icon = get_theme_icon("Load", "EditorIcons")
+			title_label.add_theme_stylebox_override("normal", get_theme_stylebox("ContextualToolbar", "EditorStyles"))
+
+
 func _init() -> void:
 	name = "TimelineEditor"
 	size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -278,12 +364,25 @@ func _init() -> void:
 	_item_popup.id_pressed.connect(_item_popup_id_pressed, CONNECT_DEFERRED)
 	add_child(_item_popup)
 	
+	_toolbar = MenuBar.new()
+	_toolbar.flat = true
+	vb.add_child(_toolbar)
+	
+	_file_menu = PopupMenu.new()
+	_file_menu.allow_search = false
+	_file_menu.id_pressed.connect(_toolbar_file_menu_id_pressed)
+	_file_menu.add_item("New Timeline...", ToolbarFileMenu.NEW_TIMELINE)
+	_file_menu.add_item("Open Timeline...", ToolbarFileMenu.OPEN_TIMELINE)
+	_file_menu.add_separator()
+	_file_menu.add_item("Close current timeline", ToolbarFileMenu.CLOSE_TIMELINE)
+	_file_menu.set_item_disabled(_file_menu.get_item_index(ToolbarFileMenu.CLOSE_TIMELINE), true)
+	_toolbar.add_child(_file_menu)
+	
+	_toolbar.set_menu_title(0, "File")
+	
 	title_label = Label.new()
 	title_label.name = "TitleLabel"
 	title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	var stbx:StyleBoxFlat = StyleBoxFlat.new()
-	stbx.bg_color = Color("353535")
-	title_label.add_theme_stylebox_override("normal", stbx)
 	vb.add_child(title_label)
 	
 	var hb:HBoxContainer = HBoxContainer.new()
@@ -295,10 +394,52 @@ func _init() -> void:
 	command_list.command_button_list_pressed = _command_button_list_pressed
 	hb.add_child(command_list)
 	
+	var pc = PanelContainer.new()
+	pc.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	pc.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	hb.add_child(pc)
+	
 	timeline_displayer = TimelineDisplayer.new()
 	timeline_displayer.name = "TimelineDisplayer"
 	timeline_displayer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	timeline_displayer.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	timeline_displayer.item_mouse_selected.connect(_timeline_displayer_item_mouse_selected)
 	timeline_displayer.item_selected.connect(_timeline_displayer_item_selected)
 	timeline_displayer.set_drag_forwarding(_timeline_displayer_get_drag_data, _timeline_displayer_can_drop_data, _timeline_displayer_drop_data)
-	hb.add_child(timeline_displayer)
+	pc.add_child(timeline_displayer)
+	
+	_help_panel = PanelContainer.new()
+	_help_panel.name = "HelpPanel"
+	_help_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_help_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	pc.add_child(_help_panel)
+	
+	vb = VBoxContainer.new()
+	vb.alignment = BoxContainer.ALIGNMENT_CENTER
+	_help_panel.add_child(vb)
+	
+	_help_panel_label = Label.new()
+	_help_panel_label.text = "You're not editing any timeline."
+	_help_panel_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vb.add_child(_help_panel_label)
+	
+	hb = HBoxContainer.new()
+	hb.alignment = BoxContainer.ALIGNMENT_CENTER
+	vb.add_child(hb)
+	
+	_help_panel_new_btn = Button.new()
+	_help_panel_new_btn.text = "New Timeline"
+	_help_panel_new_btn.pressed.connect(_request_new_timeline)
+	hb.add_child(_help_panel_new_btn)
+	
+	_help_panel_load_btn = Button.new()
+	_help_panel_load_btn.text = "Load Timeline"
+	_help_panel_load_btn.pressed.connect(_request_load_timeline)
+	hb.add_child(_help_panel_load_btn)
+	
+	show_help_panel()
+	
+	_editor_file_dialog = EditorFileDialog.new()
+	_editor_file_dialog.file_selected.connect(_editor_file_dialog_file_selected)
+	add_child(_editor_file_dialog)
+	
