@@ -39,6 +39,7 @@ signal command_finished
 	set(value):
 		target = value
 		emit_changed()
+		notify_property_list_changed()
 	get: return target
 
 ## Execution steps that will be called to execute the command behaviour.
