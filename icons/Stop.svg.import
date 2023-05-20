@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://7ox5n3pwcths"
-path="res://.godot/imported/Stop.svg-a7ab617b96c8066f1d15ffb691436cf5.ctex"
+path="res://.godot/imported/stop.svg-a7ab617b96c8066f1d15ffb691436cf5.ctex"
 metadata={
 "editor_dark_theme": true,
 "editor_scale": 1.0,
@@ -13,8 +13,8 @@ metadata={
 
 [deps]
 
-source_file="res://addons/blockflow/icons/Stop.svg"
-dest_files=["res://.godot/imported/Stop.svg-a7ab617b96c8066f1d15ffb691436cf5.ctex"]
+source_file="res://addons/blockflow/icons/stop.svg"
+dest_files=["res://.godot/imported/stop.svg-a7ab617b96c8066f1d15ffb691436cf5.ctex"]
 
 [params]
 

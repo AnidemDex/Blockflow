@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://xfppf2h5gjv5"
-path="res://.godot/imported/Timer.svg-9794fbdf79472eadc62aaac8fe455e2e.ctex"
+path="res://.godot/imported/timer.svg-9794fbdf79472eadc62aaac8fe455e2e.ctex"
 metadata={
 "editor_dark_theme": true,
 "editor_scale": 1.0,
@@ -13,8 +13,8 @@ metadata={
 
 [deps]
 
-source_file="res://addons/blockflow/icons/Timer.svg"
-dest_files=["res://.godot/imported/Timer.svg-9794fbdf79472eadc62aaac8fe455e2e.ctex"]
+source_file="res://addons/blockflow/icons/timer.svg"
+dest_files=["res://.godot/imported/timer.svg-9794fbdf79472eadc62aaac8fe455e2e.ctex"]
 
 [params]
 

@@ -4,8 +4,8 @@ extends Tree
 const TimelineClass = preload("res://addons/blockflow/timeline.gd")
 const FALLBACK_ICON = preload("res://icon.svg")
 const BOOKMARK_ICON = preload("res://addons/blockflow/icons/bookmark.svg")
-const STOP_ICON = preload("res://addons/blockflow/icons/Stop.svg")
-const CONTINUE_ICON = preload("res://addons/blockflow/icons/Play.svg")
+const STOP_ICON = preload("res://addons/blockflow/icons/stop.svg")
+const CONTINUE_ICON = preload("res://addons/blockflow/icons/play.svg")
 enum ButtonHint {CONTINUE_AT_END}
 
 
