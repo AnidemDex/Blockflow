@@ -3,6 +3,9 @@ extends Tree
 
 const TimelineClass = preload("res://addons/blockflow/timeline.gd")
 const FALLBACK_ICON = preload("res://icon.svg")
+const BOOKMARK_ICON = preload("res://addons/blockflow/icons/bookmark.svg")
+const STOP_ICON = preload("res://addons/blockflow/icons/stop.svg")
+const CONTINUE_ICON = preload("res://addons/blockflow/icons/play.svg")
 enum ButtonHint {CONTINUE_AT_END}
 
 
@@ -107,10 +110,10 @@ func _build_item(item:TreeItem, command:Command) -> void:
 		item.erase_button(last_column, ButtonHint.CONTINUE_AT_END)
 	
 	hint = "CommandManager will stop when this command ends."
-	var continue_icon = get_theme_icon("Stop", "EditorIcons")
+	var continue_icon = STOP_ICON
 	if command.continue_at_end:
 		hint = "CommandManager will continue automatically to next command when this command ends."
-		continue_icon = get_theme_icon("Play", "EditorIcons")
+		continue_icon = CONTINUE_ICON
 	item.add_button(last_column, continue_icon, ButtonHint.CONTINUE_AT_END, false, hint)
 
 

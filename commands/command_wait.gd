@@ -27,4 +27,4 @@ func _get_hint() -> String:
 
 
 func _get_icon() -> Texture:
-	return load("res://addons/blockflow/icons/Timer.svg")
+	return load("res://addons/blockflow/icons/timer.svg")
