@@ -9,63 +9,91 @@ var use_bookmark:bool:
 		emit_changed()
 		notify_property_list_changed()
 	get: return use_bookmark
-var by_index:int:
+
+var command_index:int:
 	set(value):
-		by_index = value
+		command_index = value
 		emit_changed()
-	get: return by_index
-var by_bookmark:String:
+	get: return command_index
+
+var command_bookmark:String:
 	set(value):
-		by_bookmark = value
+		command_bookmark = value
 		emit_changed()
-	get: return by_bookmark
-var go_to_timeline:bool:
-	set(value):
-		go_to_timeline = value
-		emit_changed()
-		notify_property_list_changed()
-	get: return go_to_timeline
+	get: return command_bookmark
+
 var timeline:Timeline:
 	set(value):
 		timeline = value
 		emit_changed()
 	get: return timeline
 
-var on_condition:String:
+var condition:String:
 	set(value):
-		on_condition = value
+		condition = value
 		emit_changed()
 	get:
-		return on_condition
+		return condition
+
+var verify_condition_once:bool = true
 
 func _execution_steps() -> void:
 	command_started.emit()
+	# This is an special command. It doesn't emmits a finished signal
+	# since it controls the command manager directly
 	
-	# A conditional is set on this command
-	if not on_condition.is_empty():
-		# TODO: replace with node variables, for ex. command_manager.get_property_list()
-		var variables:Dictionary = {}
-		var evaluated_condition = _Utils.evaluate(on_condition, command_manager, variables)
-		
-		# Do not move on unless the conditional is true
-		if not (evaluated_condition and (str(evaluated_condition) != on_condition)):
-			# The only time command_finished is emitted for goto event
-			command_finished.emit()
-			return
+	if verify_condition_once and _condition_is_true():
+		_go_to_defined_command()
+		return
+	
+	(Engine.get_main_loop() as SceneTree).process_frame.connect(_fake_process, CONNECT_ONE_SHOT)
 
-	var target_idx = by_index
-	if go_to_timeline:
-		if use_bookmark:
-			var target_command = command_manager.timeline.get_command_by_bookmark(by_bookmark)
-			target_idx = command_manager.timeline.get_command_idx(target_command)
+
+func _condition_is_true() -> bool:
+	if condition.is_empty():
+		return true
+	
+	# Local variables. These can be added as context for condition evaluation.
+	var variables:Dictionary = {}
+	# must be a bool, but Utils.evaluate can return Variant according its input.
+	# TODO: Make sure that condition is a boolean operation
+	var evaluated_condition = _Utils.evaluate(condition, target_node, variables)
+	if (typeof(evaluated_condition) == TYPE_STRING) and (str(evaluated_condition) == condition):
+		# For some reason, your condition cannot be evaluated.
+		# Here's a few reasons:
+		# 1. Your target_node may not have that property you specified.
+		# 2. You wrote wrong the property.
+		# 3. You wrote wrong the function name.
+		push_warning("%s failed. The condition will be evaluated as false." % [self])
+		return false
+	
+	return bool(evaluated_condition)
+
+
+func _go_to_defined_command() -> void:
+	var target_timeline:Timeline = command_manager.timeline
+	
+	if timeline:
+		target_timeline = timeline
+	
+	if use_bookmark:
+		var target_command = target_timeline.get_command_by_bookmark(command_bookmark)
+		command_index = target_timeline.get_command_idx(target_command)
+	
+	if timeline:
+		# Now looking at it, this seems wrong.
 		command_manager.timeline = timeline
-		command_manager.start_timeline(target_idx)
-	else:
-		if use_bookmark:
-			var target_command = command_manager.timeline.get_command_by_bookmark(by_bookmark)
-			target_idx = command_manager.timeline.get_command_idx(target_command)
-		command_manager.go_to_command(target_idx)
+		command_manager.start_timeline(command_index)
+		return
+	
+	command_manager.go_to_command(command_index)
 
+
+func _fake_process() -> void:
+	if _condition_is_true():
+		_go_to_defined_command()
+	else:
+		(Engine.get_main_loop() as SceneTree).process_frame.connect(_fake_process, CONNECT_ONE_SHOT)
 
 
 func _get_name() -> String:
@@ -75,21 +103,17 @@ func _get_name() -> String:
 func _get_hint() -> String:
 	var hint_str = ""
 	if use_bookmark:
-		hint_str += "bookmark: " + by_bookmark
+		hint_str += "bookmark: " + command_bookmark
 	else:
-		hint_str += "index: " + str(by_index)
-	if go_to_timeline:
-		hint_str += " on "
-		if timeline != null:
-			hint_str += "timeline "
-			if timeline.resource_name.is_empty():
-				hint_str += "'" + timeline.resource_path + "'"
-			else:
-				hint_str += "'" + timeline.resource_name + "'"
+		hint_str += "index: " + str(command_index)
+	if timeline:
+		hint_str += " on timeline "
+		if timeline.resource_name.is_empty():
+			hint_str += "'" + timeline.resource_path + "'"
 		else:
-			hint_str += "<Invalid Timeline!>"
-	if on_condition:
-		hint_str += " if " + str(on_condition)
+			hint_str += "'" + timeline.resource_name + "'"
+	if not condition.is_empty():
+		hint_str += " if " + str(condition)
 	return hint_str
 
 
@@ -98,49 +122,36 @@ func _get_icon() -> Texture:
 
 
 func _get_property_list():
-	var tl_usage = PROPERTY_USAGE_NO_EDITOR
-	if go_to_timeline:
-		tl_usage = PROPERTY_USAGE_DEFAULT
-
-	var bm_usage = PROPERTY_USAGE_NO_EDITOR
-	var idx_usage = PROPERTY_USAGE_DEFAULT
-	if use_bookmark:
-		bm_usage = PROPERTY_USAGE_DEFAULT
-		idx_usage = PROPERTY_USAGE_NO_EDITOR
 
 	var properties = [
+		{
+			"name": "condition",
+			"type": TYPE_STRING,
+			"usage": PROPERTY_USAGE_DEFAULT,
+			"hint":PROPERTY_HINT_EXPRESSION
+		},
 		{
 			"name": "use_bookmark",
 			"type": TYPE_BOOL,
 			"usage": PROPERTY_USAGE_DEFAULT,
 		},
 		{
-			"name": "by_index",
+			"name": "command_index",
 			"type": TYPE_INT,
-			"usage": idx_usage,
+			"usage": PROPERTY_USAGE_DEFAULT if not use_bookmark else 0,
 		},
 		{
-			"name": "by_bookmark",
+			"name": "command_bookmark",
 			"type": TYPE_STRING,
-			"usage": bm_usage,
-		},
-		{
-			"name": "go_to_timeline",
-			"type": TYPE_BOOL,
-			"usage": PROPERTY_USAGE_DEFAULT,
+			"usage": PROPERTY_USAGE_DEFAULT if use_bookmark else 0,
 		},
 		{
 			"name": "timeline",
 			"type": TYPE_OBJECT,
 			"class_name": "Timeline",
-			"usage": tl_usage,
+			"usage": PROPERTY_USAGE_DEFAULT,
 			"hint": PROPERTY_HINT_RESOURCE_TYPE,
 			"hint_string": "Timeline"
-		},
-		{
-			"name": "on_condition",
-			"type": TYPE_STRING,
-			"usage": PROPERTY_USAGE_DEFAULT,
 		},
 	]
 
