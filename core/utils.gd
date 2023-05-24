@@ -14,6 +14,7 @@ static func evaluate(input:String, global:Object=null, locals:Dictionary={}, _sh
 		_evaluated_value = _expression.execute(locals.values(), global, _show_error)
 		
 		if _expression.has_execute_failed():
+			push_error("Utils::evaluate( %s ) -> Execution failed, returning input." % [input])
 			return input
 		
 	return _evaluated_value
