@@ -81,6 +81,8 @@ func _go_to_defined_command() -> void:
 		command_index = target_timeline.get_command_idx(target_command)
 	
 	if timeline:
+		# Now looking at it, this seems wrong.
+		command_manager.timeline = timeline
 		command_manager.start_timeline(command_index)
 		return
 	
