@@ -7,6 +7,18 @@ extends Command
 		emit_changed()
 	get:
 		return animation
+@export_range(-1, 1) var custom_blend:float = -1:
+	set(value):
+		custom_blend = value
+		emit_changed()
+	get:
+		return custom_blend
+@export_range(0.0001, 1000.0) var custom_speed:float = 1.0:
+	set(value):
+		custom_speed = value
+		emit_changed()
+	get:
+		return custom_speed
 @export var play_backwards:bool = false:
 	set(value):
 		play_backwards = value
@@ -41,11 +53,12 @@ func _execution_steps() -> void:
 			Callable(self, "emit_signal").bind("command_finished"),
 			CONNECT_ONE_SHOT
 			)
-	
-	if play_backwards:
-		(target_node as AnimationPlayer).play_backwards(animation)
-	else:
-		(target_node as AnimationPlayer).play(animation)
+
+	(target_node as AnimationPlayer).play(animation,
+		custom_blend,
+		(-custom_speed if play_backwards else custom_speed),
+		play_backwards
+		)
 	
 	if not wait_until_animation_ends:
 		command_finished.emit()
