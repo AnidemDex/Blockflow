@@ -93,7 +93,9 @@ func _fake_process() -> void:
 	if _condition_is_true():
 		_go_to_defined_command()
 	else:
-		(Engine.get_main_loop() as SceneTree).process_frame.connect(_fake_process, CONNECT_ONE_SHOT)
+		var main_loop = Engine.get_main_loop() as SceneTree
+		if not main_loop.process_frame.is_connected(_fake_process):
+			main_loop.process_frame.connect(_fake_process, CONNECT_ONE_SHOT)
 
 
 func _get_name() -> String:
