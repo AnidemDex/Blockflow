@@ -1,9 +1,25 @@
 @tool
 extends Command
 
-@export var animation:String = ""
-@export var play_backwards:bool = false
-@export var wait_until_animation_ends:bool = false
+@export var animation:String = "":
+	set(value):
+		animation = value
+		emit_changed()
+	get:
+		return animation
+@export var play_backwards:bool = false:
+	set(value):
+		play_backwards = value
+		emit_changed()
+	get:
+		return play_backwards
+@export var wait_until_animation_ends:bool = false:
+	set(value):
+		wait_until_animation_ends = value
+		emit_changed()
+	get:
+		return wait_until_animation_ends
+
 
 func _execution_steps() -> void:
 	command_started.emit()
@@ -41,3 +57,14 @@ func _get_name() -> String:
 
 func _get_icon() -> Texture:
 	return load("res://addons/blockflow/icons/animation.svg")
+
+
+func _get_hint() -> String:
+	var hint_str = "play '" + animation + "'"
+	if play_backwards:
+		hint_str += " backwards"
+	if wait_until_animation_ends:
+		hint_str += " and wait"
+	if target != NodePath():
+		hint_str += " on " + str(target)
+	return hint_str
