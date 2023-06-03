@@ -13,7 +13,7 @@ extends Command
 		emit_changed()
 	get:
 		return custom_blend
-@export_range(0.0001, 1000.0) var custom_speed:float = 1.0:
+@export_range(0.001, 100.0) var custom_speed:float = 1.0:
 	set(value):
 		custom_speed = value
 		emit_changed()
@@ -25,12 +25,12 @@ extends Command
 		emit_changed()
 	get:
 		return play_backwards
-@export var wait_until_animation_ends:bool = false:
+@export var wait_until_finished:bool = false:
 	set(value):
-		wait_until_animation_ends = value
+		wait_until_finished = value
 		emit_changed()
 	get:
-		return wait_until_animation_ends
+		return wait_until_finished
 
 
 func _execution_steps() -> void:
@@ -48,7 +48,7 @@ func _execution_steps() -> void:
 		command_finished.emit()
 		return
 	
-	if wait_until_animation_ends:
+	if wait_until_finished:
 		animation_player.animation_finished.connect(
 			Callable(self, "emit_signal").bind("command_finished"),
 			CONNECT_ONE_SHOT
@@ -60,7 +60,7 @@ func _execution_steps() -> void:
 		play_backwards
 		)
 	
-	if not wait_until_animation_ends:
+	if not wait_until_finished:
 		command_finished.emit()
 
 
@@ -74,10 +74,14 @@ func _get_icon() -> Texture:
 
 func _get_hint() -> String:
 	var hint_str = "play '" + animation + "'"
+	if custom_blend != -1:
+		hint_str += " with blend of " + str(custom_blend)
+	if custom_speed != 1.0:
+		hint_str += " at speed " + str(custom_speed)
 	if play_backwards:
 		hint_str += " backwards"
-	if wait_until_animation_ends:
-		hint_str += " and wait"
+	if wait_until_finished:
+		hint_str += " and wait until finished"
 	if target != NodePath():
 		hint_str += " on " + str(target)
 	return hint_str
