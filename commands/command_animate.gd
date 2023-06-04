@@ -22,7 +22,7 @@ func _execution_steps() -> void:
 	
 	if wait_until_animation_ends:
 		animation_player.animation_finished.connect(
-			Callable(self, "emit_signal").bind("command_finished"),
+			animation_ends,
 			CONNECT_ONE_SHOT
 			)
 	
@@ -34,6 +34,8 @@ func _execution_steps() -> void:
 	if not wait_until_animation_ends:
 		command_finished.emit()
 
+func animation_ends(_anim: String):
+	command_finished.emit()
 
 func _get_name() -> String:
 	return "Animate"
