@@ -2,6 +2,7 @@
 extends Command
 
 func _execution_steps() -> void:
+	command_started.emit()
 	pass
 
 

@@ -1,30 +1,28 @@
 extends Node
-
-@export var timeline:Timeline
-
-func play():
-	pass
-
+class_name CommandManager
 ##
-## Base class for all command manager nodes.
+## Manages the execution of timelines.
 ##
-## commandManager executes the command behaviour, and manages the command order execution.
+## [CommandManager] executes the command behaviour, and manages the command order execution.
 ## 
 
 signal custom_signal(data)
 
-## Emmited when an command is executed. command resource is passed in the signal
+## Emmited when an command is executed. [Command] resource is passed in the signal
 signal command_started(command)
-## Emmited when an command finished. command resource is passed in the signal.
+## Emmited when an command finished. [Command] resource is passed in the signal.
 signal command_finished(command)
 
-## Emmited when a timeline starts. Timeline resource is passed in the signal
+## Emmited when a timeline starts. [Timeline] resource is passed in the signal
 signal timeline_started(timeline_resource)
-## Emmited when a timeline finish. Timeline resource is passed in the signal
+## Emmited when a timeline finish. [Timeline] resource is passed in the signal
 signal timeline_finished(timeline_resource)
 
+## Current timeline.
+@export var current_timeline:Timeline = null
+
 ## This is the node were commands will be applied to.
-## This node is used if the command doesn't define an [member command.command_node_path]
+## This node is used if the command doesn't define an [member Command.target]
 ## and is relative to the current scene node owner.
 @export_node_path var command_node_fallback_path:NodePath = ^"."
 ## If is [code]true[/code], the node will call [method start_timeline] when owner is ready.
@@ -32,11 +30,14 @@ signal timeline_finished(timeline_resource)
 
 
 ## Current executed command.
-var current_command:Command
+var current_command:Command = null
 ## The current command index relative to [member timeline] resource.
 var current_command_idx:int = -1
 
-var _commands:Array[Command]
+# [ [<Timeline>, <index>] ]
+var _history:Array = []
+var _jump_history:Array = []
+
 
 func _ready() -> void:
 	if Engine.is_editor_hint():
@@ -46,23 +47,30 @@ func _ready() -> void:
 		call_deferred("start_timeline")
 
 ## Starts timeline. This method must be called to start CommandManager process.
+## CommandManager will use [member]current_timeline[/member] if no 
+## [code]timeline[/code] was passed.
 ## You can optionally pass [code]from_command_index[/code] to define from
 ## where the timeline should start.
-func start_timeline(from_command_index:int=0) -> void:
-	_commands = timeline.commands
+func start_timeline(timeline:Timeline = null, from_command_index:int = 0) -> void:
 	current_command = null
 	current_command_idx = from_command_index
+	if timeline:
+		current_timeline = timeline
 	_notify_timeline_start()
 	go_to_next_command()
 
-## Advances to a specific command in the current timeline.
-func go_to_command(command_idx:int) -> void:
-	if not timeline:
-		# For some reason, the timeline doesn't exist
+## Advances to a specific command in the [member]current_timeline[/member].
+## If [code]timeline[/code] is a valid timeline, replaces the current timeline.
+func go_to_command(command_idx:int, timeline:Timeline=null) -> void:
+	if timeline:
+		current_timeline = timeline
+	
+	if not current_timeline:
+		# For some reason, there's no defined timeline.
 		assert(false)
 		return
 	
-	current_command = timeline.get_command(command_idx)
+	current_command = current_timeline.get_command(command_idx)
 	current_command_idx = command_idx
 	
 	if current_command == null:
@@ -77,6 +85,10 @@ func go_to_next_command() -> void:
 	if current_command:
 		current_command_idx += 1
 	go_to_command(current_command_idx)
+
+func go_to_previous_command() -> void:
+	assert(false)
+	pass
 
 
 func _execute_command(command:Command) -> void:
