@@ -110,6 +110,13 @@ func _connect_command_signals(command:Command) -> void:
 		command.command_finished.connect(_on_command_finished.bind(command), CONNECT_ONE_SHOT)
 
 
+func _disconnect_command_signals(command:Command) -> void:
+	if command.is_connected("command_started", _on_command_started):
+		command.command_started.disconnect(_on_command_started)
+	if command.is_connected("command_finished", _on_command_finished):
+		command.command_finished.disconnect(_on_command_finished)
+
+
 func _on_command_started(command:Command) -> void:
 	command_started.emit(command)
 
