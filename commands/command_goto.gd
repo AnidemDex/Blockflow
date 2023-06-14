@@ -35,18 +35,17 @@ var condition:String:
 	get:
 		return condition
 
-var verify_condition_once:bool = true
 
 func _execution_steps() -> void:
 	command_started.emit()
 	# This is an special command. It doesn't emmits a finished signal
 	# since it controls the command manager directly
 	
-	if verify_condition_once and _condition_is_true():
+	if _condition_is_true():
 		_go_to_defined_command()
 		return
 	
-	(Engine.get_main_loop() as SceneTree).process_frame.connect(_fake_process, CONNECT_ONE_SHOT)
+	command_finished.emit()
 
 
 func _condition_is_true() -> bool:
@@ -87,15 +86,6 @@ func _go_to_defined_command() -> void:
 		return
 	
 	command_manager.go_to_command(command_index)
-
-
-func _fake_process() -> void:
-	if _condition_is_true():
-		_go_to_defined_command()
-	else:
-		var main_loop = Engine.get_main_loop() as SceneTree
-		if not main_loop.process_frame.is_connected(_fake_process):
-			main_loop.process_frame.connect(_fake_process, CONNECT_ONE_SHOT)
 
 
 func _get_name() -> String:
