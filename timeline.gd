@@ -1,7 +1,6 @@
 @tool
 extends Resource
 class_name Timeline
-
 ##
 ## Base class for all Timelines
 ##
@@ -17,6 +16,7 @@ var commands:Array[Command]:
 		return commands
 
 var _bookmarks:Dictionary
+
 
 ## Adds a [Command] to the timeline
 func add_command(command:Command) -> void:
