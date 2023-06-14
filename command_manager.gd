@@ -18,6 +18,10 @@ signal timeline_started(timeline_resource)
 ## Emmited when a timeline finish. [Timeline] resource is passed in the signal
 signal timeline_finished(timeline_resource)
 
+const _GoToCommand = preload("res://addons/blockflow/commands/command_goto.gd")
+const _ReturnCommand = preload("res://addons/blockflow/commands/command_return.gd")
+const _ConditionCommand = preload("res://addons/blockflow/commands/command_condition.gd")
+
 ## Current timeline.
 @export var current_timeline:Timeline = null
 
@@ -34,8 +38,16 @@ var current_command:Command = null
 ## The current command index relative to [member timeline] resource.
 var current_command_idx:int = -1
 
-# [ [<Timeline>, <index>] ]
+# [ [<Timeline>, <index>], ... ]
+# [           0            , ... ]
 var _history:Array = []
+
+# [ 
+#   [ history_index, 
+#     {from: <Timeline>, idx: <index>}, 
+#     {to: <Timeline>, idx: <index>} 
+#   ] 
+# ]
 var _jump_history:Array = []
 
 
@@ -62,12 +74,15 @@ func start_timeline(timeline:Timeline = null, from_command_index:int = 0) -> voi
 ## Advances to a specific command in the [member]current_timeline[/member].
 ## If [code]timeline[/code] is a valid timeline, replaces the current timeline.
 func go_to_command(command_idx:int, timeline:Timeline=null) -> void:
-	if timeline:
+	# Check if there's a new timeline
+	if not(timeline == null or timeline == current_timeline):
 		current_timeline = timeline
+		# and if so, notify that it started
+		_notify_timeline_start()
 	
 	if not current_timeline:
 		# For some reason, there's no defined timeline.
-		assert(false)
+		assert(false, str(self)+"::go_to_command: Trying to use an unexisting timeline!")
 		return
 	
 	current_command = current_timeline.get_command(command_idx)
@@ -77,6 +92,21 @@ func go_to_command(command_idx:int, timeline:Timeline=null) -> void:
 		_notify_timeline_end()
 		return
 	
+	# Add to history
+	# TODO: Consider moving to its own function.
+	_history.append([current_timeline, current_command_idx])
+	# Add to jump history
+	# TODO: Consider moving to its own function.
+	if (current_command as _GoToCommand) != null: 
+		_jump_history.append(
+			[
+				_history.size()-1,
+				{"from":current_timeline, "index":current_command_idx},
+				{
+					"to":current_command.get_target_timeline(),
+					"index":current_command.get_target_command_index()
+				}
+			])
 	_execute_command(current_command)
 
 ## Advances to the next command in the current timeline.
@@ -140,7 +170,7 @@ func _on_command_finished(command:Command) -> void:
 
 
 func _notify_timeline_start() -> void:
-	timeline_started.emit()
+	timeline_started.emit(current_timeline)
 
 
 func _notify_timeline_end() -> void:
