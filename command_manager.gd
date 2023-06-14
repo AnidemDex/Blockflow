@@ -18,11 +18,18 @@ signal timeline_started(timeline_resource)
 ## Emmited when a timeline finish. [Timeline] resource is passed in the signal
 signal timeline_finished(timeline_resource)
 
+## Return values used in [return_command]
+enum ReturnValue {
+	BEFORE=-1, ## Returns a command behind GoTo
+	AFTER=1, ## Returns a command after GoTo
+	NO_RETURN, ## Ends inmediatly the execution process and end the timeline.
+	}
+
 const _GoToCommand = preload("res://addons/blockflow/commands/command_goto.gd")
 const _ReturnCommand = preload("res://addons/blockflow/commands/command_return.gd")
 const _ConditionCommand = preload("res://addons/blockflow/commands/command_condition.gd")
 
-enum _HistoryData {TIMELINE=0, COMMAND_INDEX}
+enum _HistoryData {TIMELINE, COMMAND_INDEX}
 enum _JumpHistoryData {HISTORY_INDEX, FROM, TO}
 
 ## Current timeline.
@@ -113,6 +120,27 @@ func go_to_next_command() -> void:
 func go_to_previous_command() -> void:
 	assert(false)
 	pass
+
+## Returns to a previous [code]GoTo[/code] command call.
+## See [ReturnValue] to know possible values for [code]return_value[/code]
+## argument.
+func return_command(return_value:ReturnValue):
+	assert(!_jump_history.is_empty())
+	if return_value == ReturnValue.NO_RETURN:
+		_notify_timeline_end()
+		_disconnect_command_signals(current_command)
+		return
+	
+	var jump_data:Array = _jump_history.pop_back()
+	var history_from:Array = jump_data[ _JumpHistoryData.FROM ]
+	
+	var next_command_idx:int = history_from\
+	[ _HistoryData.COMMAND_INDEX ] + return_value
+	
+	var next_timeline:Timeline =  history_from[ _HistoryData.TIMELINE ]
+	
+	go_to_command(next_command_idx, next_timeline)
+	
 
 # Set required data for a command. Used before _execute_command
 func _prepare_command(command:Command) -> void:
