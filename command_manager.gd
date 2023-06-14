@@ -22,6 +22,9 @@ const _GoToCommand = preload("res://addons/blockflow/commands/command_goto.gd")
 const _ReturnCommand = preload("res://addons/blockflow/commands/command_return.gd")
 const _ConditionCommand = preload("res://addons/blockflow/commands/command_condition.gd")
 
+enum _HistoryData {TIMELINE=0, COMMAND_INDEX}
+enum _JumpHistoryData {HISTORY_INDEX, FROM, TO}
+
 ## Current timeline.
 @export var current_timeline:Timeline = null
 
@@ -44,8 +47,8 @@ var _history:Array = []
 
 # [ 
 #   [ history_index, 
-#     {from: <Timeline>, idx: <index>}, 
-#     {to: <Timeline>, idx: <index>} 
+#     [<Timeline>, <index>] <- from, 
+#     [<Timeline>, <index>] <- to
 #   ] 
 # ]
 var _jump_history:Array = []
@@ -92,22 +95,13 @@ func go_to_command(command_idx:int, timeline:Timeline=null) -> void:
 		_notify_timeline_end()
 		return
 	
-	_execute_command(current_command)
-	# Add to history
-	# TODO: Consider moving to its own function.
-	_history.append([current_timeline, current_command_idx])
-	# Add to jump history
-	# TODO: Consider moving to its own function.
+	_prepare_command(current_command)
+	_add_to_history()
 	if (current_command as _GoToCommand) != null: 
-		_jump_history.append(
-			[
-				_history.size()-1,
-				{"from":current_timeline, "index":current_command_idx},
-				{
-					"to":current_command.get_target_timeline(),
-					"index":current_command.get_target_command_index()
-				}
-			])
+		_add_to_jump_history()
+	
+	_execute_command(current_command)
+	
 
 ## Advances to the next command in the current timeline.
 func go_to_next_command() -> void:
@@ -149,6 +143,42 @@ func _execute_command(command:Command) -> void:
 		return
 	
 	command.execution_steps.call()
+
+# Adds a history value to [_history].
+# This function should NEVER be called manually.
+# Called by [go_to_command]
+func _add_to_history() -> void:
+	assert(bool(current_timeline != null))
+	var history_value = []
+	history_value.resize(_HistoryData.size())
+	history_value[_HistoryData.TIMELINE] = current_timeline
+	history_value[_HistoryData.COMMAND_INDEX] = current_command_idx
+	_history.append(history_value)
+
+# Adds a history value to [_jump_history].
+# This function should NEVER be called manually.
+# Called by [go_to_command] if the current command is GoTo command.
+func _add_to_jump_history() -> void:
+	assert(bool(current_command as _GoToCommand != null) and bool(current_timeline != null))
+	var jump_data := []
+	var history_from := []
+	var history_to := []
+	jump_data.resize(_JumpHistoryData.size())
+	history_from.resize(_HistoryData.size())
+	history_to.resize(_HistoryData.size())
+	
+	history_from[_HistoryData.TIMELINE] = current_timeline
+	history_from[_HistoryData.COMMAND_INDEX] = current_command_idx
+	jump_data[_JumpHistoryData.FROM] = history_from
+	
+	history_to[_HistoryData.TIMELINE] = current_command.get_target_timeline()
+	history_to[_HistoryData.COMMAND_INDEX] = current_command.get_target_command_index()
+	jump_data[_JumpHistoryData.TO] = history_to
+	
+	jump_data[_JumpHistoryData.HISTORY_INDEX] = _history.size()-1
+	jump_data[_JumpHistoryData.FROM] = history_from
+	jump_data[_JumpHistoryData.TO] = history_to
+	_jump_history.append(jump_data)
 
 
 func _connect_command_signals(command:Command) -> void:
