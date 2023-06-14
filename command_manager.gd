@@ -120,8 +120,8 @@ func go_to_previous_command() -> void:
 	assert(false)
 	pass
 
-
-func _execute_command(command:Command) -> void:
+# Set required data for a command. Used before _execute_command
+func _prepare_command(command:Command) -> void:
 	if command == null:
 		assert(false)
 		return
@@ -141,6 +141,12 @@ func _execute_command(command:Command) -> void:
 	if not is_instance_valid(target_node):
 		target_node = self
 	command.target_node = target_node
+
+
+func _execute_command(command:Command) -> void:
+	if command == null:
+		assert(false)
+		return
 	
 	command.execution_steps.call()
 
