@@ -92,6 +92,7 @@ func go_to_command(command_idx:int, timeline:Timeline=null) -> void:
 		_notify_timeline_end()
 		return
 	
+	_execute_command(current_command)
 	# Add to history
 	# TODO: Consider moving to its own function.
 	_history.append([current_timeline, current_command_idx])
@@ -107,7 +108,6 @@ func go_to_command(command_idx:int, timeline:Timeline=null) -> void:
 					"index":current_command.get_target_command_index()
 				}
 			])
-	_execute_command(current_command)
 
 ## Advances to the next command in the current timeline.
 func go_to_next_command() -> void:

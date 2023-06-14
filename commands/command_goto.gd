@@ -38,19 +38,21 @@ var condition:String:
 ## Helper function to get the defined [timeline]
 func get_target_timeline() -> Timeline:
 	var target_timeline:Timeline = timeline
-	var current_timeline:Timeline = command_manager.timeline
+	var current_timeline:Timeline = command_manager.current_timeline
+	if not target_timeline:
+		target_timeline = current_timeline
 	
-	return null
+	return target_timeline
 
 ## Helper function to get the defined command index according to [command_index]
 ## and [command_bookmark]
-func get_target_command_index() -> Command:
+func get_target_command_index() -> int:
 	var target_timeline = get_target_timeline()
 	var target_command = command_index
 	if use_bookmark:
 		target_command = target_timeline.get_command_by_bookmark(command_bookmark)
 		command_index = target_timeline.get_command_idx(target_command)
-	return null
+	return target_command
 
 
 func _execution_steps() -> void:
@@ -89,7 +91,7 @@ func _condition_is_true() -> bool:
 
 func _go_to_defined_command() -> void:
 	var target_timeline:Timeline = get_target_timeline()
-	var target_command:Command = get_target_command_index()
+	var target_command:int = get_target_command_index()
 	
 	command_manager.go_to_command(target_command, target_timeline)
 
