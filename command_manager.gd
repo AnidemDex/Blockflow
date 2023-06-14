@@ -95,6 +95,11 @@ func go_to_command(command_idx:int, timeline:Timeline=null) -> void:
 		assert(false, str(self)+"::go_to_command: Trying to use an unexisting timeline!")
 		return
 	
+	# Prevents an error and ends the timeline if there are no more commands
+	if current_timeline.commands.size() >= command_idx:
+		_notify_timeline_end()
+		return
+	
 	current_command = current_timeline.get_command(command_idx)
 	current_command_idx = command_idx
 	
