@@ -108,8 +108,8 @@ func _execution_steps() -> void:
 ## The command name is also used when editor is creating command buttons in
 ## editor.
 func _get_name() -> String:
-	assert(false, "_get_name()")
-	return "UNKNOW_COMMAND"
+	assert(!resource_name.is_empty(), "_get_name()")
+	return "UNKNOW_COMMAND" if resource_name.is_empty() else resource_name
 
 
 ## Returns this command icon.
