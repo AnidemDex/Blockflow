@@ -35,6 +35,23 @@ var condition:String:
 	get:
 		return condition
 
+## Helper function to get the defined [timeline]
+func get_target_timeline() -> Timeline:
+	var target_timeline:Timeline = timeline
+	var current_timeline:Timeline = command_manager.timeline
+	
+	return null
+
+## Helper function to get the defined command index according to [command_index]
+## and [command_bookmark]
+func get_target_command_index() -> Command:
+	var target_timeline = get_target_timeline()
+	var target_command = command_index
+	if use_bookmark:
+		target_command = target_timeline.get_command_by_bookmark(command_bookmark)
+		command_index = target_timeline.get_command_idx(target_command)
+	return null
+
 
 func _execution_steps() -> void:
 	command_started.emit()
@@ -45,6 +62,7 @@ func _execution_steps() -> void:
 		_go_to_defined_command()
 		return
 	
+	# unless it fails and the condition is not true.
 	command_finished.emit()
 
 
@@ -70,22 +88,10 @@ func _condition_is_true() -> bool:
 
 
 func _go_to_defined_command() -> void:
-	var target_timeline:Timeline = command_manager.timeline
+	var target_timeline:Timeline = get_target_timeline()
+	var target_command:Command = get_target_command_index()
 	
-	if timeline:
-		target_timeline = timeline
-	
-	if use_bookmark:
-		var target_command = target_timeline.get_command_by_bookmark(command_bookmark)
-		command_index = target_timeline.get_command_idx(target_command)
-	
-	if timeline:
-		# Now looking at it, this seems wrong.
-		command_manager.timeline = timeline
-		command_manager.start_timeline(command_index)
-		return
-	
-	command_manager.go_to_command(command_index)
+	command_manager.go_to_command(target_command, target_timeline)
 
 
 func _get_name() -> String:
