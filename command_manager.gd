@@ -96,7 +96,7 @@ func go_to_command(command_idx:int, timeline:Timeline=null) -> void:
 		return
 	
 	# Prevents an error and ends the timeline if there are no more commands
-	if current_timeline.commands.size() >= command_idx:
+	if command_idx >= current_timeline.commands.size():
 		_notify_timeline_end()
 		return
 	
@@ -235,7 +235,7 @@ func _on_command_started(command:Command) -> void:
 func _on_command_finished(command:Command) -> void:
 	command_finished.emit(command)
 	if command.continue_at_end:
-		go_to_next_command()
+		go_to_next_command.call_deferred()
 
 
 func _notify_timeline_start() -> void:
