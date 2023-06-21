@@ -10,8 +10,7 @@ class_name Timeline
 var commands:Array[Command]:
 	set(value):
 		commands = value
-		update_bookmarks()
-		emit_changed()
+		_notify_changed()
 	get:
 		return commands
 
@@ -24,8 +23,7 @@ func add_command(command:Command) -> void:
 		push_error("add_command: Trying to add an command to the timeline, but the command is already added")
 		return
 	commands.append(command)
-	update_bookmarks()
-	emit_changed()
+	_notify_changed()
 
 ## Insert an [code]Command[/code] at position.
 func insert_command(command:Command, at_position:int) -> void:
@@ -36,8 +34,7 @@ func insert_command(command:Command, at_position:int) -> void:
 	var idx = at_position if at_position > -1 else commands.size()
 	commands.insert(idx, command)
 	
-	update_bookmarks()
-	emit_changed()
+	_notify_changed()
 
 ## Duplicates a [Command] to the timeline
 func duplicate_command(command:Command, to_position:int) -> void:
@@ -45,7 +42,7 @@ func duplicate_command(command:Command, to_position:int) -> void:
 	var idx = to_position if to_position > -1 else commands.size()
 	commands.insert(idx, duplicated)
 	
-	emit_changed()
+	_notify_changed()
 
 ## Moves an [code]command[/code] to position.
 func move_command(command, to_position:int) -> void:
@@ -69,8 +66,7 @@ func move_command(command, to_position:int) -> void:
 	
 	commands.insert(to_position, command)
 	
-	update_bookmarks()
-	emit_changed()
+	_notify_changed()
 	notify_property_list_changed()
 
 ## Get the command at [code]position[/code]
@@ -91,14 +87,12 @@ func get_command_by_bookmark(bookmark:String) -> Resource:
 ## Removes an command from the timeline.
 func erase_command(command) -> void:
 	commands.erase(command)
-	update_bookmarks()
-	emit_changed()
+	_notify_changed()
 
 ## Removes an command at [code]position[/code] from the timelin
 func remove_command(position:int) -> void:
 	commands.remove_at(position)
-	update_bookmarks()
-	emit_changed()
+	_notify_changed()
 
 ## Returns the command position in the timeline.
 func get_command_idx(command) -> int:
@@ -111,6 +105,17 @@ func update_bookmarks() -> void:
 	for command in commands:
 		if not command.bookmark.is_empty():
 			_bookmarks[command.bookmark] = command
+
+func update_indexes() -> void:
+	# This probably will cause performance issues
+	for command_idx in commands.size():
+		commands[command_idx].index = command_idx
+
+func _notify_changed() -> void:
+	update_bookmarks()
+	update_indexes()
+	emit_changed()
+	pass
 
 func _get_property_list() -> Array:
 	var p:Array = []

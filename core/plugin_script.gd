@@ -24,9 +24,6 @@ func _handles(object: Object) -> bool:
 
 
 func _edit(object: Object) -> void:
-	if last_edited_timeline == object:
-		return
-	
 	if object is Timeline:
 		timeline_editor.editor_undoredo = get_undo_redo()
 		timeline_editor.edit_timeline(object as Timeline)
