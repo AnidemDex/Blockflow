@@ -53,7 +53,7 @@ var command_manager:Node
 ## Target node that [member target] points to. This value is assigned by
 ## [member command_manager] before command execution if [member target] is a
 ## valid path, else node assigned in
-## [member command_manager.command_node_fallback_path] is used instead.
+## [member CommandManager.command_node_fallback_path] is used instead.
 var target_node:Node
 
 ## Current command position in the timeline.
@@ -79,6 +79,12 @@ func get_hint_icon() -> Texture:
 ## Returns this command description.
 func get_description() -> String:
 	return _get_description()
+
+func get_custom_subcommands() -> Array:
+	return _uses_custom_subcommands()
+
+func uses_subcommands() -> bool:
+	return _uses_subcommands()
 
 
 ## Defines the execution behaviour of this command.
@@ -136,6 +142,17 @@ func _get_hint_icon() -> Texture:
 func _get_description() -> String:
 	return ""
 
+## Defines if the command is allowed to hold commands.
+## Subcommands will be added as if they were "child" of the command in editor
+## when they are drop into this command or added while selecting this command.
+func _uses_subcommands() -> bool:
+	return false
+
+func _uses_custom_subcommands() -> PackedStringArray:
+	return []
+
+func _edit_custom_subcommands() -> Dictionary:
+	return {}
 
 func _to_string() -> String:
 	return "<Command[%s]#%s>" % [get_command_name(),get_instance_id()]

@@ -80,3 +80,12 @@ func _get_name() -> String:
 
 func _get_icon() -> Texture:
 	return load("res://addons/blockflow/icons/branch.svg")
+
+func _uses_subcommands() -> bool:
+	return true
+
+func _uses_custom_subcommands() -> PackedStringArray:
+	return ["Condition is true", "Condition is false"]
+
+func _edit_custom_subcommands() -> Dictionary:
+	return {}
