@@ -48,11 +48,10 @@ func get_target_timeline() -> Timeline:
 ## and [command_bookmark]
 func get_target_command_index() -> int:
 	var target_timeline = get_target_timeline()
-	var target_command = command_index
 	if use_bookmark:
-		target_command = target_timeline.get_command_by_bookmark(command_bookmark)
+		var target_command = target_timeline.get_command_by_bookmark(command_bookmark)
 		command_index = target_timeline.get_command_idx(target_command)
-	return target_command
+	return command_index
 
 
 func _execution_steps() -> void:
