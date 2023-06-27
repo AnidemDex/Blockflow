@@ -47,8 +47,8 @@ func get_target_timeline() -> Timeline:
 ## Helper function to get the defined command index according to [command_index]
 ## and [command_bookmark]
 func get_target_command_index() -> int:
-	var target_timeline = get_target_timeline()
 	if use_bookmark:
+		var target_timeline = get_target_timeline()
 		var target_command = target_timeline.get_command_by_bookmark(command_bookmark)
 		command_index = target_timeline.get_command_idx(target_command)
 	return command_index
