@@ -28,7 +28,7 @@ func _get_name() -> StringName:
 
 func _get_hint() -> String:
 	return ("to last timeline" if to_last_timeline else "to last jump") +\
-		   (" (repeat)" if behavior == 0 else "")
+		(" (repeat)" if behavior == 0 else "")
 
 
 func _get_icon() -> Texture:
