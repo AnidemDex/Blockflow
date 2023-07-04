@@ -37,6 +37,8 @@ func _execution_steps() -> void:
 	
 	target_node.dialog(showname, dialog, additive, letter_delay)
 	if wait_until_finished:
+		if target_node.is_connected("dialog_finished", dialog_finished):
+			target_node.dialog_finished.disconnect(dialog_finished)
 		target_node.dialog_finished.connect(
 			dialog_finished,
 			CONNECT_ONE_SHOT
