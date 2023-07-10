@@ -1,5 +1,5 @@
 @tool
-extends "res://addons/blockflow/editor/editor_command.gd"
+extends "res://addons/blockflow/editor/editor_command/editor_command.gd"
 
 const TimelineClass = preload("res://addons/blockflow/timeline.gd")
 

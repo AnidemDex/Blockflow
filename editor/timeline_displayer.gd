@@ -2,8 +2,8 @@
 extends Tree
 
 const TimelineClass = preload("res://addons/blockflow/timeline.gd")
-const EditorCommand = preload("res://addons/blockflow/editor/editor_command.gd")
-const EditorCommandRoot = preload("res://addons/blockflow/editor/editor_command_root.gd")
+const EditorCommand = preload("res://addons/blockflow/editor/editor_command/editor_command.gd")
+const EditorCommandRoot = preload("res://addons/blockflow/editor/editor_command/editor_command_root.gd")
 const FALLBACK_ICON = preload("res://icon.svg")
 const BOOKMARK_ICON = preload("res://addons/blockflow/icons/bookmark.svg")
 const STOP_ICON = preload("res://addons/blockflow/icons/stop.svg")

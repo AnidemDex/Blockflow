@@ -111,9 +111,16 @@ func update_indexes() -> void:
 	for command_idx in commands.size():
 		commands[command_idx].index = command_idx
 
+func update_command_weak_ref() -> void:
+	# Seriously, stop using this loop to set these things, update them in
+	# _notify_changed if we keep doing this.
+	for command_idx in commands.size():
+		commands[command_idx].weak_timeline = weakref(self)
+
 func _notify_changed() -> void:
 	update_bookmarks()
 	update_indexes()
+	update_command_weak_ref()
 	emit_changed()
 	pass
 

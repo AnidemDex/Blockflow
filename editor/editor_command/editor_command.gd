@@ -7,6 +7,7 @@ const BOOKMARK_ICON = preload("res://addons/blockflow/icons/bookmark.svg")
 const STOP_ICON = preload("res://addons/blockflow/icons/stop.svg")
 const CONTINUE_ICON = preload("res://addons/blockflow/icons/play.svg")
 const CommandClass = preload("res://addons/blockflow/commands/command.gd")
+const SubcommandClass = preload("res://addons/blockflow/editor/editor_command/editor_subcommand.gd")
 
 enum ColumnPosition {
 	NAME_COLUMN,
@@ -59,6 +60,21 @@ func update() -> void:
 		hint_tooltip = "CommandManager will continue automatically to next command when this command ends."
 		continue_icon = CONTINUE_ICON
 	add_button(ColumnPosition.LAST_COLUMN, continue_icon, ButtonHint.CONTINUE_AT_END, false, hint_tooltip)
+	
+	if command.uses_subcommands():
+		if not command.editor_subcommands.has(command):
+			command.editor_subcommands[command] = []
+		
+		for subcmd in command.get_custom_subcommands():
+			if not command.editor_subcommands.has(subcmd):
+				command.editor_subcommands[subcmd] = []
+			var child = create_child()
+			child.set_script(SubcommandClass)
+			var subcommand:SubcommandClass = child as SubcommandClass
+			subcommand.label = subcmd
+			subcommand.subcommands = command.editor_subcommands[subcmd]
+	
+	
 
 
 func set_command(value:CommandClass) -> void:

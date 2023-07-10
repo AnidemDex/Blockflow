@@ -6,8 +6,8 @@ const _Utils = preload("res://addons/blockflow/core/utils.gd")
 var condition:String = "true"
 var add_else:bool = false
 
-var _true_commands_quantity:int = 1
-var _false_commands_quantity:int = 1
+var _true_commands_quantity:int = 0
+var _false_commands_quantity:int = 0
 
 var _true_commands:PackedInt32Array = []
 var _false_commands:PackedInt32Array = []
@@ -86,6 +86,9 @@ func _uses_subcommands() -> bool:
 
 func _uses_custom_subcommands() -> PackedStringArray:
 	return ["Condition is true", "Condition is false"]
+
+func _subcommands_quantity_property() -> PackedStringArray:
+	return ["_true_commands_quantity", "_false_commands_quantity"]
 
 func _edit_custom_subcommands() -> Dictionary:
 	return {}

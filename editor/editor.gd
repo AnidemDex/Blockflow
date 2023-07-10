@@ -3,6 +3,8 @@ extends PanelContainer
 
 const TimelineDisplayer = preload("res://addons/blockflow/editor/timeline_displayer.gd")
 const CommandList = preload("res://addons/blockflow/command_list.gd")
+const EditorCommand = preload("res://addons/blockflow/editor/editor_command/editor_command.gd")
+const EditorSubcommand = preload("res://addons/blockflow/editor/editor_command/editor_subcommand.gd")
 
 enum _ItemPopup {
 	MOVE_UP, 
@@ -255,6 +257,7 @@ func _timeline_displayer_get_drag_data(at_position: Vector2):
 	if not drag_data["resource"]:
 		return null
 	
+	#TODO: Make the preview "fancy"
 	var drag_preview = Button.new()
 	drag_preview.text = (drag_data.resource as Command).get_command_name()
 	set_drag_preview(drag_preview)
@@ -273,6 +276,8 @@ func _timeline_displayer_can_drop_data(at_position: Vector2, data) -> bool:
 		return false
 	
 	if ref_item == timeline_displayer.root:
+		timeline_displayer.drop_mode_flags = Tree.DROP_MODE_ON_ITEM
+	elif ref_item is EditorSubcommand:
 		timeline_displayer.drop_mode_flags = Tree.DROP_MODE_ON_ITEM
 	else:
 		timeline_displayer.drop_mode_flags = Tree.DROP_MODE_INBETWEEN

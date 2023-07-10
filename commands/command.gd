@@ -60,6 +60,12 @@ var target_node:Node
 ## Index is determined by timeline and should not be set during runtime.
 var index:int
 
+## A [WeakRef] that points to the timeline that holds this command.
+var weak_timeline:WeakRef
+
+## { subcommand name : array of commands }
+var editor_subcommands:Dictionary = {}
+
 ## Returns this command name.
 func get_command_name() -> String:
 	return _get_name()
@@ -149,6 +155,9 @@ func _uses_subcommands() -> bool:
 	return false
 
 func _uses_custom_subcommands() -> PackedStringArray:
+	return []
+
+func _subcommands_quantity_property() -> PackedStringArray:
 	return []
 
 func _edit_custom_subcommands() -> Dictionary:
