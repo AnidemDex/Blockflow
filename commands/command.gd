@@ -63,8 +63,7 @@ var index:int
 ## A [WeakRef] that points to the timeline that holds this command.
 var weak_timeline:WeakRef
 
-## { subcommand name : array of commands }
-var editor_subcommands:Dictionary = {}
+var editor_treeitem:TreeItem
 
 ## Returns this command name.
 func get_command_name() -> String:

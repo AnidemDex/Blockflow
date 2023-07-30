@@ -63,9 +63,7 @@ func edit_timeline(timeline:Timeline) -> void:
 	var load_function:Callable = timeline_displayer.load_timeline
 	var path_hint:String = ""
 	
-	if _current_timeline:
-		if _current_timeline.changed.is_connected(load_function):
-			_current_timeline.changed.disconnect(load_function)
+	_drop_previous_timeline()
 	
 	_current_timeline = timeline
 	
@@ -200,6 +198,14 @@ func _request_new_timeline() -> void:
 	_editor_file_dialog.popup_centered_ratio(0.5)
 
 
+func _drop_previous_timeline() -> void:
+	var load_function:Callable = timeline_displayer.load_timeline
+	
+	if _current_timeline:
+		if _current_timeline.changed.is_connected(load_function):
+			_current_timeline.changed.disconnect(load_function)
+
+
 func _item_popup_id_pressed(id:int) -> void:
 	var command:Command = timeline_displayer.get_selected().get_metadata(0)
 	var command_idx:int = _current_timeline.get_command_idx(command)
@@ -275,9 +281,7 @@ func _timeline_displayer_can_drop_data(at_position: Vector2, data) -> bool:
 		timeline_displayer.drop_mode_flags = Tree.DROP_MODE_DISABLED
 		return false
 	
-	if ref_item == timeline_displayer.root:
-		timeline_displayer.drop_mode_flags = Tree.DROP_MODE_ON_ITEM
-	elif ref_item is EditorSubcommand:
+	if ref_item is EditorSubcommand:
 		timeline_displayer.drop_mode_flags = Tree.DROP_MODE_ON_ITEM
 	else:
 		timeline_displayer.drop_mode_flags = Tree.DROP_MODE_INBETWEEN
@@ -294,7 +298,7 @@ func _timeline_displayer_drop_data(at_position: Vector2, data) -> void:
 	var command:Command = data["resource"]
 	var ref_item:TreeItem = timeline_displayer.get_item_at_position(at_position)
 	var cmd_idx:int = _current_timeline.get_command_idx(command)
-	var ref_idx:int = NAN if not ref_item else ref_item.get_index()
+	var ref_idx:int = NAN if not ref_item else ref_item.command.index
 
 	match section:
 		_DropSection.NO_ITEM:
@@ -351,6 +355,9 @@ func _notification(what: int) -> void:
 			_help_panel_load_btn.icon = get_theme_icon("Object", "EditorIcons")
 			_help_panel_new_btn.icon = get_theme_icon("Load", "EditorIcons")
 			title_label.add_theme_stylebox_override("normal", get_theme_stylebox("ContextualToolbar", "EditorStyles"))
+		
+		NOTIFICATION_EXIT_TREE:
+			_drop_previous_timeline()
 
 
 func _init() -> void:
