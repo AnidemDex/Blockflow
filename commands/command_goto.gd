@@ -95,7 +95,7 @@ func _go_to_defined_command() -> void:
 	command_manager.go_to_command(target_command, target_timeline)
 
 
-func _get_name() -> String:
+func _get_name() -> StringName:
 	return "Go To"
 
 

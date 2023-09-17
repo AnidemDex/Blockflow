@@ -12,7 +12,7 @@ func _execution_steps() -> void:
 	command_started.emit()
 	command_finished.emit()
 
-func _get_name() -> String:
+func _get_name() -> StringName:
 	return "Comment"
 
 

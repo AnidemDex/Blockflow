@@ -10,7 +10,7 @@ func _execution_steps() -> void:
 	command_manager.return_command(returns_to)
 
 
-func _get_name() -> String:
+func _get_name() -> StringName:
 	return "Return"
 
 

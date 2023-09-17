@@ -17,7 +17,7 @@ signal command_finished
 ## the timeline when the timeline is loaded, and will be used when other
 ## command refers to that specific bookmark.
 ## Bookmarks should be unique.
-@export var bookmark:String = "":
+@export var bookmark:StringName = "":
 	set(value):
 		bookmark = value
 		emit_changed()
@@ -59,6 +59,19 @@ var target_node:Node
 ## Current command position in the timeline.
 ## Index is determined by timeline and should not be set during runtime.
 var index:int
+
+## A [WeakRef] that points to the timeline that holds this command.
+var weak_timeline:WeakRef
+
+var editor_block:TreeItem
+
+var branch_names:PackedStringArray:
+	set(value): return
+	get: return _get_branch_names()
+
+# A [WeakRef] that points to the command owner of this command
+var group_owner:WeakRef
+
 
 ## Returns this command name.
 func get_command_name() -> String:
@@ -107,7 +120,7 @@ func _execution_steps() -> void:
 ## next to command icon.
 ## The command name is also used when editor is creating command buttons in
 ## editor.
-func _get_name() -> String:
+func _get_name() -> StringName:
 	assert(!resource_name.is_empty(), "_get_name()")
 	return "UNKNOW_COMMAND" if resource_name.is_empty() else resource_name
 
@@ -136,9 +149,11 @@ func _get_hint_icon() -> Texture:
 func _get_description() -> String:
 	return ""
 
+func _get_branch_names() -> PackedStringArray:
+	return []
 
 func _to_string() -> String:
-	return "<Command[%s]#%s>" % [get_command_name(),get_instance_id()]
+	return "<Command [%s:%s] #%s>" % [get_command_name(),index,get_instance_id()]
 
 func _init() -> void:
 	resource_local_to_scene = true

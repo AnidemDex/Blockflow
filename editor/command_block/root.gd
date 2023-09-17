@@ -1,5 +1,5 @@
 @tool
-extends "res://addons/blockflow/editor/editor_command.gd"
+extends "res://addons/blockflow/editor/command_block/block.gd"
 
 const TimelineClass = preload("res://addons/blockflow/timeline.gd")
 
@@ -33,6 +33,7 @@ func set_timeline(value:TimelineClass) -> void:
 		return
 	
 	timeline.changed.connect(update)
+	update()
 
 func set_command(_value) -> void:
 	command = null

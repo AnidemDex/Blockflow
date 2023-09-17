@@ -14,8 +14,8 @@ enum _ItemPopup {
 enum _DropSection {
 	NO_ITEM = -100, 
 	ABOVE_ITEM = -1,
-	IN_ITEM,
-	UNDER_ITEM,
+	ON_ITEM,
+	BELOW_ITEM,
 	}
 
 enum ToolbarFileMenu {
@@ -56,6 +56,7 @@ var _toolbar:MenuBar
 var _file_menu:PopupMenu
 
 var _editor_file_dialog:EditorFileDialog
+var _file_dialog:FileDialog
 
 func edit_timeline(timeline:Timeline) -> void:
 	var load_function:Callable = timeline_displayer.load_timeline
@@ -114,6 +115,7 @@ func add_command(command:Command, at_position:int = -1) -> void:
 func move_command(command:Command, to_position:int) -> void:
 	if not _current_timeline: return
 	if not command: return
+	if command.index == to_position: return
 	
 	var old_position:int = _current_timeline.get_command_idx(command)
 	var action_name:String = "Move command '%s'" % [command.get_command_name()]
@@ -183,19 +185,21 @@ func hide_help_panel():
 
 
 func _request_load_timeline() -> void:
-	_editor_file_dialog.current_dir = ""
-	_editor_file_dialog.file_mode = EditorFileDialog.FILE_MODE_OPEN_FILE
-	_editor_file_dialog.filters = ["*.tres, *.res ; Resource file"]
-	_editor_file_dialog.title = "Load Timeline"
-	_editor_file_dialog.popup_centered_ratio(0.5)
+	var __file_dialog := _get_file_dialog()
+	__file_dialog.current_dir = ""
+	__file_dialog.file_mode = EditorFileDialog.FILE_MODE_OPEN_FILE
+	__file_dialog.filters = ["*.tres, *.res ; Resource file"]
+	__file_dialog.title = "Load Timeline"
+	__file_dialog.popup_centered_ratio(0.5)
 
 
 func _request_new_timeline() -> void:
-	_editor_file_dialog.current_dir = ""
-	_editor_file_dialog.file_mode = EditorFileDialog.FILE_MODE_SAVE_FILE
-	_editor_file_dialog.filters = ["*.tres, *.res ; Resource file"]
-	_editor_file_dialog.title = "New Timeline"
-	_editor_file_dialog.popup_centered_ratio(0.5)
+	var __file_dialog := _get_file_dialog()
+	__file_dialog.current_dir = ""
+	__file_dialog.file_mode = EditorFileDialog.FILE_MODE_SAVE_FILE
+	__file_dialog.filters = ["*.tres, *.res ; Resource file"]
+	__file_dialog.title = "New Timeline"
+	__file_dialog.popup_centered_ratio(0.5)
 
 
 func _item_popup_id_pressed(id:int) -> void:
@@ -213,6 +217,12 @@ func _item_popup_id_pressed(id:int) -> void:
 			
 		_ItemPopup.REMOVE:
 			remove_command(command)
+
+
+func _get_file_dialog() -> ConfirmationDialog:
+	if Engine.is_editor_hint():
+		return _editor_file_dialog
+	return _file_dialog
 
 
 func _command_button_list_pressed(command_script:Script) -> void:
@@ -244,15 +254,15 @@ func _timeline_displayer_item_selected() -> void:
 
 
 func _timeline_displayer_get_drag_data(at_position: Vector2):
-	var item:TreeItem = timeline_displayer.get_item_at_position(at_position)
+	var ref_block:TreeItem = timeline_displayer.get_item_at_position(at_position)
 
-	if not item:
+	if not ref_block:
 		return null
 
-	var drag_data = {"type":"resource", "resource":null, "from":self}
-	drag_data["resource"] = item.get_metadata(0)
+	var drag_data = {&"type":"resource", &"resource":null, &"from":self}
+	drag_data[&"resource"] = ref_block.get(&"command")
 	
-	if not drag_data["resource"]:
+	if not drag_data[&"resource"]:
 		return null
 	
 	var drag_preview = Button.new()
@@ -266,16 +276,23 @@ func _timeline_displayer_can_drop_data(at_position: Vector2, data) -> bool:
 	if typeof(data) != TYPE_DICTIONARY:
 		return false
 	
-	var ref_item:TreeItem = timeline_displayer.get_item_at_position(at_position)
-	var ref_res:Resource = data.get("resource")
-	if ref_item and ref_item.get_metadata(0) == ref_res:
+	var ref_block:TreeItem = timeline_displayer.get_item_at_position(at_position)
+	var moved_command:Command = data.get(&"resource") as Command
+	if not moved_command:
 		timeline_displayer.drop_mode_flags = Tree.DROP_MODE_DISABLED
 		return false
 	
-	if ref_item == timeline_displayer.root:
+	if ref_block == timeline_displayer.root:
 		timeline_displayer.drop_mode_flags = Tree.DROP_MODE_ON_ITEM
-	else:
-		timeline_displayer.drop_mode_flags = Tree.DROP_MODE_INBETWEEN
+		return true
+	
+	var ref_block_command:Command
+	if ref_block:
+		ref_block_command = ref_block.get(&"command")
+	
+	if ref_block_command == moved_command:
+		timeline_displayer.drop_mode_flags = Tree.DROP_MODE_DISABLED
+		return false
 	
 	var command:Command = (data as Dictionary).get("resource") as Command
 	if command:
@@ -288,29 +305,30 @@ func _timeline_displayer_drop_data(at_position: Vector2, data) -> void:
 	var section:int = timeline_displayer.get_drop_section_at_position(at_position)
 	var command:Command = data["resource"]
 	var ref_item:TreeItem = timeline_displayer.get_item_at_position(at_position)
-	var cmd_idx:int = _current_timeline.get_command_idx(command)
-	var ref_idx:int = NAN if not ref_item else ref_item.get_index()
 
 	match section:
 		_DropSection.NO_ITEM:
 			move_command(command, -1)
-		
+
 		_DropSection.ABOVE_ITEM:
-			if ref_idx != NAN:
-				move_command(command, ref_idx - int(ref_idx >= cmd_idx))
-		
-		_DropSection.IN_ITEM, _DropSection.UNDER_ITEM:
+			var new_index:int = ref_item.command.index
+			move_command(command, new_index)
+
+		_DropSection.ON_ITEM:
 			if ref_item == timeline_displayer.root:
 				move_command(command, 0)
 				return
-			if ref_idx != NAN:
-				move_command(command, ref_idx + int(ref_idx < cmd_idx))
+			
+		_DropSection.BELOW_ITEM:
+			var new_index:int = ref_item.command.index + 1
+			move_command(command, new_index)
 
 
 func _editor_file_dialog_file_selected(path:String) -> void:
 	var timeline:Timeline
-	
-	if _editor_file_dialog.file_mode == EditorFileDialog.FILE_MODE_SAVE_FILE:
+	var __file_dialog := _get_file_dialog()
+		
+	if __file_dialog.file_mode == EditorFileDialog.FILE_MODE_SAVE_FILE:
 		timeline = Timeline.new()
 		timeline.resource_name = path.get_file()
 		
@@ -439,7 +457,14 @@ func _init() -> void:
 	
 	show_help_panel()
 	
-	_editor_file_dialog = EditorFileDialog.new()
-	_editor_file_dialog.file_selected.connect(_editor_file_dialog_file_selected)
-	add_child(_editor_file_dialog)
+	if Engine.is_editor_hint():
+# https://github.com/godotengine/godot/issues/73525#issuecomment-1606067249
+		_editor_file_dialog = (EditorFileDialog as Variant).new()
+		_editor_file_dialog.file_selected.connect(_editor_file_dialog_file_selected)
+		add_child(_editor_file_dialog)
+	else:
+		_file_dialog = FileDialog.new()
+		_file_dialog.file_selected.connect(_editor_file_dialog_file_selected)
+		add_child(_file_dialog)
+
 	
