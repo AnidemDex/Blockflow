@@ -7,8 +7,10 @@ class_name CommandCollection
 ## CommandCollection acts as an array with extra functions
 ## to interact with the array easily.
 
+## [WeakRef] owner of this collection.
+var owner:WeakRef
 
-var collection:Array[Command]:
+var collection:Array[Command] = []:
 	set(value):
 		collection = value
 		emit_changed()
@@ -17,27 +19,33 @@ var collection:Array[Command]:
 
 func add(command:Command) -> void:
 	if has(command):
-		push_error("Trying to add an command to the timeline, but the command is already added")
+		push_error("Trying to add an command to the collection, but the command is already added")
 		return
 	collection.append(command)
+	_update_command_owner(command)
+	emit_changed()
 
 func insert(command:Command, at_position:int) -> void:
 	if has(command):
-		push_error("Trying to add an command to the timeline, but the command already exist")
+		push_error("Trying to add an command to the collection, but the command already exist")
 		return
 	
 	var idx = at_position if at_position > -1 else collection.size()
 	collection.insert(idx, command)
+	_update_command_owner(command)
+	emit_changed()
 
 # can't use duplicate lmao
 func copy(command:Command, to_position:int) -> void:
 	var duplicated = command.duplicate()
 	var idx = to_position if to_position > -1 else collection.size()
 	collection.insert(idx, duplicated)
+	_update_command_owner(command)
+	emit_changed()
 
 func move(command:Command, to_position:int) -> void:
 	if !has(command):
-		push_error("Trying to move an command in the timeline, but the command is not added.")
+		push_error("Trying to move an command in the collection, but the command is not added.")
 		return
 	
 	var old_position:int = get_command_position(command)
@@ -55,15 +63,8 @@ func move(command:Command, to_position:int) -> void:
 		to_position = collection.size()
 	
 	collection.insert(to_position, command)
-
-## Get the command at [param position]. [br]
-## You can also use [method get] instead.
-func get_command(position:int) -> Resource:
-	if position < collection.size():
-		return collection[position]
-	
-	push_error("get_command: Tried to get an command on a non-existing position: ", position)
-	return null
+	_update_command_owner(command)
+	emit_changed()
 
 func erase(command) -> void:
 	collection.erase(command)
@@ -73,6 +74,19 @@ func remove(position:int) -> void:
 	collection.remove_at(position)
 	emit_changed()
 
+func clear() -> void:
+	collection.clear()
+	emit_changed()
+
+## Get the command at [param position]. 
+## [br]You can also use [method get] instead.
+func get_command(position:int) -> Resource:
+	if position < collection.size():
+		return collection[position]
+	
+	push_error("get_command: Tried to get an command on a non-existing position: ", position)
+	return null
+
 func get_command_position(command) -> int:
 	return collection.find(command)
 
@@ -81,6 +95,14 @@ func has(value:Command) -> bool:
 
 func find(command) -> int:
 	return collection.find(command)
+
+func size() -> int:
+	return collection.size()
+
+func _update_command_owner(command:Command, remove:bool=false) -> void:
+	if not owner: return
+	if typeof(owner.get_ref()) != TYPE_OBJECT: return
+	command.weak_owner = owner
 
 func _get(property: StringName):
 	if property.is_valid_int():
@@ -93,13 +115,14 @@ func _get_property_list() -> Array:
 
 # ITERATOR
 var __itr_cnt:int
-func _should_continue() -> bool: return __itr_cnt >= collection.size()
+func _should_continue() -> bool: return __itr_cnt < collection.size()
 
 func _iter_init(_d) -> bool:
 	__itr_cnt = 0
 	return _should_continue()
 
 func _iter_next(_d) -> bool:
+	__itr_cnt += 1
 	return _should_continue()
 	
 func _iter_get(_d):
