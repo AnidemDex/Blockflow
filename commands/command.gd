@@ -167,6 +167,7 @@ var can_hold_commads:bool :
 	set(value): return
 	get: return _can_hold_commands()
 
+
 ## Get a new [constant GroupCommand] reference.
 func get_group_command() -> GroupCommand:
 	return GroupCommand.new()
@@ -176,14 +177,17 @@ func get_group_command() -> GroupCommand:
 ## It will not use a branch as the next command. Use
 ## [method go_to_branch] instead.
 func go_to_next_command() -> void:
-	pass
+	command_finished.emit()
 
 ## Request [member command_manager] to go to a specific
 ## command in the timeline with [param command_index].
-## [br][Command], [member commands] and [member branches] are taken in consideration 
-## for this index.
+## [br][Command], [member commands] and [member branches] are taken 
+## in consideration for this index.
+## [br][br]Note: Calling this method will not trigger 
+## [signal command_finished] and will go to the requested
+## [param command_index] inmediatly.
 func go_to_command(command_index:int) -> void:
-	pass
+	command_manager.jump_to_command(command_index, null)
 
 ## Request [member command_manager] to go to a specific branch defined in
 ## [member branches].
