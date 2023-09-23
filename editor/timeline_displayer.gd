@@ -39,7 +39,7 @@ func _reload() -> void:
 	# See this little trick here? Is to remove the column expand.
 	# I hate it.
 	#root.set_text(columns-1, " ")
-	var commands:Array = _current_timeline.commands 
+	var commands:Array = _current_timeline.commands.collection
 	var subcommand:Array = []
 	
 	for command_idx in commands.size():
@@ -49,12 +49,6 @@ func _reload() -> void:
 			load_timeline(null)
 			return
 		var parent:CommandBlock = root
-		var group_owner_ref = command.group_owner
-		
-		if group_owner_ref:
-			var group_owner:Command = command.group_owner.get_ref()
-			if group_owner:
-				parent = group_owner.editor_block
 		
 		_add_command(command, parent)
 		
@@ -74,7 +68,13 @@ func _add_command(command:Command, under_block:CommandBlock) -> void:
 	command.editor_block = block
 	
 	displayed_commands.append(command)
+	if not command.branches.is_empty():
+		for branch in command.branches:
+			_add_command(branch, block)
 	
+	if not command.commands.is_empty():
+		for subcommand in command.commands:
+			_add_command(subcommand, block)
 
 
 func _gui_input(event: InputEvent) -> void:

@@ -8,11 +8,13 @@ class_name CommandCollection
 ## to interact with the array easily.
 
 ## [WeakRef] owner of this collection.
-var owner:WeakRef
+var weak_owner:WeakRef
 
 var collection:Array[Command] = []:
 	set(value):
 		collection = value
+		for c in value:
+			_update_command_owner(c)
 		emit_changed()
 	get:
 		return collection
@@ -99,10 +101,13 @@ func find(command) -> int:
 func size() -> int:
 	return collection.size()
 
+func is_empty() -> bool:
+	return collection.is_empty()
+
 func _update_command_owner(command:Command, remove:bool=false) -> void:
-	if not owner: return
-	if typeof(owner.get_ref()) != TYPE_OBJECT: return
-	command.weak_owner = owner
+	if not weak_owner: return
+	if typeof(weak_owner.get_ref()) != TYPE_OBJECT: return
+	command.weak_owner = weakref(self)
 
 func _get(property: StringName):
 	if property.is_valid_int():

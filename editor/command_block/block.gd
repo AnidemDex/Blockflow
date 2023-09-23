@@ -75,12 +75,12 @@ func set_command(value:CommandClass) -> void:
 		_set_default_values()
 		return
 	
-	command_name = command.get_command_name()
-	command_icon = command.get_icon()
+	command_name = command.command_name
+	command_icon = command.command_icon
 	if not command_icon:
 		command_icon = FALLBACK_ICON
-	command_hint = command.get_hint()
-	command_hint_icon = command.get_hint_icon()
+	command_hint = command.command_hint
+	command_hint_icon = command.command_hint_icon
 	
 	command.changed.connect(update)
 

@@ -142,7 +142,10 @@ var branches:CommandCollection:
 		if not value:
 			value = CommandCollection.new()
 		branches = value
-		branches.owner = weakref(self)
+		branches.weak_owner = weakref(self)
+		for branch in _default_branches:
+			branches.add(_default_branches[branch])
+		emit_changed()
 
 ## A [WeakRef] that points to the owner of this command.
 ## [br]The return value of [member owner] can be:
@@ -158,7 +161,7 @@ var commands:CommandCollection:
 		if not value:
 			value = CommandCollection.new()
 		commands = value
-		commands.owner = weakref(self)
+		commands.weak_owner = weakref(self)
 
 ## Used by the editor. If [code]true[/code] enables
 ## the option to drop commands on this command
@@ -167,10 +170,22 @@ var can_hold_commads:bool :
 	set(value): return
 	get: return _can_hold_commands()
 
+var _default_branches:Dictionary
 
 ## Get a new [constant GroupCommand] reference.
 func get_group_command() -> GroupCommand:
 	return GroupCommand.new()
+
+func get_branch(branch) -> Command:
+	var _branches
+	match typeof(branch):
+		TYPE_INT:
+			return branches.get_command(branch)
+		TYPE_STRING:
+			return _default_branches.get(branch, null)
+		_:
+			push_error("typeof(branch) != TYPE_INT | TYPE_STRING")
+	return null
 
 ## Request [member command_manager] go to the next available command.
 ## [br][member command_manager] will go to the next subcommand if there's any.
@@ -235,16 +250,39 @@ func _get_description() -> String:
 func _can_hold_commands() -> bool:
 	return false
 
+func _get_default_branch_names() -> PackedStringArray:
+	return []
+
 func _to_string() -> String:
-	return "<Command [%s:%s] #%s>" % [command_name,index,get_instance_id()]
+	return "<Command [%s:%s] #>" % [command_name,index]
+
+func _set(property: StringName, value) -> bool:
+	if property.begins_with("default_branch"):
+		var name:String = property.split("/")[1]
+		_default_branches[name] = value
+		emit_changed()
+		return true
+	return false
+
+func _get(property: StringName):
+	if property.begins_with("default_branch"):
+		var name:String = property.split("/")[1]
+		return _default_branches.get(name)
 
 func _init() -> void:
 	resource_local_to_scene = true
 	commands = CommandCollection.new()
 	branches = CommandCollection.new()
+	for branch_name in _get_default_branch_names():
+		var branch = get_group_command()
+		branch.group_name = branch_name
+		_default_branches[branch_name] = branch
+		branches.add(branch)
 
 func _get_property_list() -> Array:
 	var p:Array = []
 	p.append({"name":"commands", "type":TYPE_OBJECT, "usage":PROPERTY_USAGE_NO_EDITOR})
 	p.append({"name":"branches", "type":TYPE_OBJECT, "usage":PROPERTY_USAGE_NO_EDITOR})
+	for branch_name in _default_branches:
+		p.append({"name":"default_branch/"+branch_name, "type":TYPE_OBJECT})
 	return p

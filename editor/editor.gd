@@ -266,7 +266,7 @@ func _timeline_displayer_get_drag_data(at_position: Vector2):
 		return null
 	
 	var drag_preview = Button.new()
-	drag_preview.text = (drag_data.resource as Command).get_command_name()
+	drag_preview.text = (drag_data.resource as Command).command_name
 	set_drag_preview(drag_preview)
 	
 	return drag_data

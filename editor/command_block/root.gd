@@ -6,7 +6,6 @@ const TimelineClass = preload("res://addons/blockflow/timeline.gd")
 var timeline:TimelineClass:set = set_timeline
 
 func update() -> void:
-	var commands:Array = timeline.commands
 	var timeline_name:String = timeline.resource_name
 	if timeline_name.is_empty():
 		timeline_name = timeline.resource_path.get_file()
@@ -16,7 +15,7 @@ func update() -> void:
 	
 	set_text(ColumnPosition.NAME_COLUMN, timeline_name)
 	set_text_alignment(ColumnPosition.NAME_COLUMN, HORIZONTAL_ALIGNMENT_LEFT)
-	set_text(ColumnPosition.LAST_COLUMN, str(commands.size()))
+	set_text(ColumnPosition.LAST_COLUMN, str(timeline.get_command_count()))
 	
 
 func set_timeline(value:TimelineClass) -> void:
