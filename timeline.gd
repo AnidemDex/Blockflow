@@ -18,7 +18,7 @@ var commands:CommandCollection:
 			value = CommandCollection.new()
 		
 		commands = value
-		commands.owner = weakref(self)
+		commands.weak_owner = weakref(self)
 		
 		if commands:
 			commands.changed.connect(_notify_changed)
@@ -28,12 +28,14 @@ var commands:CommandCollection:
 
 var _bookmarks:Dictionary = {}
 var _command_list:Array = []
+var _branches:Array = []
+var _subcommads:Array = []
 
-func get_command(index:int) -> Command:
-	if index >= _command_list.size():
-		push_error("index >= _command_list.size()")
+func get_command(position:int) -> Command:
+	if position >= _command_list.size():
+		push_error("position >= _command_list.size()")
 		return null
-	return _command_list[index]
+	return _command_list[position]
 
 ## Get the command [code]position[/code] from its [code]bookmark[/code]
 func get_command_by_bookmark(bookmark:StringName) -> Resource:
@@ -43,11 +45,17 @@ func get_command_by_bookmark(bookmark:StringName) -> Resource:
 	return _bookmarks.get(bookmark, null)
 
 ## Returns the command position in the timeline.
-func get_command_idx(command) -> int:
+func get_command_position(command) -> int:
 	return _command_list.find(command)
 
 func get_command_count() -> int:
 	return _command_list.size()
+
+func is_branch(command:Command) -> bool:
+	return command in _branches
+
+func is_subcommand(command:Command) -> bool:
+	return command in _subcommads
 
 func has(value:Command) -> bool:
 	return commands.has(value)
@@ -71,7 +79,9 @@ func _update_data(from_collection:CommandCollection):
 		_index += 1
 		# branches goes first
 		_update_data(command.branches)
+		_branches.append_array(command.branches.collection)
 		_update_data(command.commands)
+		_subcommads.append_array(command.commands.collection)
 		
 		if not command.bookmark.is_empty():
 			_bookmarks[command.bookmark] = command
@@ -87,6 +97,9 @@ func _notify_changed() -> void:
 	_update_data(commands)
 	_updating_data = false
 	emit_changed()
+
+func _to_string() -> String:
+	return "<Timeline#%s>" % get_instance_id()
 
 func _get_property_list() -> Array:
 	var p:Array = []
