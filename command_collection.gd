@@ -118,6 +118,11 @@ func _get_property_list() -> Array:
 	p.append({"name":"collection", "type":TYPE_ARRAY, "usage":PROPERTY_USAGE_NO_EDITOR|PROPERTY_USAGE_SCRIPT_VARIABLE})
 	return p
 
+func _to_string() -> String:
+	var owner:Object
+	if weak_owner: owner = weak_owner.get_ref()
+	return "<CommandCollection:%s>" % owner
+
 # ITERATOR
 var __itr_cnt:int
 func _should_continue() -> bool: return __itr_cnt < collection.size()
