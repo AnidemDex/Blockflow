@@ -212,7 +212,24 @@ func go_to_command(command_index:int) -> void:
 ## [br]  - [int] value, it'll use the branch according 
 ## [member branches.get_command]
 func go_to_branch(branch) -> void:
-	pass
+	match typeof(branch):
+		TYPE_INT:
+			if branch < branches.size():
+				command_manager.go_to_command(index + branch)
+				return
+		TYPE_STRING:
+			var _branches:Dictionary
+			for _branch in branches:
+				_branches[_branch.command_name] = _branch
+			if branch in _branches:
+				command_manager.go_to_command(_branches[branch].index)
+				return
+			# untested stuff, hope it works
+		_:
+			push_error("typeof(branch) != TYPE_INT | TYPE_STRING")
+	push_error("!branch")
+	command_finished.emit()
+
 
 ## Defines the execution behaviour of this command.
 ## This function is the default value of [member execution_steps]
