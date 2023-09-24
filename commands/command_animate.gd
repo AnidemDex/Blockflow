@@ -77,9 +77,9 @@ func _get_icon() -> Texture:
 func _get_hint() -> String:
 	var hint_str = "play '" + animation + "'"
 	if custom_blend != -1:
-		hint_str += " with blend of " + str(custom_blend)
+		hint_str += " with blend of " + String.num(custom_blend, 4)
 	if custom_speed != 1.0:
-		hint_str += " at speed " + str(custom_speed)
+		hint_str += " at speed " + String.num(custom_speed, 4)
 	if play_backwards:
 		hint_str += " backwards"
 	if wait_until_finished:

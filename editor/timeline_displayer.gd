@@ -8,6 +8,7 @@ const STOP_ICON = preload("res://addons/blockflow/icons/stop.svg")
 const CONTINUE_ICON = preload("res://addons/blockflow/icons/play.svg")
 enum ButtonHint {CONTINUE_AT_END}
 
+var reselect_index = 0
 
 var _current_timeline:TimelineClass
 
@@ -71,6 +72,9 @@ func _reload() -> void:
 			command.changed.connect(_build_item.bind(item, command))
 		
 		_build_item(item, command)
+		if command_idx == reselect_index or (command_idx == commands.size() - 1 and reselect_index == -1):
+			set_selected(item, 0)
+			ensure_cursor_is_visible()
 
 
 func _build_item(item:TreeItem, command:Command) -> void:

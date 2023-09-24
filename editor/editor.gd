@@ -216,8 +216,15 @@ func _item_popup_id_pressed(id:int) -> void:
 
 
 func _command_button_list_pressed(command_script:Script) -> void:
+	var command_idx:int = -1
+	var tree_item:TreeItem = timeline_displayer.get_selected()
+	if tree_item:
+		var selected:Command = timeline_displayer.get_selected().get_metadata(0)
+		if selected:
+			command_idx = _current_timeline.get_command_idx(selected) + 1
+			timeline_displayer.reselect_index = command_idx
 	var command:Command = command_script.new()
-	add_command(command)
+	add_command(command, command_idx)
 
 
 func _timeline_displayer_item_mouse_selected(_position:Vector2, button_index:int) -> void:
