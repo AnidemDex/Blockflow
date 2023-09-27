@@ -117,7 +117,7 @@ func move_command(command:Command, to_position:int) -> void:
 	
 	var old_position:int = _current_timeline.get_command_idx(command)
 	var action_name:String = "Move command '%s'" % [command.get_command_name()]
-	
+	timeline_displayer.reselect_index = to_position
 	if Engine.is_editor_hint():
 		editor_undoredo.create_action(action_name)
 		editor_undoredo.add_do_method(_current_timeline, "move_command", command, to_position)
@@ -138,7 +138,7 @@ func duplicate_command(command:Command, to_position:int) -> void:
 	
 	var at_position:int = _current_timeline.get_command_idx(command)
 	var action_name:String = "Duplicate command '%s'" % [command.get_command_name()]
-	
+	timeline_displayer.reselect_index = to_position
 	if Engine.is_editor_hint():
 		editor_undoredo.create_action(action_name)
 		editor_undoredo.add_do_method(_current_timeline, "duplicate_command", command, to_position)
@@ -159,7 +159,7 @@ func remove_command(command:Command) -> void:
 	
 	var command_idx:int = _current_timeline.get_command_idx(command)
 	var action_name:String = "Remove command '%s'" % [command.get_command_name()]
-	
+	timeline_displayer.reselect_index = command_idx-1
 	if Engine.is_editor_hint():
 		editor_undoredo.create_action(action_name)
 		editor_undoredo.add_do_method(_current_timeline, "remove_command", command_idx)
