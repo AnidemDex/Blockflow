@@ -8,6 +8,11 @@ class_name CommandCollection
 ## to interact with the array easily.
 
 ## [WeakRef] owner of this collection.
+## [br][method weak_owner.get_ref] value can be:
+## [br]  - A [Timeline]
+## [br]  - A [Command], meaning this command is a subcommand of that command.
+## [br]  - A [code]null[/code] value, meaning it doesn't has an owner or the
+## owner failed setting its own reference.
 var weak_owner:WeakRef
 
 var collection:Array[Command] = []:

@@ -1,3 +1,4 @@
+@tool
 extends Command
 
 ## A Command Specifically designed to hold commands.
@@ -6,7 +7,7 @@ extends Command
 
 ## Group name. This name will be used in editor
 ## instead of [member command_name].
-@export var group_name:String
+@export var group_name:StringName
 
 func _get_name() -> StringName: return group_name
 

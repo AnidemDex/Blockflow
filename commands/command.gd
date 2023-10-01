@@ -13,7 +13,8 @@ signal command_started
 ## Emmited when the command finishes its execution.
 signal command_finished
 
-const GroupCommand = preload("res://addons/blockflow/commands/group.gd")
+const Group = preload("res://addons/blockflow/commands/group.gd")
+const Branch = preload("res://addons/blockflow/commands/branch.gd")
 
 ## Marks this command with a [code]bookmark[/code]. This bookmark will be registered in
 ## the timeline when the timeline is loaded, and will be used when other
@@ -130,7 +131,7 @@ var weak_timeline:WeakRef
 ##
 ## [br]A [code]branch[/code] is a subcommand of this command 
 ## that can hold other commands. Each branch defined as command in
-## the [CommandCollection] must be [constant GroupCommand] type.
+## the [CommandCollection] must be [constant Branch] type.
 ##
 ## [br]Any command can hold many branches, and  can request their usage
 ## through [method go_to_brach].
@@ -139,42 +140,74 @@ var weak_timeline:WeakRef
 ## are ignored if you use [method go_to_next_command].
 var branches:CommandCollection:
 	set(value):
-		if not value:
-			value = CommandCollection.new()
+		if branches == value: return
+		if branches: branches.weak_owner = null
+		
 		branches = value
-		branches.weak_owner = weakref(self)
-		for branch in _default_branches:
-			branches.add(_default_branches[branch])
+		if branches: branches.weak_owner = weakref(self)
 		emit_changed()
 
 ## A [WeakRef] that points to the owner of this command.
-## [br]The return value of [member owner] can be:
-## [br]  - A [Timeline]
-## [br]  - A [Command], meaning this command is a subcommand of that command.
-## [br]  - A [code]null[/code] value, meaning it doesn't has an owner or the
-## owner failed setting its own reference.
+## [br]The return value of [method weak_owner.get_ref] is
+## [CommandCollection] or null.
+##[br]If value is null it means that owner failed to set
+## its own reference.
 var weak_owner:WeakRef
 
-## Subcommands of this command using [CommandCollection]
+## Subcommands of this command using [CommandCollection].
+##[br]If [member can_hold_commands] is [code]true[/code]
+## a [CommandCollection] object will be set on creation.
 var commands:CommandCollection:
 	set(value):
-		if not value:
-			value = CommandCollection.new()
+		if commands == value: return
+		if commands: commands.weak_owner = null
+		
 		commands = value
-		commands.weak_owner = weakref(self)
+		if commands: commands.weak_owner = weakref(self)
+		emit_changed()
 
-## Used by the editor. If [code]true[/code] enables
+## If [code]true[/code] enables
 ## the option to drop commands on this command
 ## to handle them as subcommands.
 var can_hold_commads:bool :
 	set(value): return
 	get: return _can_hold_commands()
 
-var _default_branches:Dictionary
+var can_be_moved:bool :
+	set(value): return
+	get: return _can_be_moved()
 
-## Get a new [constant GroupCommand] reference.
-func get_group_command() -> GroupCommand:
-	return GroupCommand.new()
+var can_be_selected:bool :
+	set(value): return
+	get: return _can_be_selected()
+
+var _branches:Dictionary
+
+func add_branch(branch_name:StringName) -> void:
+	if branch_name in _branches:
+		return
+	
+	if not branches:
+		push_error("!branches")
+		return
+	
+	for branch in branches:
+		if branch.command_name == branch_name:
+			return
+	
+	var branch := Branch.new()
+	branch.branch_name = branch_name
+	_branches[branch_name] = branch
+	branches.add(branch)
+	emit_changed()
+	
+
+func remove_branch(branch_name:StringName) -> void:
+	_branches.erase(branch_name)
+	for branch in branches:
+		if branch.command_name == branch_name:
+			branches.erase(branch)
+	emit_changed()
 
 func get_branch(branch) -> Command:
 	var _branches
@@ -182,7 +215,7 @@ func get_branch(branch) -> Command:
 		TYPE_INT:
 			return branches.get_command(branch)
 		TYPE_STRING:
-			return _default_branches.get(branch, null)
+			return _branches.get(branch, null)
 		_:
 			push_error("typeof(branch) != TYPE_INT | TYPE_STRING")
 	return null
@@ -261,6 +294,12 @@ func _get_hint() -> String:
 func _get_hint_icon() -> Texture:
 	return null
 
+func _can_be_moved() -> bool:
+	return true
+
+func _can_be_selected() -> bool:
+	return true
+
 func _get_description() -> String:
 	return ""
 
@@ -276,30 +315,31 @@ func _to_string() -> String:
 func _set(property: StringName, value) -> bool:
 	if property.begins_with("default_branch"):
 		var name:String = property.split("/")[1]
-		_default_branches[name] = value
-		emit_changed()
-		return true
+		if name in _get_default_branch_names():
+			add_branch(name)
+			return true
 	return false
 
 func _get(property: StringName):
 	if property.begins_with("default_branch"):
 		var name:String = property.split("/")[1]
-		return _default_branches.get(name)
+		return get_branch(name)
 
 func _init() -> void:
 	resource_local_to_scene = true
-	commands = CommandCollection.new()
-	branches = CommandCollection.new()
+	if not _get_default_branch_names().is_empty():
+		branches = CommandCollection.new()
+	
 	for branch_name in _get_default_branch_names():
-		var branch = get_group_command()
-		branch.group_name = branch_name
-		_default_branches[branch_name] = branch
-		branches.add(branch)
+		add_branch(branch_name)
+	
+	if can_hold_commads:
+		commands = CommandCollection.new()
 
 func _get_property_list() -> Array:
 	var p:Array = []
 	p.append({"name":"commands", "type":TYPE_OBJECT, "usage":PROPERTY_USAGE_NO_EDITOR})
 	p.append({"name":"branches", "type":TYPE_OBJECT, "usage":PROPERTY_USAGE_NO_EDITOR})
-	for branch_name in _default_branches:
+	for branch_name in _get_default_branch_names():
 		p.append({"name":"default_branch/"+branch_name, "type":TYPE_OBJECT})
 	return p

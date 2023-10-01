@@ -78,10 +78,13 @@ func _update_data(from_collection:CommandCollection):
 		command.index = _index
 		_index += 1
 		# branches goes first
-		_update_data(command.branches)
-		_branches.append_array(command.branches.collection)
-		_update_data(command.commands)
-		_subcommads.append_array(command.commands.collection)
+		if command.branches:
+			_update_data(command.branches)
+			_branches.append_array(command.branches.collection)
+		
+		if command.commands:
+			_update_data(command.commands)
+			_subcommads.append_array(command.commands.collection)
 		
 		if not command.bookmark.is_empty():
 			_bookmarks[command.bookmark] = command

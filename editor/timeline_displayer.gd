@@ -68,11 +68,11 @@ func _add_command(command:Command, under_block:CommandBlock) -> void:
 	command.editor_block = block
 	
 	displayed_commands.append(command)
-	if not command.branches.is_empty():
+	if command.branches:
 		for branch in command.branches:
 			_add_command(branch, block)
 	
-	if not command.commands.is_empty():
+	if command.commands:
 		for subcommand in command.commands:
 			_add_command(subcommand, block)
 
