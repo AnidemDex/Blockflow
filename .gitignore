@@ -1,1 +1,3 @@
-# For now, don't ignore things
+# ignore icons folder. Icons must be added manually
+# This is due editor always modify .import files
+icons/*.import
