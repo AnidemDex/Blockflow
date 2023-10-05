@@ -404,6 +404,7 @@ func _init() -> void:
 	var pc = PanelContainer.new()
 	pc.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	pc.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	pc.clip_contents = true
 	hb.add_child(pc)
 	
 	timeline_displayer = TimelineDisplayer.new()

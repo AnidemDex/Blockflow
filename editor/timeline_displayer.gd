@@ -99,6 +99,7 @@ func _build_item(item:TreeItem, command:Command) -> void:
 	item.set_icon(0, command_icon)
 	
 	item.set_text(1, command_hint)
+	item.set_autowrap_mode(1, TextServer.AUTOWRAP_WORD_SMART)
 	item.set_icon(1, command_hint_icon)
 	
 	var disabled_color = get_theme_color("disabled_font_color", "Editor")
@@ -150,6 +151,8 @@ func _init() -> void:
 	set_column_expand(1, true)
 	set_column_expand(2, false)
 	
+	set_column_custom_minimum_width(1, 128)
+	set_column_clip_content(1, true)
 	set_column_custom_minimum_width(2, 64)
 	
 	item_edited.connect(_on_item_edited)
