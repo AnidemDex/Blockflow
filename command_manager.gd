@@ -20,8 +20,8 @@ signal timeline_finished(timeline_resource)
 
 ## Return values used in [return_command]
 enum ReturnValue {
-	BEFORE=-1, ## Returns a command behind go_to caller
-	AFTER=1, ## Returns a command after go_to caller
+	BEFORE=-1, ## Returns a command behind GoTo
+	AFTER=1, ## Returns a command after GoTo
 	NO_RETURN, ## Ends inmediatly the execution process and end the timeline.
 	}
 
@@ -35,20 +35,18 @@ enum _JumpHistoryData {HISTORY_INDEX, FROM, TO}
 ## Current timeline.
 @export var current_timeline:Timeline = null
 
-## Node were commands will be applied to.
-## [br]This node is used if the command doesn't 
-## define a [member Command.target]
-## and is relative to the current scene node [member Node.owner].
+## This is the node were commands will be applied to.
+## This node is used if the command doesn't define an [member Command.target]
+## and is relative to the current scene node owner.
 @export_node_path var command_node_fallback_path:NodePath = ^"."
-## If [code]true[/code], the node will call [method start_timeline]
-## when owner is ready automatically.
+## If is [code]true[/code], the node will call [method start_timeline] when owner is ready.
 @export var start_on_ready:bool = false
 
 
 ## Current executed command.
 var current_command:Command = null
 ## The current command index relative to [member timeline] resource.
-var current_command_position:int = -1
+var current_command_idx:int = -1
 
 # [ [<Timeline>, <index>], ... ]
 # [           0            , ... ]
@@ -68,10 +66,7 @@ func _ready() -> void:
 		return
 	
 	if start_on_ready:
-		if get_parent().is_node_ready():
-			start_timeline()
-		else:
-			get_parent().ready.connect(start_timeline, CONNECT_ONE_SHOT)
+		call_deferred("start_timeline")
 
 ## Starts timeline. This method must be called to start CommandManager process.
 ## CommandManager will use [member]current_timeline[/member] if no 
@@ -80,15 +75,15 @@ func _ready() -> void:
 ## where the timeline should start.
 func start_timeline(timeline:Timeline = null, from_command_index:int = 0) -> void:
 	current_command = null
-	current_command_position = from_command_index
+	current_command_idx = from_command_index
 	if timeline:
 		current_timeline = timeline
 	_notify_timeline_start()
-	go_to_command(current_command_position)
+	go_to_next_command()
 
-## Advances to a specific command in the [member current_timeline].
+## Advances to a specific command in the [member]current_timeline[/member].
 ## If [code]timeline[/code] is a valid timeline, replaces the current timeline.
-func go_to_command(command_position:int, timeline:Timeline=null) -> void:
+func go_to_command(command_idx:int, timeline:Timeline=null) -> void:
 	# Check if there's a new timeline
 	if not(timeline == null or timeline == current_timeline):
 		current_timeline = timeline
@@ -101,12 +96,12 @@ func go_to_command(command_position:int, timeline:Timeline=null) -> void:
 		return
 	
 	# Prevents an error and ends the timeline if there are no more commands
-	if command_position >= current_timeline.get_command_count() :
+	if current_timeline.commands.size() >= command_idx:
 		_notify_timeline_end()
 		return
 	
-	current_command = current_timeline.get_command(command_position)
-	current_command_position = command_position
+	current_command = current_timeline.get_command(command_idx)
+	current_command_idx = command_idx
 	
 	if current_command == null:
 		_notify_timeline_end()
@@ -114,34 +109,25 @@ func go_to_command(command_position:int, timeline:Timeline=null) -> void:
 	
 	_prepare_command(current_command)
 	_add_to_history()
+	if (current_command as _GoToCommand) != null: 
+		_add_to_jump_history()
 	
 	_execute_command(current_command)
 	
 
 ## Advances to the next command in the current timeline.
 func go_to_next_command() -> void:
-	current_command_position = get_next_command_index()
-	print(">>",current_command_position, " ", current_timeline.get_command_count())
-	if current_command_position >= current_timeline.get_command_count():
-		push_warning("current_command_position > current_timeline.get_command_count()")
-	go_to_command(current_command_position)
+	current_command_idx = max(0, current_command_idx)
+	if current_command:
+		current_command_idx += 1
+	go_to_command(current_command_idx)
 
 func go_to_previous_command() -> void:
-	assert(!_history.is_empty())
-	var history_data:Array = _history.pop_back()
-	var previous_timeline:Timeline = history_data[_HistoryData.TIMELINE]
-	var previous_position:int = history_data[_HistoryData.COMMAND_INDEX]
-	go_to_command(previous_position, previous_timeline)
+	assert(false)
 	pass
 
-func jump_to_command(command_position:int, on_timeline:Timeline) -> void:
-	if not on_timeline:
-		on_timeline = current_timeline
-	_add_to_jump_history(command_position, on_timeline)
-	go_to_command(command_position, on_timeline)
-
-## Returns to a previous [code]go_to[/code] command call.
-## See [enum ReturnValue] to know possible values for [code]return_value[/code]
+## Returns to a previous [code]GoTo[/code] command call.
+## See [ReturnValue] to know possible values for [code]return_value[/code]
 ## argument.
 func return_command(return_value:ReturnValue):
 	assert(!_jump_history.is_empty())
@@ -159,35 +145,15 @@ func return_command(return_value:ReturnValue):
 	var next_timeline:Timeline =  history_from[ _HistoryData.TIMELINE ]
 	
 	go_to_command(next_command_idx, next_timeline)
-
-func get_next_command_index() -> int:
-	if not current_timeline:
-		return -1
 	
-	if current_command_position < 0:
-		return 0
-	
-	var next_position:int = current_command_position + 1
-	if current_command:
-		if current_command.commands.size() > 0:
-			next_position = current_command.commands.get_command(0).index
-	
-	return next_position
-
-func get_previous_command_index() -> int:
-	if not current_timeline:
-		return -1
-	
-	var position:int = max(current_command_position - 1, -1)
-	if not _history.is_empty():
-		position = _history[-1][_HistoryData.COMMAND_INDEX]
-	return position
 
 # Set required data for a command. Used before _execute_command
 func _prepare_command(command:Command) -> void:
 	if command == null:
 		assert(false)
 		return
+	
+	var node:Node = get_node(command_node_fallback_path)
 	
 	_connect_command_signals(command)
 	
@@ -213,20 +179,20 @@ func _execute_command(command:Command) -> void:
 
 # Adds a history value to [_history].
 # This function should NEVER be called manually.
-# Called by [method go_to_command]
+# Called by [go_to_command]
 func _add_to_history() -> void:
 	assert(bool(current_timeline != null))
 	var history_value = []
 	history_value.resize(_HistoryData.size())
 	history_value[_HistoryData.TIMELINE] = current_timeline
-	history_value[_HistoryData.COMMAND_INDEX] = current_command_position
+	history_value[_HistoryData.COMMAND_INDEX] = current_command_idx
 	_history.append(history_value)
 
 # Adds a history value to [_jump_history].
 # This function should NEVER be called manually.
 # Called by [go_to_command] if the current command is GoTo command.
-func _add_to_jump_history(target_position:int, target_timeline:Timeline) -> void:
-	assert(bool(current_timeline != null))
+func _add_to_jump_history() -> void:
+	assert(bool(current_command as _GoToCommand != null) and bool(current_timeline != null))
 	var jump_data := []
 	var history_from := []
 	var history_to := []
@@ -235,11 +201,11 @@ func _add_to_jump_history(target_position:int, target_timeline:Timeline) -> void
 	history_to.resize(_HistoryData.size())
 	
 	history_from[_HistoryData.TIMELINE] = current_timeline
-	history_from[_HistoryData.COMMAND_INDEX] = current_command_position
+	history_from[_HistoryData.COMMAND_INDEX] = current_command_idx
 	jump_data[_JumpHistoryData.FROM] = history_from
 	
-	history_to[_HistoryData.TIMELINE] = target_timeline
-	history_to[_HistoryData.COMMAND_INDEX] = target_position
+	history_to[_HistoryData.TIMELINE] = current_command.get_target_timeline()
+	history_to[_HistoryData.COMMAND_INDEX] = current_command.get_target_command_index()
 	jump_data[_JumpHistoryData.TO] = history_to
 	
 	jump_data[_JumpHistoryData.HISTORY_INDEX] = _history.size()-1
