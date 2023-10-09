@@ -141,8 +141,8 @@ func move_command(command:Command, to_position:int, from_collection:Collection=n
 			editor_undoredo.add_undo_method(from_collection, "insert", command, from_position)
 			editor_undoredo.add_do_method(to_collection, "insert", command, to_position)
 			editor_undoredo.add_undo_method(to_collection, "erase", command)
-#		editor_undoredo.add_do_method(_current_timeline, "update")
-#		editor_undoredo.add_undo_method(_current_timeline, "update")
+		editor_undoredo.add_do_method(_current_timeline, "update")
+		editor_undoredo.add_undo_method(_current_timeline, "update")
 		editor_undoredo.commit_action()
 	else:
 		undo_redo.create_action(action_name)

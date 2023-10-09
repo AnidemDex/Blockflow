@@ -4,7 +4,7 @@ extends EditorPlugin
 const TimelineEditor = preload("res://addons/blockflow/editor/editor.gd")
 
 var timeline_editor:TimelineEditor
-var last_edited_timeline:Timeline
+var last_edited_timeline:CommandCollection
 var last_handled_object:Object
 
 func _enter_tree():
@@ -16,7 +16,7 @@ func _handles(object: Object) -> bool:
 	var o:Resource = object as Resource
 	if not o: return false
 	var condition:bool = false
-	condition = is_instance_of(object, Timeline) or is_instance_of(object, Command)
+	condition = is_instance_of(object, CommandCollection) or is_instance_of(object, Command)
 	
 	last_handled_object = object
 	
@@ -24,9 +24,9 @@ func _handles(object: Object) -> bool:
 
 
 func _edit(object: Object) -> void:
-	if object is Timeline:
+	if object is CommandCollection:
 		timeline_editor.editor_undoredo = get_undo_redo()
-		timeline_editor.edit_timeline(object as Timeline)
+		timeline_editor.edit_timeline(object as CommandCollection)
 		last_edited_timeline = object
 
 
@@ -40,7 +40,7 @@ func _has_main_screen() -> bool:
 
 
 func _get_plugin_name() -> String:
-	return "TimelineEditor"
+	return "Block Editor"
 
 # TODO:
 # Replace with custom icon
