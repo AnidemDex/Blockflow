@@ -1,7 +1,7 @@
 @tool
 extends "res://addons/blockflow/editor/command_block/block.gd"
 
-const TimelineClass = preload("res://addons/blockflow/timeline.gd")
+const TimelineClass = preload("res://addons/blockflow/command_collection.gd")
 
 var timeline:TimelineClass:set = set_timeline
 

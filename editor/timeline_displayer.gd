@@ -1,7 +1,7 @@
 @tool
 extends Tree
 
-const TimelineClass = preload("res://addons/blockflow/timeline.gd")
+const TimelineClass = preload("res://addons/blockflow/command_collection.gd")
 const CommandBlock = preload("res://addons/blockflow/editor/command_block/block.gd")
 const RootBlock = preload("res://addons/blockflow/editor/command_block/root.gd")
 const FALLBACK_ICON = preload("res://icon.svg")
@@ -22,7 +22,7 @@ func load_timeline(timeline:TimelineClass) -> void:
 
 func _reload() -> void:
 	clear()
-	displayed_commands.clear()
+	displayed_commands = []
 	
 	if not _current_timeline:
 		return
@@ -39,7 +39,7 @@ func _reload() -> void:
 	# See this little trick here? Is to remove the column expand.
 	# I hate it.
 	#root.set_text(columns-1, " ")
-	var commands:Array = _current_timeline.commands.collection
+	var commands:Array = _current_timeline.collection
 	var subcommand:Array = []
 	
 	for command_idx in commands.size():

@@ -31,7 +31,7 @@ var undo_redo:UndoRedo:
 		if not is_instance_valid(undo_redo):
 			undo_redo = UndoRedo.new()
 			tree_exited.connect(Callable(undo_redo, "free"))
-			push_warning("TimelineEditor: Using custom UndoRedo.")
+			push_warning("CollectionEditor: Using custom UndoRedo.")
 		
 		return undo_redo
 
@@ -42,7 +42,7 @@ var command_list:CommandList
 var title_label:Label
 var edit_callback:Callable
 
-var _current_timeline:Timeline
+var _current_timeline:Collection
 
 var _item_popup:PopupMenu
 var _moving_command:bool = false
@@ -58,7 +58,12 @@ var _file_menu:PopupMenu
 var _editor_file_dialog:EditorFileDialog
 var _file_dialog:FileDialog
 
-func edit_timeline(timeline:Timeline) -> void:
+func edit_timeline(timeline:Object) -> void:
+	if timeline is Timeline:
+		push_warning("Timeline is deprecated")
+		return
+	if not(timeline is CommandCollection): return
+	
 	var load_function:Callable = timeline_displayer.load_timeline
 	var path_hint:String = ""
 	
@@ -81,11 +86,11 @@ func edit_timeline(timeline:Timeline) -> void:
 	title_label.text = path_hint
 	load_function.call(timeline)
 
-func add_command(command:Command, at_position:int = -1, to_collection:CommandCollection = null) -> void:
+func add_command(command:Command, at_position:int = -1, to_collection:Collection = null) -> void:
 	if not _current_timeline: return
 	if not command: return
 	if not to_collection:
-		to_collection = _current_timeline.commands
+		to_collection = _current_timeline
 	
 	
 	var action_name:String = "Add command '%s'" % [command.command_name]
@@ -114,7 +119,7 @@ func add_command(command:Command, at_position:int = -1, to_collection:CommandCol
 		undo_redo.commit_action()
 
 
-func move_command(command:Command, to_position:int, from_collection:CommandCollection=null, to_collection:CommandCollection=null) -> void:
+func move_command(command:Command, to_position:int, from_collection:Collection=null, to_collection:Collection=null) -> void:
 	if not _current_timeline: return
 	if not command: return
 	if command.index == to_position: return
@@ -123,7 +128,7 @@ func move_command(command:Command, to_position:int, from_collection:CommandColle
 	if not to_collection:
 		to_collection = command.weak_owner.get_ref()
 	
-	var from_position:int = _current_timeline.get_command_position(command)
+	var from_position:int = from_collection.get_command_position(command)
 	var action_name:String = "Move command '%s'" % [command.command_name]
 	
 	if Engine.is_editor_hint():
@@ -136,8 +141,8 @@ func move_command(command:Command, to_position:int, from_collection:CommandColle
 			editor_undoredo.add_undo_method(from_collection, "insert", command, from_position)
 			editor_undoredo.add_do_method(to_collection, "insert", command, to_position)
 			editor_undoredo.add_undo_method(to_collection, "erase", command)
-		editor_undoredo.add_do_method(_current_timeline, "update")
-		editor_undoredo.add_undo_method(_current_timeline, "update")
+#		editor_undoredo.add_do_method(_current_timeline, "update")
+#		editor_undoredo.add_undo_method(_current_timeline, "update")
 		editor_undoredo.commit_action()
 	else:
 		undo_redo.create_action(action_name)
@@ -159,7 +164,7 @@ func move_command(command:Command, to_position:int, from_collection:CommandColle
 func duplicate_command(command:Command, to_position:int) -> void:
 	if not _current_timeline: return
 	if not command: return
-	var command_collection:CommandCollection
+	var command_collection:Collection
 	if not command.weak_owner:
 		push_error("!command.weak_owner")
 		return
@@ -188,7 +193,7 @@ func duplicate_command(command:Command, to_position:int) -> void:
 func remove_command(command:Command) -> void:
 	if not _current_timeline: return
 	if not command: return
-	var command_collection:CommandCollection
+	var command_collection:Collection
 	if not command.weak_owner:
 		push_error("not command.weak_owner")
 		return
@@ -227,7 +232,7 @@ func _request_load_timeline() -> void:
 	__file_dialog.current_dir = ""
 	__file_dialog.file_mode = EditorFileDialog.FILE_MODE_OPEN_FILE
 	__file_dialog.filters = ["*.tres, *.res ; Resource file"]
-	__file_dialog.title = "Load Timeline"
+	__file_dialog.title = "Load Collection"
 	__file_dialog.popup_centered_ratio(0.5)
 
 
@@ -236,7 +241,7 @@ func _request_new_timeline() -> void:
 	__file_dialog.current_dir = ""
 	__file_dialog.file_mode = EditorFileDialog.FILE_MODE_SAVE_FILE
 	__file_dialog.filters = ["*.tres, *.res ; Resource file"]
-	__file_dialog.title = "New Timeline"
+	__file_dialog.title = "New CommandCollection"
 	__file_dialog.popup_centered_ratio(0.5)
 
 
@@ -294,7 +299,7 @@ func _timeline_displayer_item_mouse_selected(_position:Vector2, button_index:int
 
 func _timeline_displayer_item_selected() -> void:
 	if edit_callback.is_null():
-		push_error("TimelineEditor: No edit callback was defined.")
+		push_error("CollectionEditor: No edit callback was defined.")
 		return
 	
 	var selected_command = timeline_displayer.get_selected().get_metadata(0)
@@ -312,6 +317,9 @@ func _timeline_displayer_get_drag_data(at_position: Vector2):
 	
 	if not drag_data[&"resource"]:
 		return null
+	
+	if not drag_data[&"resource"].can_be_moved:
+		return
 	
 	var drag_preview = Button.new()
 	drag_preview.text = (drag_data.resource as Command).command_name
@@ -358,13 +366,13 @@ func _timeline_displayer_drop_data(at_position: Vector2, data) -> void:
 	var section:int = timeline_displayer.get_drop_section_at_position(at_position)
 	var command:Command = data["resource"]
 	var ref_item:TreeItem = timeline_displayer.get_item_at_position(at_position)
-	var ref_item_collection:CommandCollection
+	var ref_item_collection:Collection
 	if ref_item and ref_item != timeline_displayer.root:
 		ref_item_collection = ref_item.command.weak_owner.get_ref()
 
 	match section:
 		_DropSection.NO_ITEM:
-			move_command(command, -1, null, _current_timeline.commands)
+			move_command(command, -1, null, _current_timeline)
 
 		_DropSection.ABOVE_ITEM:
 			var new_index:int = ref_item.command.weak_owner.get_ref().get_command_position(ref_item.command)
@@ -372,7 +380,7 @@ func _timeline_displayer_drop_data(at_position: Vector2, data) -> void:
 
 		_DropSection.ON_ITEM:
 			if ref_item == timeline_displayer.root:
-				move_command(command, 0, null, _current_timeline.commands)
+				move_command(command, 0, null, _current_timeline)
 				return
 			
 			move_command(command, -1, null, ref_item.command.commands)
@@ -384,11 +392,11 @@ func _timeline_displayer_drop_data(at_position: Vector2, data) -> void:
 
 
 func _editor_file_dialog_file_selected(path:String) -> void:
-	var timeline:Timeline
+	var timeline:CommandCollection
 	var __file_dialog := _get_file_dialog()
 		
 	if __file_dialog.file_mode == EditorFileDialog.FILE_MODE_SAVE_FILE:
-		timeline = Timeline.new()
+		timeline = CommandCollection.new()
 		timeline.resource_name = path.get_file()
 		
 		var err:int = ResourceSaver.save(timeline, path)
@@ -397,10 +405,10 @@ func _editor_file_dialog_file_selected(path:String) -> void:
 			return
 		timeline = load(path)
 	
-	timeline = load(path) as Timeline
+	timeline = load(path) as CommandCollection
 	
 	if not timeline:
-		push_error("TimelineEditor: '%s' is not a valid Timeline" % path)
+		push_error("CollectionEditor: '%s' is not a valid Collection" % path)
 		return
 	
 	edit_callback.bind(timeline).call_deferred()
@@ -426,7 +434,7 @@ func _notification(what: int) -> void:
 
 
 func _init() -> void:
-	name = "TimelineEditor"
+	name = "CollectionEditor"
 	size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	size_flags_vertical = Control.SIZE_EXPAND_FILL
 	
@@ -448,8 +456,8 @@ func _init() -> void:
 	_file_menu = PopupMenu.new()
 	_file_menu.allow_search = false
 	_file_menu.id_pressed.connect(_toolbar_file_menu_id_pressed)
-	_file_menu.add_item("New Timeline...", ToolbarFileMenu.NEW_TIMELINE)
-	_file_menu.add_item("Open Timeline...", ToolbarFileMenu.OPEN_TIMELINE)
+	_file_menu.add_item("New Collection...", ToolbarFileMenu.NEW_TIMELINE)
+	_file_menu.add_item("Open Collection...", ToolbarFileMenu.OPEN_TIMELINE)
 	_file_menu.add_separator()
 	_file_menu.add_item("Close current timeline", ToolbarFileMenu.CLOSE_TIMELINE)
 	_file_menu.set_item_disabled(_file_menu.get_item_index(ToolbarFileMenu.CLOSE_TIMELINE), true)
@@ -477,7 +485,7 @@ func _init() -> void:
 	hb.add_child(pc)
 	
 	timeline_displayer = TimelineDisplayer.new()
-	timeline_displayer.name = "TimelineDisplayer"
+	timeline_displayer.name = "CollectionDisplayer"
 	timeline_displayer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	timeline_displayer.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	timeline_displayer.item_mouse_selected.connect(_timeline_displayer_item_mouse_selected)
@@ -505,12 +513,12 @@ func _init() -> void:
 	vb.add_child(hb)
 	
 	_help_panel_new_btn = Button.new()
-	_help_panel_new_btn.text = "New Timeline"
+	_help_panel_new_btn.text = "New Collection"
 	_help_panel_new_btn.pressed.connect(_request_new_timeline)
 	hb.add_child(_help_panel_new_btn)
 	
 	_help_panel_load_btn = Button.new()
-	_help_panel_load_btn.text = "Load Timeline"
+	_help_panel_load_btn.text = "Load Collection"
 	_help_panel_load_btn.pressed.connect(_request_load_timeline)
 	hb.add_child(_help_panel_load_btn)
 	

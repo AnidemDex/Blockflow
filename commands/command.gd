@@ -125,20 +125,20 @@ var target_node:Node
 var index:int
 
 ## A [WeakRef] that points to the timeline that holds this command.
-var weak_timeline:WeakRef
+var weak_collection:WeakRef
 
-## Branches of this command using a [CommandCollection].
+## Branches of this command using a [Collection].
 ##
 ## [br]A [code]branch[/code] is a subcommand of this command 
 ## that can hold other commands. Each branch defined as command in
-## the [CommandCollection] must be [constant Branch] type.
+## the [Collection] must be [constant Branch] type.
 ##
 ## [br]Any command can hold many branches, and  can request their usage
 ## through [method go_to_brach].
 ##
 ## [br]Branches and its contained commands
 ## are ignored if you use [method go_to_next_command].
-var branches:CommandCollection:
+var branches:Collection:
 	set(value):
 		if branches == value: return
 		if branches: branches.weak_owner = null
@@ -149,15 +149,15 @@ var branches:CommandCollection:
 
 ## A [WeakRef] that points to the owner of this command.
 ## [br]The return value of [method weak_owner.get_ref] is
-## [CommandCollection] or null.
+## [Collection] or null.
 ##[br]If value is null it means that owner failed to set
 ## its own reference.
 var weak_owner:WeakRef
 
-## Subcommands of this command using [CommandCollection].
+## Subcommands of this command using [Collection].
 ##[br]If [member can_hold_commands] is [code]true[/code]
-## a [CommandCollection] object will be set on creation.
-var commands:CommandCollection:
+## a [Collection] object will be set on creation.
+var commands:Collection:
 	set(value):
 		if commands == value: return
 		if commands: commands.weak_owner = null
@@ -210,7 +210,6 @@ func remove_branch(branch_name:StringName) -> void:
 	emit_changed()
 
 func get_branch(branch) -> Command:
-	var _branches
 	match typeof(branch):
 		TYPE_INT:
 			return branches.get_command(branch)
@@ -328,13 +327,13 @@ func _get(property: StringName):
 func _init() -> void:
 	resource_local_to_scene = true
 	if not _get_default_branch_names().is_empty():
-		branches = CommandCollection.new()
+		branches = Collection.new()
 	
 	for branch_name in _get_default_branch_names():
 		add_branch(branch_name)
 	
 	if can_hold_commads:
-		commands = CommandCollection.new()
+		commands = Collection.new()
 
 func _get_property_list() -> Array:
 	var p:Array = []
