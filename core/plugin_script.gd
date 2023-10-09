@@ -2,14 +2,18 @@
 extends EditorPlugin
 
 const TimelineEditor = preload("res://addons/blockflow/editor/editor.gd")
+const TimelineConverter = preload("res://addons/blockflow/timeline_converter.gd")
 
 var timeline_editor:TimelineEditor
 var last_edited_timeline:CommandCollection
 var last_handled_object:Object
+var timeline_converter:TimelineConverter
 
 func _enter_tree():
 	get_editor_interface().get_editor_main_screen().add_child(timeline_editor)
 	_make_visible(false)
+	
+	add_resource_conversion_plugin(timeline_converter)
 
 
 func _handles(object: Object) -> bool:
@@ -50,6 +54,9 @@ func _get_plugin_icon():
 
 func _exit_tree():
 	timeline_editor.queue_free()
+	
+	remove_resource_conversion_plugin(timeline_converter)
+	timeline_converter = null
 
 
 func _init() -> void:
@@ -57,3 +64,5 @@ func _init() -> void:
 	timeline_editor.edit_callback = Callable(get_editor_interface(), "edit_resource")
 	timeline_editor.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	timeline_editor.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	
+	timeline_converter = TimelineConverter.new()
