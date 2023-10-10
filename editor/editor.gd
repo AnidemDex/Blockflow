@@ -31,7 +31,7 @@ var undo_redo:UndoRedo:
 		if not is_instance_valid(undo_redo):
 			undo_redo = UndoRedo.new()
 			tree_exited.connect(Callable(undo_redo, "free"))
-			push_warning("TimelineEditor: Using custom UndoRedo.")
+			push_warning("CollectionEditor: Using custom UndoRedo.")
 		
 		return undo_redo
 
@@ -42,7 +42,7 @@ var command_list:CommandList
 var title_label:Label
 var edit_callback:Callable
 
-var _current_timeline:Timeline
+var _current_timeline:Collection
 
 var _item_popup:PopupMenu
 var _moving_command:bool = false
@@ -58,7 +58,12 @@ var _file_menu:PopupMenu
 var _editor_file_dialog:EditorFileDialog
 var _file_dialog:FileDialog
 
-func edit_timeline(timeline:Timeline) -> void:
+func edit_timeline(timeline:Object) -> void:
+	if timeline is Timeline:
+		push_warning("Timeline is deprecated")
+		return
+	if not(timeline is CommandCollection): return
+	
 	var load_function:Callable = timeline_displayer.load_timeline
 	var path_hint:String = ""
 	
@@ -81,55 +86,77 @@ func edit_timeline(timeline:Timeline) -> void:
 	title_label.text = path_hint
 	load_function.call(timeline)
 
-
-func add_command(command:Command, at_position:int = -1) -> void:
+func add_command(command:Command, at_position:int = -1, to_collection:Collection = null) -> void:
 	if not _current_timeline: return
 	if not command: return
+	if not to_collection:
+		to_collection = _current_timeline
 	
-	var action_name:String = "Add command '%s'" % [command.get_command_name()]
+	
+	var action_name:String = "Add command '%s'" % [command.command_name]
 	
 	if Engine.is_editor_hint():
 		editor_undoredo.create_action(action_name)
 		
 		if at_position < 0:
-			editor_undoredo.add_do_method(_current_timeline, "add_command", command)
+			editor_undoredo.add_do_method(to_collection, "add", command)
 		else:
-			editor_undoredo.add_do_method(_current_timeline, "insert_command", command, at_position)
+			editor_undoredo.add_do_method(to_collection, "insert", command, at_position)
 		
-		editor_undoredo.add_undo_method(_current_timeline, "erase_command", command)
+		editor_undoredo.add_undo_method(to_collection, "erase", command)
 		editor_undoredo.commit_action()
 		
 	else:
 		undo_redo.create_action(action_name)
 		
 		if at_position < 0:
-			undo_redo.add_do_method(_current_timeline.add_command.bind(command))
+			undo_redo.add_do_method(to_collection.add.bind(command))
 		else:
-			undo_redo.add_do_method(_current_timeline.insert_command.bind(command, at_position))
+			undo_redo.add_do_method(to_collection.insert.bind(command, at_position))
 		
-		undo_redo.add_undo_method(_current_timeline.erase_command.bind(command))
+		undo_redo.add_undo_method(to_collection.erase.bind(command))
 		
 		undo_redo.commit_action()
 
 
-func move_command(command:Command, to_position:int) -> void:
+func move_command(command:Command, to_position:int, from_collection:Collection=null, to_collection:Collection=null) -> void:
 	if not _current_timeline: return
 	if not command: return
 	if command.index == to_position: return
+	if not from_collection:
+		from_collection = command.weak_owner.get_ref()
+	if not to_collection:
+		to_collection = command.weak_owner.get_ref()
 	
-	var old_position:int = _current_timeline.get_command_idx(command)
-	var action_name:String = "Move command '%s'" % [command.get_command_name()]
+	var from_position:int = from_collection.get_command_position(command)
+	var action_name:String = "Move command '%s'" % [command.command_name]
 	
 	if Engine.is_editor_hint():
 		editor_undoredo.create_action(action_name)
-		editor_undoredo.add_do_method(_current_timeline, "move_command", command, to_position)
-		editor_undoredo.add_undo_method(_current_timeline, "move_command", command, old_position)
+		if from_collection == to_collection:
+			editor_undoredo.add_do_method(from_collection, "move", command, to_position)
+			editor_undoredo.add_undo_method(from_collection, "move", command, from_position)
+		else:
+			editor_undoredo.add_do_method(from_collection, "erase", command)
+			editor_undoredo.add_undo_method(from_collection, "insert", command, from_position)
+			editor_undoredo.add_do_method(to_collection, "insert", command, to_position)
+			editor_undoredo.add_undo_method(to_collection, "erase", command)
+		editor_undoredo.add_do_method(_current_timeline, "update")
+		editor_undoredo.add_undo_method(_current_timeline, "update")
 		editor_undoredo.commit_action()
 	else:
 		undo_redo.create_action(action_name)
 		
-		undo_redo.add_do_method(_current_timeline.move_command.bind(command, to_position))
-		undo_redo.add_undo_method(_current_timeline.move_command.bind(command, old_position))
+		if from_collection == to_collection:
+			undo_redo.add_do_method(from_collection.move.bind(command, to_position))
+			undo_redo.add_undo_method(from_collection.move.bind(command, from_position))
+		else:
+			undo_redo.add_do_method(from_collection.erase.bind(command))
+			undo_redo.add_undo_method(from_collection.insert.bind(command, from_position))
+			undo_redo.add_do_method(to_collection.insert.bind(command, to_position))
+			undo_redo.add_undo_method(to_collection.erase.bind(command))
+		undo_redo.add_do_method(_current_timeline.update)
+		undo_redo.add_undo_method(_current_timeline.update)
 		
 		undo_redo.commit_action()
 
@@ -137,20 +164,28 @@ func move_command(command:Command, to_position:int) -> void:
 func duplicate_command(command:Command, to_position:int) -> void:
 	if not _current_timeline: return
 	if not command: return
+	var command_collection:Collection
+	if not command.weak_owner:
+		push_error("!command.weak_owner")
+		return
+	command_collection = command.weak_owner.get_ref()
+	if not command_collection:
+		push_error("!command_collection")
+		return
 	
-	var at_position:int = _current_timeline.get_command_idx(command)
+	var at_position:int = _current_timeline.get_command_position(command)
 	var action_name:String = "Duplicate command '%s'" % [command.get_command_name()]
 	
 	if Engine.is_editor_hint():
 		editor_undoredo.create_action(action_name)
-		editor_undoredo.add_do_method(_current_timeline, "duplicate_command", command, to_position)
-		editor_undoredo.add_undo_method(_current_timeline, "erase_command", command)
+		editor_undoredo.add_do_method(command_collection, "copy", command, to_position)
+		editor_undoredo.add_undo_method(command_collection, "erase", command)
 		editor_undoredo.commit_action()
 	else:
 		undo_redo.create_action(action_name)
 		
-		undo_redo.add_do_method(_current_timeline.duplicate_command.bind(command, to_position))
-		undo_redo.add_undo_method(_current_timeline.erase_command.bind(command))
+		undo_redo.add_do_method(command_collection.copy.bind(command, to_position))
+		undo_redo.add_undo_method(command_collection.erase.bind(command))
 		
 		undo_redo.commit_action()
 
@@ -158,20 +193,28 @@ func duplicate_command(command:Command, to_position:int) -> void:
 func remove_command(command:Command) -> void:
 	if not _current_timeline: return
 	if not command: return
+	var command_collection:Collection
+	if not command.weak_owner:
+		push_error("not command.weak_owner")
+		return
+	command_collection = command.weak_owner.get_ref()
+	if not command_collection:
+		push_error("not command_collection")
+		return
 	
-	var command_idx:int = _current_timeline.get_command_idx(command)
-	var action_name:String = "Remove command '%s'" % [command.get_command_name()]
+	var command_idx:int = _current_timeline.get_command_position(command)
+	var action_name:String = "Remove command '%s'" % [command.command_name]
 	
 	if Engine.is_editor_hint():
 		editor_undoredo.create_action(action_name)
-		editor_undoredo.add_do_method(_current_timeline, "remove_command", command_idx)
-		editor_undoredo.add_undo_method(_current_timeline, "insert_command", command, command_idx)
+		editor_undoredo.add_do_method(command_collection, "remove", command_idx)
+		editor_undoredo.add_undo_method(command_collection, "insert", command, command_idx)
 		editor_undoredo.commit_action()
 	else:
 		undo_redo.create_action(action_name)
 		
-		undo_redo.add_do_method(_current_timeline.remove_command.bind(command_idx))
-		undo_redo.add_undo_method(_current_timeline.insert_command.bind(command, command_idx))
+		undo_redo.add_do_method(command_collection.remove.bind(command_idx))
+		undo_redo.add_undo_method(command_collection.insert.bind(command, command_idx))
 		
 		undo_redo.commit_action()
 
@@ -189,7 +232,7 @@ func _request_load_timeline() -> void:
 	__file_dialog.current_dir = ""
 	__file_dialog.file_mode = EditorFileDialog.FILE_MODE_OPEN_FILE
 	__file_dialog.filters = ["*.tres, *.res ; Resource file"]
-	__file_dialog.title = "Load Timeline"
+	__file_dialog.title = "Load Collection"
 	__file_dialog.popup_centered_ratio(0.5)
 
 
@@ -198,13 +241,13 @@ func _request_new_timeline() -> void:
 	__file_dialog.current_dir = ""
 	__file_dialog.file_mode = EditorFileDialog.FILE_MODE_SAVE_FILE
 	__file_dialog.filters = ["*.tres, *.res ; Resource file"]
-	__file_dialog.title = "New Timeline"
+	__file_dialog.title = "New CommandCollection"
 	__file_dialog.popup_centered_ratio(0.5)
 
 
 func _item_popup_id_pressed(id:int) -> void:
 	var command:Command = timeline_displayer.get_selected().get_metadata(0)
-	var command_idx:int = _current_timeline.get_command_idx(command)
+	var command_idx:int = command.weak_owner.get_ref().get_command_position(command)
 	match id:
 		_ItemPopup.MOVE_UP:
 			move_command(command, max(0, command_idx - 1))
@@ -232,9 +275,19 @@ func _command_button_list_pressed(command_script:Script) -> void:
 
 func _timeline_displayer_item_mouse_selected(_position:Vector2, button_index:int) -> void:
 	if button_index == MOUSE_BUTTON_RIGHT:
+		var item = timeline_displayer.get_item_at_position(_position)
+		var can_move_up:bool
+		var can_move_down:bool
+		if item.command:
+			var c_pos:int = item.command.weak_owner.get_ref().get_command_position(item.command)
+			var c_max_size:int = item.command.weak_owner.get_ref().collection.size()
+			can_move_up = c_pos != 0
+			can_move_down = c_pos < c_max_size - 1
 		_item_popup.clear()
 		_item_popup.add_item("Move up", _ItemPopup.MOVE_UP)
+		_item_popup.set_item_disabled(0, !can_move_up)
 		_item_popup.add_item("Move down", _ItemPopup.MOVE_DOWN)
+		_item_popup.set_item_disabled(1, !can_move_down)
 		_item_popup.add_separator()
 		_item_popup.add_item("Duplicate", _ItemPopup.DUPLICATE)
 		_item_popup.add_item("Remove", _ItemPopup.REMOVE)
@@ -246,7 +299,7 @@ func _timeline_displayer_item_mouse_selected(_position:Vector2, button_index:int
 
 func _timeline_displayer_item_selected() -> void:
 	if edit_callback.is_null():
-		push_error("TimelineEditor: No edit callback was defined.")
+		push_error("CollectionEditor: No edit callback was defined.")
 		return
 	
 	var selected_command = timeline_displayer.get_selected().get_metadata(0)
@@ -265,8 +318,11 @@ func _timeline_displayer_get_drag_data(at_position: Vector2):
 	if not drag_data[&"resource"]:
 		return null
 	
+	if not drag_data[&"resource"].can_be_moved:
+		return
+	
 	var drag_preview = Button.new()
-	drag_preview.text = (drag_data.resource as Command).get_command_name()
+	drag_preview.text = (drag_data.resource as Command).command_name
 	set_drag_preview(drag_preview)
 	
 	return drag_data
@@ -290,12 +346,17 @@ func _timeline_displayer_can_drop_data(at_position: Vector2, data) -> bool:
 	if ref_block:
 		ref_block_command = ref_block.get(&"command")
 	
+		if ref_block_command.can_hold_commads:
+			timeline_displayer.drop_mode_flags = Tree.DROP_MODE_ON_ITEM
+			return true
+	
 	if ref_block_command == moved_command:
 		timeline_displayer.drop_mode_flags = Tree.DROP_MODE_DISABLED
 		return false
 	
 	var command:Command = (data as Dictionary).get("resource") as Command
 	if command:
+		timeline_displayer.drop_mode_flags = Tree.DROP_MODE_INBETWEEN
 		return true
 	
 	return false
@@ -305,31 +366,37 @@ func _timeline_displayer_drop_data(at_position: Vector2, data) -> void:
 	var section:int = timeline_displayer.get_drop_section_at_position(at_position)
 	var command:Command = data["resource"]
 	var ref_item:TreeItem = timeline_displayer.get_item_at_position(at_position)
+	var ref_item_collection:Collection
+	if ref_item and ref_item != timeline_displayer.root:
+		ref_item_collection = ref_item.command.weak_owner.get_ref()
 
 	match section:
 		_DropSection.NO_ITEM:
-			move_command(command, -1)
+			move_command(command, -1, null, _current_timeline)
 
 		_DropSection.ABOVE_ITEM:
-			var new_index:int = ref_item.command.index
-			move_command(command, new_index)
+			var new_index:int = ref_item.command.weak_owner.get_ref().get_command_position(ref_item.command)
+			move_command(command, new_index, null, ref_item_collection)
 
 		_DropSection.ON_ITEM:
 			if ref_item == timeline_displayer.root:
-				move_command(command, 0)
+				move_command(command, 0, null, _current_timeline)
 				return
 			
+			move_command(command, -1, null, ref_item.command.commands)
+			
+			
 		_DropSection.BELOW_ITEM:
-			var new_index:int = ref_item.command.index + 1
-			move_command(command, new_index)
+			var new_index:int = ref_item.command.weak_owner.get_ref().get_command_position(ref_item.command) + 1
+			move_command(command, new_index, null, ref_item_collection)
 
 
 func _editor_file_dialog_file_selected(path:String) -> void:
-	var timeline:Timeline
+	var timeline:CommandCollection
 	var __file_dialog := _get_file_dialog()
 		
 	if __file_dialog.file_mode == EditorFileDialog.FILE_MODE_SAVE_FILE:
-		timeline = Timeline.new()
+		timeline = CommandCollection.new()
 		timeline.resource_name = path.get_file()
 		
 		var err:int = ResourceSaver.save(timeline, path)
@@ -338,10 +405,10 @@ func _editor_file_dialog_file_selected(path:String) -> void:
 			return
 		timeline = load(path)
 	
-	timeline = load(path) as Timeline
+	timeline = load(path) as CommandCollection
 	
 	if not timeline:
-		push_error("TimelineEditor: '%s' is not a valid Timeline" % path)
+		push_error("CollectionEditor: '%s' is not a valid Collection" % path)
 		return
 	
 	edit_callback.bind(timeline).call_deferred()
@@ -367,7 +434,7 @@ func _notification(what: int) -> void:
 
 
 func _init() -> void:
-	name = "TimelineEditor"
+	name = "CollectionEditor"
 	size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	size_flags_vertical = Control.SIZE_EXPAND_FILL
 	
@@ -389,8 +456,8 @@ func _init() -> void:
 	_file_menu = PopupMenu.new()
 	_file_menu.allow_search = false
 	_file_menu.id_pressed.connect(_toolbar_file_menu_id_pressed)
-	_file_menu.add_item("New Timeline...", ToolbarFileMenu.NEW_TIMELINE)
-	_file_menu.add_item("Open Timeline...", ToolbarFileMenu.OPEN_TIMELINE)
+	_file_menu.add_item("New Collection...", ToolbarFileMenu.NEW_TIMELINE)
+	_file_menu.add_item("Open Collection...", ToolbarFileMenu.OPEN_TIMELINE)
 	_file_menu.add_separator()
 	_file_menu.add_item("Close current timeline", ToolbarFileMenu.CLOSE_TIMELINE)
 	_file_menu.set_item_disabled(_file_menu.get_item_index(ToolbarFileMenu.CLOSE_TIMELINE), true)
@@ -418,7 +485,7 @@ func _init() -> void:
 	hb.add_child(pc)
 	
 	timeline_displayer = TimelineDisplayer.new()
-	timeline_displayer.name = "TimelineDisplayer"
+	timeline_displayer.name = "CollectionDisplayer"
 	timeline_displayer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	timeline_displayer.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	timeline_displayer.item_mouse_selected.connect(_timeline_displayer_item_mouse_selected)
@@ -446,12 +513,12 @@ func _init() -> void:
 	vb.add_child(hb)
 	
 	_help_panel_new_btn = Button.new()
-	_help_panel_new_btn.text = "New Timeline"
+	_help_panel_new_btn.text = "New Collection"
 	_help_panel_new_btn.pressed.connect(_request_new_timeline)
 	hb.add_child(_help_panel_new_btn)
 	
 	_help_panel_load_btn = Button.new()
-	_help_panel_load_btn.text = "Load Timeline"
+	_help_panel_load_btn.text = "Load Collection"
 	_help_panel_load_btn.pressed.connect(_request_load_timeline)
 	hb.add_child(_help_panel_load_btn)
 	

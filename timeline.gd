@@ -4,6 +4,7 @@ class_name Timeline
 ##
 ## Base class for all Timelines
 ##
+## Deprecated. Legacy class.
 ## This resource only keeps an ordered reference of all commands registered on it.
 ##
 
@@ -111,11 +112,24 @@ func update_indexes() -> void:
 	for command_idx in commands.size():
 		commands[command_idx].index = command_idx
 
+func get_collection_equivalent() -> CommandCollection:
+	var collection := CommandCollection.new()
+	collection.collection = commands.duplicate()
+	return collection
+			
+
 func _notify_changed() -> void:
 	update_bookmarks()
 	update_indexes()
 	emit_changed()
 	pass
+
+func _init() -> void:
+	push_warning(
+"""[%s]Timeline: This class is deprecated and will be removed in
+future versions.
+Consider using CommandCollection class."""%resource_path
+	)
 
 func _get_property_list() -> Array:
 	var p:Array = []

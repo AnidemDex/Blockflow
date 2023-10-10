@@ -12,5 +12,5 @@ func _get_name() -> StringName:
 func _get_icon() -> Texture:
 	return load("res://addons/blockflow/icons/branch.svg")
 
-func _get_branch_names() -> PackedStringArray:
+func _get_default_branch_names() -> PackedStringArray:
 	return [&"is True", &"is False"]
