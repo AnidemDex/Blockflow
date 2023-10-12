@@ -35,9 +35,9 @@ const Branch = preload("res://addons/blockflow/commands/branch.gd")
 	get: return continue_at_end
 
 ## Target [NodePath] this command points to.
-## This value is used in runtime by its command manager to determine
-## the [member target_node] and is always relative to current scene
-## [member Node.owner]
+## This value is used in runtime by its [member command_manager] 
+##  to determine the [member target_node] and is always 
+## relative to current scene [member Node.owner]
 @export var target:NodePath = NodePath():
 	set(value):
 		target = value
@@ -117,35 +117,17 @@ var editor_block:TreeItem
 ## Target node that [member target] points to. This value is assigned by
 ## [member command_manager] before command execution if [member target] is a
 ## valid path, else node assigned in
-## [member command_manager.command_node_fallback_path] is used instead.
+## [member CommandProcessor.command_node_fallback_path] is used instead.
 var target_node:Node
 
-## Current command position in the timeline.
-## Index is determined by timeline and should not be set during runtime.
+## Current command position in the collection.
+## Index is determined by its [member weak_collection]
+## and should not be set during runtime.
 var index:int
 
-## A [WeakRef] that points to the timeline that holds this command.
+## A [WeakRef] that points to the [CommandCollection] 
+## that holds this command.
 var weak_collection:WeakRef
-
-## Branches of this command using a [Collection].
-##
-## [br]A [code]branch[/code] is a subcommand of this command 
-## that can hold other commands. Each branch defined as command in
-## the [Collection] must be [constant Branch] type.
-##
-## [br]Any command can hold many branches, and  can request their usage
-## through [method go_to_brach].
-##
-## [br]Branches and its contained commands
-## are ignored if you use [method go_to_next_command].
-var branches:Collection:
-	set(value):
-		if branches == value: return
-		if branches: branches.weak_owner = null
-		
-		branches = value
-		if branches: branches.weak_owner = weakref(self)
-		emit_changed()
 
 ## A [WeakRef] that points to the owner of this command.
 ## [br]The return value of [method weak_owner.get_ref] is
@@ -154,11 +136,43 @@ var branches:Collection:
 ## its own reference.
 var weak_owner:WeakRef
 
+## Branches of this command using a [Collection].
+##
+##[br]A [code]branch[/code] is a [Collection] of
+## this command that can hold other commands. 
+## Each [code]branch[/code] defined in
+## the [Collection] must be [constant Branch] type.
+##
+##[br]Any command can hold many branches, and  can request their usage
+## through [method go_to_brach].
+##
+## [br]Branches and its contained commands
+## are ignored if you use [method go_to_next_command].
+##
+##[br][br]If [member can_hold_branches] is [code]true[/code]
+## a [Collection] object will be set on creation, otherwise, this
+## will be [code]null[/code].
+var branches:Collection:
+	set(value):
+		if not can_hold_branches: return
+		if branches == value: return
+		if branches: branches.weak_owner = null
+		
+		branches = value
+		if branches: branches.weak_owner = weakref(self)
+		emit_changed()
+
 ## Subcommands of this command using [Collection].
-##[br]If [member can_hold_commands] is [code]true[/code]
-## a [Collection] object will be set on creation.
+##
+##[br][br]Subcommands are taken in consideration 
+## when you use [method go_to_next_command].
+##
+##[br][br]If [member can_hold_commands] is [code]true[/code]
+## a [Collection] object will be set on creation, otherwise, this
+## will be [code]null[/code].
 var commands:Collection:
 	set(value):
+		if not can_hold_commads: return
 		if commands == value: return
 		if commands: commands.weak_owner = null
 		
@@ -166,6 +180,8 @@ var commands:Collection:
 		if commands: commands.weak_owner = weakref(self)
 		emit_changed()
 
+## Specify if this command can hold commands as if they
+## were subcommands.
 ## If [code]true[/code] enables
 ## the option to drop commands on this command
 ## to handle them as subcommands.
@@ -173,10 +189,21 @@ var can_hold_commads:bool :
 	set(value): return
 	get: return _can_hold_commands()
 
+## Specify if this command can hold branches.
+##[br][br]If [code]true[/code] enables
+## the option to create branches on this command
+## according to [method _get_default_branch_names].
+var can_hold_branches:bool:
+	set(value): return
+	get: return _can_hold_branches()
+
+## Specify if this command can be moved in editor after
+## creation. Used mainly by [constant Branch] commands.
 var can_be_moved:bool :
 	set(value): return
 	get: return _can_be_moved()
 
+## Specify if this command can be selected in editor.
 var can_be_selected:bool :
 	set(value): return
 	get: return _can_be_selected()
