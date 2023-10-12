@@ -1,16 +1,49 @@
 @tool
 extends Command
 
+const _Utils = preload("res://addons/blockflow/core/utils.gd")
+
+@export var condition:String
+
 func _execution_steps() -> void:
-	pass
+	command_started.emit()
+	if condition.is_empty():
+		push_error("condition.is_empty() == true. Your condition will not be evaluated.")
+		return
+	
+	if _condition_is_true():
+		go_to_branch(0)
+	else:
+		go_to_branch(1)
 
 
-func _get_name() -> StringName:
-	return "Condition"
+func _condition_is_true() -> bool:
+	if condition.is_empty():
+		return true
+	
+	# Local variables. These can be added as context for condition evaluation.
+	var variables:Dictionary = {}
+	# must be a bool, but Utils.evaluate can return Variant according its input.
+	# TODO: Make sure that condition is a boolean operation
+	var evaluated_condition = _Utils.evaluate(condition, target_node, variables)
+	if (typeof(evaluated_condition) == TYPE_STRING) and (str(evaluated_condition) == condition):
+		# For some reason, your condition cannot be evaluated.
+		# Here's a few reasons:
+		# 1. Your target_node may not have that property you specified.
+		# 2. You wrote wrong the property.
+		# 3. You wrote wrong the function name.
+		push_warning("%s failed. The condition will be evaluated as false." % [self])
+		return false
+	
+	return bool(evaluated_condition)
 
+
+func _get_name() -> StringName: return "Condition"
 
 func _get_icon() -> Texture:
 	return load("res://addons/blockflow/icons/branch.svg")
 
 func _get_default_branch_names() -> PackedStringArray:
 	return [&"is True", &"is False"]
+
+func _can_hold_branches() -> bool: return true
