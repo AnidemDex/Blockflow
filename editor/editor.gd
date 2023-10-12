@@ -132,7 +132,7 @@ func move_command(command:Command, to_position:int, from_collection:Collection=n
 	var action_name:String = "Move command '%s'" % [command.command_name]
 	
 	if Engine.is_editor_hint():
-		editor_undoredo.create_action(action_name)
+		editor_undoredo.create_action(action_name, 0, from_collection)
 		if from_collection == to_collection:
 			editor_undoredo.add_do_method(from_collection, "move", command, to_position)
 			editor_undoredo.add_undo_method(from_collection, "move", command, from_position)
