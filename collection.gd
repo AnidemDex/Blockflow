@@ -15,6 +15,12 @@ class_name Collection
 ## owner failed setting its own reference.
 var weak_owner:WeakRef
 
+## [WeakRef] [CommandCollection] owner of this collection.
+## [br][method weak_collection.get_ref] value can be:
+## [br]  - A [CommandCollection]
+## [br]  - A [code]null[/code] value, meaning it's the "main" [CommandCollection]
+var weak_collection:WeakRef
+
 var collection:Array[Command] = []:
 	set(value):
 		collection = value
@@ -93,6 +99,12 @@ func get_command(position:int) -> Command:
 	
 	push_error("get_command: Tried to get an command on a non-existing position: ", position)
 	return null
+
+func get_last_command() -> Command:
+	if not collection.is_empty():
+		return collection[collection.size()-1]
+	return null
+	
 
 func get_command_position(command) -> int:
 	return collection.find(command)
