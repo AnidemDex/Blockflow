@@ -236,6 +236,27 @@ func remove_branch(branch_name:StringName) -> void:
 			branches.erase(branch)
 	emit_changed()
 
+func set_branch(branch_name:StringName, branch:Branch) -> void:
+	branch.branch_name = branch_name
+	_branches[branch_name] = branch
+	if branches.has(branch):
+		# Already has the branch RESOURCE, why bother?
+		return
+	
+	for _branch in branches:
+		if _branch.branch_name == branch_name:
+			# Well, it has a branch named the same
+			# but is not the same resource, time to replace
+			var branch_position:int = branches.get_command_position(branch)
+			branches.erase(_branch)
+			branches.insert(branch, branch_position)
+			emit_changed()
+			return
+	
+	# Well, it doesn't exist
+	branches.add(branch)
+	emit_changed()
+
 func get_branch(branch) -> Command:
 	match typeof(branch):
 		TYPE_INT:
@@ -244,6 +265,16 @@ func get_branch(branch) -> Command:
 			return _branches.get(branch, null)
 		_:
 			push_error("typeof(branch) != TYPE_INT | TYPE_STRING")
+	return null
+
+
+func get_main_collection() -> CommandCollection: return weak_collection.get_ref()
+func get_command_owner() -> Command:
+	if weak_owner and weak_owner.get_ref():
+		# WTF?
+		if weak_owner.get_ref().weak_owner:
+			#          Collection    ->   Command
+			return weak_owner.get_ref().weak_owner.get_ref()
 	return null
 
 ## Request [member command_manager] go to the next available command.
@@ -274,7 +305,8 @@ func go_to_branch(branch) -> void:
 	match typeof(branch):
 		TYPE_INT:
 			if branch < branches.size():
-				command_manager.go_to_command(index + branch)
+				var _branch_position = branches.get_command(branch).index
+				command_manager.go_to_command(_branch_position)
 				return
 		TYPE_STRING:
 			var _branches:Dictionary
@@ -289,6 +321,11 @@ func go_to_branch(branch) -> void:
 	push_error("!branch")
 	command_finished.emit()
 
+func has_branches() -> bool:
+	return not _branches.is_empty()
+
+func is_branch() -> bool:
+	return is_instance_of(self, Branch)
 
 ## Defines the execution behaviour of this command.
 ## This function is the default value of [member execution_steps]
@@ -332,8 +369,14 @@ func _get_description() -> String:
 func _can_hold_commands() -> bool:
 	return false
 
+func _can_hold_branches() -> bool:
+	return false
+
 func _get_default_branch_names() -> PackedStringArray:
 	return []
+
+func _get_default_branch_for(branch_name:StringName) -> Branch:
+	return Branch.new()
 
 func _to_string() -> String:
 	return "<Command [%s:%s] #>" % [command_name,index]
@@ -342,7 +385,7 @@ func _set(property: StringName, value) -> bool:
 	if property.begins_with("default_branch"):
 		var name:String = property.split("/")[1]
 		if name in _get_default_branch_names():
-			add_branch(name)
+			set_branch(name, value)
 			return true
 	return false
 
@@ -353,19 +396,20 @@ func _get(property: StringName):
 
 func _init() -> void:
 	resource_local_to_scene = true
-	if not _get_default_branch_names().is_empty():
+	if can_hold_branches:
 		branches = Collection.new()
-	
-	for branch_name in _get_default_branch_names():
-		add_branch(branch_name)
+		for branch_name in _get_default_branch_names():
+			set_branch(branch_name, _get_default_branch_for(branch_name))
 	
 	if can_hold_commads:
 		commands = Collection.new()
 
 func _get_property_list() -> Array:
 	var p:Array = []
-	p.append({"name":"commands", "type":TYPE_OBJECT, "usage":PROPERTY_USAGE_NO_EDITOR})
-	p.append({"name":"branches", "type":TYPE_OBJECT, "usage":PROPERTY_USAGE_NO_EDITOR})
-	for branch_name in _get_default_branch_names():
-		p.append({"name":"default_branch/"+branch_name, "type":TYPE_OBJECT})
+	if can_hold_commads:
+		p.append({"name":"commands", "type":TYPE_OBJECT, "usage":PROPERTY_USAGE_NO_EDITOR})
+	if can_hold_branches:
+		p.append({"name":"branches", "type":TYPE_OBJECT, "usage":PROPERTY_USAGE_NO_EDITOR})
+		for branch_name in _branches:
+			p.append({"name":"default_branch/"+branch_name, "type":TYPE_OBJECT, "usage":PROPERTY_USAGE_EDITOR|PROPERTY_USAGE_READ_ONLY})
 	return p
