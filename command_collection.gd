@@ -19,7 +19,7 @@ func get_command(position:int) -> Command:
 	return _command_list[position]
 
 ## Get the command [code]position[/code] from its [code]bookmark[/code]
-func get_command_by_bookmark(bookmark:StringName) -> Resource:
+func get_command_by_bookmark(bookmark:StringName) -> Command:
 	if not bookmark in _bookmarks:
 		push_error("get_command_by_bookmark: Couldn't find command with a bookmark: ", bookmark)
 	

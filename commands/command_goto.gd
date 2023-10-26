@@ -22,8 +22,16 @@ var command_bookmark:String:
 		emit_changed()
 	get: return command_bookmark
 
+var target_collection:Collection:
+	set(value):
+		target_collection = value
+		emit_changed()
+	get: return target_collection
+
+## @deprecated
 var timeline:Timeline:
 	set(value):
+		push_warning("timeline is deprecated and will be removed in future versions")
 		timeline = value
 		emit_changed()
 	get: return timeline
@@ -36,21 +44,25 @@ var condition:String:
 		return condition
 
 ## Helper function to get the defined [timeline]
-func get_target_timeline() -> Timeline:
-	var target_timeline:Timeline = timeline
-	var current_timeline:Timeline = command_manager.current_timeline
-	if not target_timeline:
-		target_timeline = current_timeline
+func get_target_collection() -> CommandCollection:
+	var target_c:CommandCollection = target_collection
+	# Workaroung while we try to remove @deprecate d timeline
+	if (not target_c) and timeline != null:
+		target_c = timeline.get_collection_equivalent()
 	
-	return target_timeline
+	var current_collection = command_manager.main_collection
+	if not target_c:
+		target_c = current_collection
+	
+	return target_c
 
 ## Helper function to get the defined command index according to [command_index]
 ## and [command_bookmark]
 func get_target_command_index() -> int:
 	if use_bookmark:
-		var target_timeline = get_target_timeline()
-		var target_command = target_timeline.get_command_by_bookmark(command_bookmark)
-		command_index = target_timeline.get_command_idx(target_command)
+		var target_timeline:CommandCollection = get_target_collection()
+		var target_command:Command = target_timeline.get_command_by_bookmark(command_bookmark)
+		command_index = target_timeline.get_command_position(target_command)
 	return command_index
 
 
@@ -89,10 +101,10 @@ func _condition_is_true() -> bool:
 
 
 func _go_to_defined_command() -> void:
-	var target_timeline:Timeline = get_target_timeline()
+	var _target:CommandCollection = get_target_collection()
 	var target_command:int = get_target_command_index()
 	
-	command_manager.go_to_command(target_command, target_timeline)
+	command_manager.jump_to_command(target_command, _target)
 
 
 func _get_name() -> StringName:
@@ -105,12 +117,12 @@ func _get_hint() -> String:
 		hint_str += "bookmark: " + command_bookmark
 	else:
 		hint_str += "index: " + str(command_index)
-	if timeline:
-		hint_str += " on timeline "
-		if timeline.resource_name.is_empty():
+	if target_collection != null:
+		hint_str += " on collection "
+		if target_collection.resource_name.is_empty():
 			hint_str += "'" + timeline.resource_path + "'"
 		else:
-			hint_str += "'" + timeline.resource_name + "'"
+			hint_str += "'" + target_collection.resource_name + "'"
 	if not condition.is_empty():
 		hint_str += " if " + str(condition)
 	return hint_str
@@ -127,7 +139,8 @@ func _get_property_list():
 			"name": "condition",
 			"type": TYPE_STRING,
 			"usage": PROPERTY_USAGE_DEFAULT,
-			"hint":PROPERTY_HINT_EXPRESSION
+			"hint": PROPERTY_HINT_PLACEHOLDER_TEXT,
+			"hint_string":"true"
 		},
 		{
 			"name": "use_bookmark",
@@ -145,12 +158,20 @@ func _get_property_list():
 			"usage": PROPERTY_USAGE_DEFAULT if use_bookmark else 0,
 		},
 		{
-			"name": "timeline",
+			"name": "timeline", # @deprecated
 			"type": TYPE_OBJECT,
 			"class_name": "Timeline",
-			"usage": PROPERTY_USAGE_DEFAULT,
+			"usage": PROPERTY_USAGE_DEFAULT|PROPERTY_USAGE_READ_ONLY,
 			"hint": PROPERTY_HINT_RESOURCE_TYPE,
 			"hint_string": "Timeline"
+		},
+		{
+			"name": "target_collection",
+			"type": TYPE_OBJECT,
+			"class_name": "CommandCollection",
+			"usage": PROPERTY_USAGE_DEFAULT,
+			"hint": PROPERTY_HINT_RESOURCE_TYPE,
+			"hint_string": "CommandCollection"
 		},
 	]
 
