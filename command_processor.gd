@@ -45,8 +45,9 @@ signal collection_started(collection)
 signal collection_finished(collection)
 
 enum ReturnValue {
-	BEFORE=-1, ## Returns a command behind go_to caller
-	AFTER=1, ## Returns a command after go_to caller
+	BEFORE=-1, ## Returns a command behind jump_to caller
+	REPEAT, ## Returns to last jump_to caller
+	AFTER=1, ## Returns a command after jump_to caller
 	NO_RETURN, ## Ends inmediatly the execution process and end the timeline.
 	}
 
@@ -207,8 +208,7 @@ func jump_to_command(command_position:int, on_collection:Collection) -> void:
 func return_to_previous_jump(return_value:ReturnValue):
 	assert(!_jump_history.is_empty())
 	if return_value == ReturnValue.NO_RETURN:
-		collection_finished.emit(current_collection)
-		_disconnect_command_signals(current_command)
+		stop()
 		return
 	
 	var jump_data:Array = _jump_history.pop_back()
@@ -226,7 +226,11 @@ func go_to_branch(branch_name:StringName) -> void:
 	if not branch:
 		push_error("Current command doesn't have '%s' branch."%branch_name)
 		return
-	
+
+
+func stop() -> void:
+	collection_finished.emit(current_collection)
+	_disconnect_command_signals(current_command)
 
 func get_next_command_position() -> int:
 	if not current_collection:
