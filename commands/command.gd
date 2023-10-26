@@ -50,13 +50,13 @@ const Branch = preload("res://addons/blockflow/commands/branch.gd")
 ## that method to define your own steps.
 var execution_steps:Callable = _execution_steps
 
-## [CommandManager] node that is executing this command.
+## [CommandProcessor] node that is executing this command.
 ## This value is assigned by its current command manager and
 ## should not be assigned manually.
 var command_manager:Node
 
-## The command name. Use [method _get_name] to define the name. [br]
-## Command name is used by editor, it'll displayed in item the first column
+## The command name. Use [method _get_name] to define the name.
+##[br]Command name is used by editor, it'll displayed in item the first column
 ## next to command icon.
 ## The command name is also used when editor is creating command buttons in
 ## editor.
@@ -320,6 +320,11 @@ func go_to_branch(branch) -> void:
 			push_error("typeof(branch) != TYPE_INT | TYPE_STRING")
 	push_error("!branch")
 	command_finished.emit()
+
+## Stops [member command_manager] processing.
+func stop() -> void:
+	command_manager.stop()
+	go_to_next_command()
 
 func has_branches() -> bool:
 	return not _branches.is_empty()

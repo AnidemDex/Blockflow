@@ -14,6 +14,7 @@ var scripts:Array[Script] = [
 	load("res://addons/blockflow/commands/command_return.gd") as Script,
 	load("res://addons/blockflow/commands/command_set.gd") as Script,
 	load("res://addons/blockflow/commands/command_wait.gd") as Script,
+	load("res://addons/blockflow/commands/command_end.gd") as Script,
 	]
 
 var command_button_list_pressed:Callable
