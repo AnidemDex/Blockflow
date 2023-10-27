@@ -76,8 +76,15 @@ func _parse_begin(object: Object) -> void:
 
 
 func _parse_category(object: Object, category: String) -> void:
+	if "command_" in category:
+		var fake_category := FakeCategory.new()
+		fake_category.icon = object.command_icon
+		fake_category.label = object.command_name
+		add_custom_control(fake_category)
+	
 	if category == "Resource":
 		_should_ignore = true
+	
 	if _should_ignore:
 		var dummy = PrevNodeVanisher.new()
 		add_custom_control(dummy)

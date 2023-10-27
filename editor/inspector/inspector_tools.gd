@@ -64,3 +64,79 @@ class GroupVanisher extends Control:
 	func _ready() -> void:
 		get_parent().get_parent().set("visible", false)
 		queue_free()
+
+# https://github.com/godotengine/godot/blob/4.0.3-stable/editor/editor_inspector.cpp
+class FakeCategory extends Control:
+	var icon:Texture
+	var label:String
+	var bg_color:Color = Color.BLACK
+	
+	func _get_minimum_size() -> Vector2:
+		var font := get_theme_font("bold","EditorFonts")
+		var font_size := get_theme_font_size("bold_size", "EditorFonts")
+		
+		var ms := Vector2()
+		ms.y = font.get_height(font_size)
+		
+		if icon:
+			ms.y = max(ms.y, 16)
+		
+		ms.y += get_theme_constant("v_separation", "Tree")
+		return ms
+	
+	func _notification(what: int) -> void:
+		match what:
+			NOTIFICATION_ENTER_TREE:
+				pass
+			NOTIFICATION_DRAW:
+				var sb := get_theme_stylebox("bg", "EditorInspectorCategory")
+				draw_style_box(sb, Rect2(Vector2(), size))
+				
+				var font := get_theme_font("bold","EditorFonts")
+				var font_size := get_theme_font_size("bold_size", "EditorFonts")
+				
+				var hs := get_theme_constant("h_separation", "Tree")
+				var w := font.get_string_size(label,HORIZONTAL_ALIGNMENT_LEFT,-1,font_size).x
+				
+				if icon:
+					w += hs + 16
+				
+				var ofs := (size.x - w) / 2
+				
+				if icon:
+					draw_texture_rect(icon,
+					Rect2(
+						ofs, (size.y - 16) / 2, 16, 16
+						),
+					false)
+					ofs += hs + 16
+				
+				var c := get_theme_color("font_color","Tree")
+				draw_string(
+					font,
+					Vector2(
+						ofs, 
+						font.get_ascent(font_size) + ( (size.y - font.get_height(font_size)) / 2 )
+						).floor(),
+					label,
+					HORIZONTAL_ALIGNMENT_LEFT,
+					size.x,
+					font_size,
+					c
+					)
+				
+				
+			NOTIFICATION_READY:
+				var parent:Node = get_parent()
+				if is_instance_valid(parent):
+					if get_index() != 0:
+						var category := parent.get_child(get_index()-1) as Control
+						category.set("visible", false)
+				
+				if icon == null:
+					icon = get_theme_icon("Object", "EditorIcons")
+				
+				if bg_color == Color.BLACK:
+					bg_color = get_theme_color("prop_category", "Editor")
+				
+				queue_redraw()
