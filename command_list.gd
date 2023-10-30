@@ -11,6 +11,7 @@ var scripts:Array[Script] = [
 	load("res://addons/blockflow/commands/command_comment.gd") as Script,
 	load("res://addons/blockflow/commands/command_condition.gd") as Script,
 	load("res://addons/blockflow/commands/command_dialog.gd") as Script,
+	load("res://addons/blockflow/commands/command_character.gd") as Script,
 	load("res://addons/blockflow/commands/command_goto.gd") as Script,
 	load("res://addons/blockflow/commands/command_return.gd") as Script,
 	load("res://addons/blockflow/commands/command_set.gd") as Script,
