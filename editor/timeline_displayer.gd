@@ -52,9 +52,6 @@ func _reload() -> void:
 		var parent:CommandBlock = root
 		
 		_add_command(command, parent)
-		if command_idx == reselect_index or (command_idx == commands.size() - 1 and reselect_index == -1):
-			set_selected(item, 0)
-			ensure_cursor_is_visible()
 		
 	root.call_recursive("update")
 
@@ -66,6 +63,9 @@ func _add_command(command:Command, under_block:CommandBlock) -> void:
 		assert(false)
 		return
 	var itm:TreeItem = create_item(under_block)
+	if itm.get_index() == reselect_index or (itm.get_index() == _current_timeline.collection.size() - 1 and reselect_index == -1):
+		set_selected(itm, 0)
+		ensure_cursor_is_visible()
 	itm.set_script(CommandBlock)
 	var block:CommandBlock = itm as CommandBlock
 	block.command = command

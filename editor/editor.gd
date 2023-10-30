@@ -274,7 +274,7 @@ func _command_button_list_pressed(command_script:Script) -> void:
 	if tree_item:
 		var selected:Command = timeline_displayer.get_selected().get_metadata(0)
 		if selected:
-			command_idx = _current_timeline.get_command_idx(selected) + 1
+			command_idx = _current_timeline.get_command_absolute_position(selected) + 1
 			timeline_displayer.reselect_index = command_idx
 	var command:Command = command_script.new()
 	add_command(command, command_idx)
