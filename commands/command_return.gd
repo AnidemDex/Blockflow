@@ -1,28 +1,14 @@
 @tool
 extends Command
 
-@export_enum("Repeat:0", "Next:1") var behavior: int = 1:
-	set(value):
-		behavior = value
-		emit_changed()
-	get:
-		return behavior
-
-
-@export var to_last_timeline:bool = false:
-	set(value):
-		to_last_timeline = value
-		emit_changed()
-	get:
-		return to_last_timeline
-
+@export var behavior:CommandProcessor.ReturnValue = CommandProcessor.ReturnValue.AFTER
 
 func _execution_steps() -> void:
 	command_started.emit()
-	command_manager.return_command(behavior, to_last_timeline)
+	command_manager.return_to_previous_jump(behavior)
 
 
-func _get_name() -> String:
+func _get_name() -> StringName:
 	return "Return"
 
 

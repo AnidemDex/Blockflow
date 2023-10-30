@@ -14,7 +14,7 @@ func _execution_steps() -> void:
 	timer.timeout.connect( emit_signal.bind("command_finished") )
 
 
-func _get_name() -> String:
+func _get_name() -> StringName:
 	return "Wait"
 
 

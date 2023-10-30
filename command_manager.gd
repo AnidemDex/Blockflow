@@ -245,3 +245,10 @@ func _notify_timeline_end() -> void:
 
 func _hide_script_from_inspector():
 	return true
+
+func _init() -> void:
+	push_warning(
+"""CommandManager: This class is deprecated and will be removed in
+future versions.
+Consider using CommandProcessor class."""
+	)

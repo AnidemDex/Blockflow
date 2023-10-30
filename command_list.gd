@@ -27,9 +27,9 @@ func _ready() -> void:
 		var button:Button = Button.new()
 		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		button.set_custom_minimum_size(Vector2(160, 0))
-		button.text = command.get_command_name()
+		button.text = command.command_name
 
-		var command_icon:Texture = command.get_icon()
+		var command_icon:Texture = command.command_icon
 		if not command_icon:
 			command_icon = FALLBACK_ICON
 		button.expand_icon = true
