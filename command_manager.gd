@@ -20,9 +20,8 @@ signal timeline_finished(timeline_resource)
 
 ## Return values used in [return_command]
 enum ReturnValue {
-	BEFORE=-1, ## Returns a command behind GoTo
-	AFTER=1, ## Returns a command after GoTo
-	NO_RETURN, ## Ends inmediatly the execution process and end the timeline.
+	REPEAT=0, ## Returns on the GoTo repeating it
+	NEXT=1, ## Returns a command after GoTo
 	}
 
 const _GoToCommand = preload("res://addons/blockflow/commands/command_goto.gd")
@@ -96,7 +95,7 @@ func go_to_command(command_idx:int, timeline:Timeline=null) -> void:
 		return
 	
 	# Prevents an error and ends the timeline if there are no more commands
-	if current_timeline.commands.size() >= command_idx:
+	if command_idx >= current_timeline.commands.size():
 		_notify_timeline_end()
 		return
 	
@@ -129,23 +128,21 @@ func go_to_previous_command() -> void:
 ## Returns to a previous [code]GoTo[/code] command call.
 ## See [ReturnValue] to know possible values for [code]return_value[/code]
 ## argument.
-func return_command(return_value:ReturnValue):
+func return_command(return_value:ReturnValue, return_timeline:bool = false):
 	assert(!_jump_history.is_empty())
-	if return_value == ReturnValue.NO_RETURN:
-		_notify_timeline_end()
-		_disconnect_command_signals(current_command)
-		return
-	
-	var jump_data:Array = _jump_history.pop_back()
-	var history_from:Array = jump_data[ _JumpHistoryData.FROM ]
-	
-	var next_command_idx:int = history_from\
-	[ _HistoryData.COMMAND_INDEX ] + return_value
-	
-	var next_timeline:Timeline =  history_from[ _HistoryData.TIMELINE ]
-	
+
+	var next_command_idx:int
+	var next_timeline:Timeline = current_timeline
+	while next_timeline == current_timeline:
+		var jump_data:Array = _jump_history.pop_back()
+		var history_from:Array = jump_data[ _JumpHistoryData.FROM ]
+		next_command_idx = history_from [ _HistoryData.COMMAND_INDEX ] + return_value
+		next_timeline = history_from[ _HistoryData.TIMELINE ]
+		if not return_timeline:
+			break
+
 	go_to_command(next_command_idx, next_timeline)
-	
+
 
 # Set required data for a command. Used before _execute_command
 func _prepare_command(command:Command) -> void:
@@ -235,7 +232,7 @@ func _on_command_started(command:Command) -> void:
 func _on_command_finished(command:Command) -> void:
 	command_finished.emit(command)
 	if command.continue_at_end:
-		go_to_next_command()
+		go_to_next_command.call_deferred()
 
 
 func _notify_timeline_start() -> void:

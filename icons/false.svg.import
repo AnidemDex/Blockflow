@@ -2,17 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://7ox5n3pwcths"
-path="res://.godot/imported/stop.svg-828b79ea27358c4b936f89091e6fdf78.ctex"
+uid="uid://cker4yoi1jn4o"
+path="res://.godot/imported/false.svg-273a2606f8c80c4f4b9676f3819453e3.ctex"
 metadata={
-"has_editor_variant": true,
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://addons/blockflow/icons/stop.svg"
-dest_files=["res://.godot/imported/stop.svg-828b79ea27358c4b936f89091e6fdf78.ctex"]
+source_file="res://addons/blockflow/icons/false.svg"
+dest_files=["res://.godot/imported/false.svg-273a2606f8c80c4f4b9676f3819453e3.ctex"]
 
 [params]
 
@@ -34,5 +33,5 @@ process/hdr_clamp_exposure=false
 process/size_limit=0
 detect_3d/compress_to=1
 svg/scale=1.0
-editor/scale_with_editor_scale=true
-editor/convert_colors_with_editor_theme=true
+editor/scale_with_editor_scale=false
+editor/convert_colors_with_editor_theme=false

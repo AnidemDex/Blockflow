@@ -102,7 +102,7 @@ func _parse_property(
 	name: String,
 	hint_type: PropertyHint,
 	hint_string: String,
-	usage_flags: PropertyUsageFlags,
+	usage_flags: int,
 	wide: bool ) -> bool:
 	
 	if name == "target":

@@ -9,6 +9,7 @@ const BOOKMARK_ICON = preload("res://addons/blockflow/icons/bookmark.svg")
 const STOP_ICON = preload("res://addons/blockflow/icons/stop.svg")
 const CONTINUE_ICON = preload("res://addons/blockflow/icons/play.svg")
 
+var reselect_index = 0
 
 var _current_timeline:TimelineClass
 
@@ -62,6 +63,9 @@ func _add_command(command:Command, under_block:CommandBlock) -> void:
 		assert(false)
 		return
 	var itm:TreeItem = create_item(under_block)
+	if itm.get_index() == reselect_index or (itm.get_index() == _current_timeline.collection.size() - 1 and reselect_index == -1):
+		set_selected(itm, 0)
+		ensure_cursor_is_visible()
 	itm.set_script(CommandBlock)
 	var block:CommandBlock = itm as CommandBlock
 	block.command = command
@@ -100,6 +104,8 @@ func _init() -> void:
 	set_column_expand(1, true)
 	set_column_expand(2, false)
 	
+	set_column_custom_minimum_width(1, 128)
+	set_column_clip_content(1, true)
 	set_column_custom_minimum_width(2, 64)
 	
 	item_edited.connect(_on_item_edited)

@@ -11,6 +11,5 @@ func _execution_steps() -> void:
 func _get_name() -> StringName:
 	return "Return"
 
-
 func _get_icon() -> Texture:
 	return load("res://addons/blockflow/icons/return.svg")

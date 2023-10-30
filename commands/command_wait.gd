@@ -19,7 +19,7 @@ func _get_name() -> StringName:
 
 
 func _get_hint() -> String:
-	var hint_str = str(wait_time) + " second"
+	var hint_str = String.num(wait_time, 4) + " second"
 	# pluralize if we're not at '1 second'
 	if wait_time != 1:
 		hint_str += "s"

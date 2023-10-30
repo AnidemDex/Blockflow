@@ -175,7 +175,7 @@ func duplicate_command(command:Command, to_position:int) -> void:
 	
 	var at_position:int = _current_timeline.get_command_position(command)
 	var action_name:String = "Duplicate command '%s'" % [command.get_command_name()]
-	
+	timeline_displayer.reselect_index = to_position
 	if Engine.is_editor_hint():
 		editor_undoredo.create_action(action_name)
 		editor_undoredo.add_do_method(command_collection, "copy", command, to_position)
@@ -269,8 +269,15 @@ func _get_file_dialog() -> ConfirmationDialog:
 
 
 func _command_button_list_pressed(command_script:Script) -> void:
+	var command_idx:int = -1
+	var tree_item:TreeItem = timeline_displayer.get_selected()
+	if tree_item:
+		var selected:Command = timeline_displayer.get_selected().get_metadata(0)
+		if selected:
+			command_idx = _current_timeline.get_command_absolute_position(selected) + 1
+			timeline_displayer.reselect_index = command_idx
 	var command:Command = command_script.new()
-	add_command(command)
+	add_command(command, command_idx)
 
 
 func _timeline_displayer_item_mouse_selected(_position:Vector2, button_index:int) -> void:
@@ -482,6 +489,7 @@ func _init() -> void:
 	var pc = PanelContainer.new()
 	pc.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	pc.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	pc.clip_contents = true
 	hb.add_child(pc)
 	
 	timeline_displayer = TimelineDisplayer.new()

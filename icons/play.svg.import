@@ -3,10 +3,8 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c1df7v3gra7q1"
-path="res://.godot/imported/play.svg-d8ea6b946ce36a5fa1a5c95795c75e73.ctex"
+path="res://.godot/imported/play.svg-f6c1778f26a9cb162d89fb8c1abe906b.ctex"
 metadata={
-"editor_dark_theme": true,
-"editor_scale": 1.0,
 "has_editor_variant": true,
 "vram_texture": false
 }
@@ -14,7 +12,7 @@ metadata={
 [deps]
 
 source_file="res://addons/blockflow/icons/play.svg"
-dest_files=["res://.godot/imported/play.svg-d8ea6b946ce36a5fa1a5c95795c75e73.ctex"]
+dest_files=["res://.godot/imported/play.svg-f6c1778f26a9cb162d89fb8c1abe906b.ctex"]
 
 [params]
 
