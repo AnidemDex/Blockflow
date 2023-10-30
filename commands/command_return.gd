@@ -11,12 +11,6 @@ func _execution_steps() -> void:
 func _get_name() -> StringName:
 	return "Return"
 
-
-func _get_hint() -> String:
-	return ("to last timeline" if to_last_timeline else "to last jump") +\
-		(" (repeat)" if behavior == 0 else "")
-
-
 func _get_icon() -> Texture:
 	return load("res://addons/blockflow/icons/return.svg")
 
