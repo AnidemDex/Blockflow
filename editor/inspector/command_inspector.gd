@@ -98,11 +98,11 @@ func _parse_group(object: Object, group: String) -> void:
 
 func _parse_property(
 	object: Object,
-	type: Variant.Type,
+	type,
 	name: String,
-	hint_type: PropertyHint,
+	hint_type,
 	hint_string: String,
-	usage_flags: int,
+	usage_flags,
 	wide: bool ) -> bool:
 	
 	if name == "target":
