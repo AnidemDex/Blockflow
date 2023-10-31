@@ -94,6 +94,10 @@ func _parse_property(
 	hint_string: String,
 	usage_flags,
 	wide: bool ) -> bool:
+		if not object:
+			# For some reason there's no object?
+			return false
+		
 		var override_property = object.get_meta("__editor_override_property__", true)
 		if name == "method":
 			var method_selector_prop := MethodSelectorProperty.new()

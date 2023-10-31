@@ -1,6 +1,7 @@
 @tool
 extends EditorPlugin
 
+const Settings = preload("res://addons/blockflow/blockflow.gd")
 const TimelineEditor = preload("res://addons/blockflow/editor/editor.gd")
 const TimelineConverter = preload("res://addons/blockflow/timeline_converter.gd")
 const InspectorTools = preload("res://addons/blockflow/editor/inspector/inspector_tools.gd")
@@ -15,6 +16,18 @@ var node_selector:InspectorTools.NodeSelector
 var method_selector:InspectorTools.MethodSelector
 var command_inspector:CommandInspector
 var command_call_inspector:CommandCallInspector
+
+func _enable_plugin() -> void:
+	if not ProjectSettings.has_setting(Settings.PROJECT_SETTING_CUSTOM_COMMANDS):
+		ProjectSettings.set_setting(Settings.PROJECT_SETTING_CUSTOM_COMMANDS, [])
+	var setting_info:Dictionary = {
+		"name": Settings.PROJECT_SETTING_CUSTOM_COMMANDS,
+		"type": TYPE_PACKED_STRING_ARRAY,
+		"hint": PROPERTY_HINT_FILE,
+		"hint_string": "*.gd"
+	}
+	ProjectSettings.add_property_info(setting_info)
+	ProjectSettings.save()
 
 func _enter_tree():
 	get_editor_interface().get_editor_main_screen().add_child(timeline_editor)
@@ -63,6 +76,9 @@ func _get_plugin_icon():
 	return get_editor_interface().get_base_control().get_theme_icon("Node", "EditorIcons")
 
 
+func _project_settings_changed() -> void:
+	timeline_editor.command_list.build_command_list()
+
 func _exit_tree():
 	timeline_editor.queue_free()
 	
@@ -97,3 +113,5 @@ func _init() -> void:
 	
 	command_call_inspector = CommandCallInspector.new()
 	command_call_inspector.editor_plugin = self
+	
+	project_settings_changed.connect(_project_settings_changed)
