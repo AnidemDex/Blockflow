@@ -2,26 +2,41 @@
 extends HFlowContainer
 
 const FALLBACK_ICON = preload("res://icon.svg")
-
-# TODO
-# This list can be a dynamic one to load custom made ones.
-var scripts:Array[Script] = [
-	load("res://addons/blockflow/commands/command_call.gd") as Script,
-	load("res://addons/blockflow/commands/command_animate.gd") as Script,
-	load("res://addons/blockflow/commands/command_comment.gd") as Script,
-	load("res://addons/blockflow/commands/command_condition.gd") as Script,
-	load("res://addons/blockflow/commands/command_goto.gd") as Script,
-	load("res://addons/blockflow/commands/command_return.gd") as Script,
-	load("res://addons/blockflow/commands/command_set.gd") as Script,
-	load("res://addons/blockflow/commands/command_wait.gd") as Script,
-	load("res://addons/blockflow/commands/command_end.gd") as Script,
-	]
+const Settings = preload("res://addons/blockflow/blockflow.gd")
 
 var command_button_list_pressed:Callable
 
-func _ready() -> void:
-	for command_script in scripts:
-		var command:Command = command_script.new()
+func build_command_list() -> void:
+	var default_commands:Array = Settings.DEFAULT_COMMAND_PATHS.duplicate()
+	var custom_commands:Array = ProjectSettings.get_setting(
+		Settings.PROJECT_SETTING_CUSTOM_COMMANDS, [])
+	
+	if default_commands.is_empty():
+		push_error("CommandList: Can't create command list. Default commands are not defined!")
+	
+	default_commands.append_array(custom_commands)
+	
+	for child in get_children():
+		child.queue_free()
+	
+	var commands:Array[Script]
+	for command_path in default_commands:
+		if typeof(command_path) != TYPE_STRING: continue # Somehow is not an string
+		if command_path.is_empty(): continue
+		if not ResourceLoader.exists(command_path, "Script"): continue
+		
+		var command_script:Script = load(command_path) as Script
+		if not command_script:
+			push_warning("CommandList: Resource at '%s' is not an Script."%command_path)
+			continue
+		commands.append(command_script)
+	
+	for command_script in commands:
+		var command:Command = command_script.new() as Command
+		if not command:
+			push_error("CommandList: Can't create a command from '%s'."%command_script.resource_path)
+			continue
+		
 		var button:Button = Button.new()
 		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		button.set_custom_minimum_size(Vector2(160, 0))
