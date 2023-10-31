@@ -2,6 +2,7 @@
 extends "res://addons/blockflow/editor/command_block/block.gd"
 
 const TimelineClass = preload("res://addons/blockflow/command_collection.gd")
+const ICON = preload("res://addons/blockflow/icons/timeline.svg")
 
 var timeline:TimelineClass:set = set_timeline
 
@@ -12,10 +13,12 @@ func update() -> void:
 	
 	for i in get_tree().columns:
 		set_expand_right(i, false)
+		set_icon_max_width(i, 32)
 	
 	set_text(ColumnPosition.NAME_COLUMN, timeline_name)
 	set_text_alignment(ColumnPosition.NAME_COLUMN, HORIZONTAL_ALIGNMENT_LEFT)
 	set_text(ColumnPosition.LAST_COLUMN, str(timeline.get_command_count()))
+	set_icon(0, ICON)
 	
 
 func set_timeline(value:TimelineClass) -> void:
