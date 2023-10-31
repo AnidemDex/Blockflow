@@ -313,6 +313,21 @@ func _timeline_displayer_item_selected() -> void:
 	edit_callback.bind(selected_command).call_deferred()
 
 
+func _timeline_displayer_button_clicked(item: TreeItem, column: int, id: int, mouse_button_index: int) -> void:
+	var block:TimelineDisplayer.CommandBlock = item as TimelineDisplayer.CommandBlock
+	if not block: return
+	
+	var command:Command = block.command
+	if not command: return
+	
+	if id == TimelineDisplayer.CommandBlock.ButtonHint.CONTINUE_AT_END:
+		if Engine.is_editor_hint():
+			editor_undoredo.create_action("Set continue_at_end")
+			editor_undoredo.add_do_property(command, "continue_at_end", not command.continue_at_end)
+			editor_undoredo.add_undo_property(command, "continue_at_end", command.continue_at_end)
+			editor_undoredo.commit_action()
+
+
 func _timeline_displayer_get_drag_data(at_position: Vector2):
 	var ref_block:TreeItem = timeline_displayer.get_item_at_position(at_position)
 
@@ -498,6 +513,7 @@ func _init() -> void:
 	timeline_displayer.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	timeline_displayer.item_mouse_selected.connect(_timeline_displayer_item_mouse_selected)
 	timeline_displayer.item_selected.connect(_timeline_displayer_item_selected)
+	timeline_displayer.button_clicked.connect(_timeline_displayer_button_clicked)
 	timeline_displayer.set_drag_forwarding(_timeline_displayer_get_drag_data, _timeline_displayer_can_drop_data, _timeline_displayer_drop_data)
 	pc.add_child(timeline_displayer)
 	
