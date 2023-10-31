@@ -26,8 +26,8 @@ class TargetProperty extends EditorProperty:
 				var node:Node = current_scene.get_node_or_null(current_value)
 				if is_instance_valid(node):
 					icon = get_theme_icon(node.get_class(), "EditorIcons")
-				if text == ".":
-					text = "[Scene Root]"
+			if text == ".":
+				text = "[Scene Root]"
 		
 		selector.tooltip_text = "NodePath(\"%s\")"%current_value
 		selector.text = text
