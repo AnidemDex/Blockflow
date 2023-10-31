@@ -140,3 +140,203 @@ class FakeCategory extends Control:
 					bg_color = get_theme_color("prop_category", "Editor")
 				
 				queue_redraw()
+
+
+class MethodSelector extends ConfirmationDialog:
+	
+	var fake_tree:Tree
+	var method_tree:Tree
+	var editor_plugin:EditorPlugin
+	var disable_node_tree:bool = false
+	var script_methods_only:CheckButton
+	
+	func get_selected_path() -> NodePath:
+		var path:NodePath
+		var item := fake_tree.get_selected()
+		if item:
+			path = item.get_metadata(0)
+		return path
+	
+	func get_selected_node() -> Node:
+		var path:NodePath = get_selected_path()
+		if path.is_empty():
+			return
+		
+		var selected_node:Node = editor_plugin.get_editor_interface().get_edited_scene_root().get_node_or_null(path)
+		if not is_instance_valid(selected_node):
+			return null
+		
+		return selected_node
+	
+	func get_selected_method() -> StringName:
+		var method:StringName
+		var selected_item := method_tree.get_selected()
+		if selected_item:
+			method = selected_item.get_metadata(0)["name"]
+		return method
+	
+	func get_selected_signature() -> Dictionary:
+		var method_data:Dictionary
+		var selected_item := method_tree.get_selected()
+		if selected_item:
+			method_data = selected_item.get_metadata(0)
+		return method_data
+	
+	func _recursive_node_tree(ref_item:TreeItem, ref_node:Node, root_node:Node) -> void:
+		ref_item.set_text(0, ref_node.name)
+		ref_item.set_icon(0, get_theme_icon(ref_node.get_class(), "EditorIcons"))
+		ref_item.set_metadata(0, root_node.get_path_to(ref_node))
+		ref_item.set_selectable(0, !disable_node_tree)
+		
+		for child in ref_node.get_children():
+			var item:TreeItem = ref_item.create_child()
+			_recursive_node_tree(item, child, root_node)
+	
+	func _generate_method_list() -> void:
+		method_tree.clear()
+		var disabled_color := get_theme_color("accent_color", "Editor") * 0.7
+		var ref_node:Node = get_selected_node()
+		if not is_instance_valid(ref_node): return
+		
+		var root_item:TreeItem = method_tree.create_item()
+		var script_instance:Script = ref_node.get_script() as Script
+		if script_instance:
+			var methods := script_instance.get_script_method_list()
+			var script_item := method_tree.create_item(root_item)
+			script_item.set_text(0, "Attached Script")
+			script_item.set_icon(0, get_theme_icon("Script", "EditorIcons"))
+			script_item.set_selectable(0, false)
+			
+			if methods.is_empty():
+				script_item.set_custom_color(0, disabled_color)
+			else:
+				_create_method_tree_items(methods, script_item)
+		
+		if script_methods_only.button_pressed:
+			return
+		
+		var current_class:StringName = ref_node.get_class()
+		while current_class != "":
+			var class_item := method_tree.create_item(root_item)
+			class_item.set_text(0, current_class)
+			var icon := get_theme_icon("Node", "EditorIcons")
+			if has_theme_icon(current_class, "EditorIcons"):
+				icon = get_theme_icon(current_class, "EditorIcons")
+			class_item.set_icon(0, icon)
+			class_item.set_selectable(0, false)
+			
+			var methods:Array = ClassDB.class_get_method_list(current_class, true)			
+			if methods.is_empty():
+				class_item.set_custom_color(0, disabled_color)
+			else:
+				_create_method_tree_items(methods, class_item)
+			
+			current_class = ClassDB.get_parent_class(current_class)
+	
+	#https://github.com/godotengine/godot/blob/4.0.2-stable/editor/connections_dialog.cpp#L264
+	func _create_method_tree_items(methods:Array, ref_item:TreeItem) -> void:
+		for method_data in methods:
+			var method_item := method_tree.create_item(ref_item)
+			method_item.set_text(0, get_signature(method_data))
+			method_item.set_metadata(0, method_data)
+	
+	# https://github.com/godotengine/godot/blob/4.0.2-stable/editor/connections_dialog.cpp#L499
+	func get_signature(method_data:Dictionary) -> String:
+		var signature := PackedStringArray()
+		signature.append(method_data.name)
+		signature.append("(")
+		
+		for i in method_data.args.size():
+			if i > 0:
+				signature.append(", ")
+			
+			var property_info:Dictionary = method_data.args[i]
+			var type_name:String = "var"
+			if property_info.type == TYPE_OBJECT and !property_info["class_name"].is_empty():
+				type_name = property_info["class_name"]
+			else:
+				# TODO: We need Variant.get_type_name to
+				# know the type name of Variant.Type
+				# Technically we can use a giant enum but Zzz
+				type_name = "" # Yeet the type
+			
+			if property_info.name.is_empty():
+				signature.append("arg %s"%i)
+			else:
+				signature.append(property_info.name)
+			if not type_name.is_empty():
+				signature.append(": "+type_name)
+		
+		signature.append(")")
+		return "".join(signature)
+	
+	func _fake_tree_item_selected() -> void:
+		_generate_method_list()
+	
+	
+	func _method_tree_item_selected() -> void:
+		get_ok_button().disabled = get_selected_method().is_empty()
+	
+	
+	func _notification(what: int) -> void:
+		match what:
+			NOTIFICATION_VISIBILITY_CHANGED:
+				get_ok_button().disabled = true
+				
+				if not visible:
+					return
+				fake_tree.clear()
+				fake_tree.deselect_all()
+				method_tree.clear()
+				method_tree.deselect_all()
+				
+				var scene_root:Node =\
+				editor_plugin.get_editor_interface().get_edited_scene_root()
+				if not is_instance_valid(scene_root):
+					return
+				
+				var root:TreeItem = fake_tree.create_item()
+				root.set_text(0, scene_root.name)
+				root.set_icon(0, get_theme_icon(scene_root.get_class(), "EditorIcons"))
+				_recursive_node_tree(root, scene_root, scene_root)
+	
+	func _init() -> void:
+		title = "Method Selector"
+		var hb := HBoxContainer.new()
+		add_child(hb)
+		
+		var vb := VBoxContainer.new()
+		vb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		hb.add_child(vb)
+		
+		var label := Label.new()
+		label.text = "From Node:"
+		vb.add_child(label)
+		
+		fake_tree = Tree.new()
+		fake_tree.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		fake_tree.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		fake_tree.item_selected.connect(_fake_tree_item_selected)
+		vb.add_child(fake_tree)
+		
+		vb = VBoxContainer.new()
+		vb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		hb.add_child(vb)
+		
+		label = Label.new()
+		label.text = "Call Method:"
+		vb.add_child(label)
+		
+		method_tree = Tree.new()
+		method_tree.hide_root = true
+		method_tree.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		method_tree.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		method_tree.item_selected.connect(_method_tree_item_selected)
+		vb.add_child(method_tree)
+		
+		script_methods_only = CheckButton.new()
+		script_methods_only.toggle_mode = true
+		script_methods_only.set_pressed_no_signal(true)
+		script_methods_only.text = "Script Methods Only"
+		script_methods_only.toggled.connect(_generate_method_list)
+		vb.add_child(script_methods_only)
