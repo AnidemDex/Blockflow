@@ -48,8 +48,25 @@ func build_command_list() -> void:
 			command_icon = FALLBACK_ICON
 		button.expand_icon = true
 		button.icon = command_icon
+		button.set_drag_forwarding(
+			command_button_get_drag_data.bind(command_script),
+			Callable(),
+			Callable()
+		)
 
 		add_child(button)
 		
 		if command_button_list_pressed.is_valid():
 			button.pressed.connect(command_button_list_pressed.bind(command_script))
+
+func command_button_get_drag_data(at_position:Vector2, command_script:Script):
+	if not command_script: return
+	
+	var drag_data = {&"type":"resource", &"resource":null, &"from":self}
+	drag_data.resource = command_script.new()
+	
+	var drag_preview = Button.new()
+	drag_preview.text = (drag_data.resource as Command).command_name
+	set_drag_preview(drag_preview)
+	
+	return drag_data
