@@ -78,7 +78,7 @@ func _get_property_list() -> Array:
 		Wait.SIGNAL:
 			p.append({
 				"name":"signal_name",
-				"type":TYPE_FLOAT,
+				"type":TYPE_STRING,
 				"usage":PROPERTY_USAGE_DEFAULT,
 				})
 	return p
