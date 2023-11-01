@@ -65,24 +65,18 @@ func set_command(value:CommandClass) -> void:
 	if value == command:
 		return
 	
-	if command and command.changed.is_connected(update):
-		command.changed.disconnect(update)
+	if command and command.changed.is_connected(_on_command_changed):
+		command.changed.disconnect(_on_command_changed)
 	
 	command = value
 	set_metadata(0, command)
 	
 	if not command:
 		_set_default_values()
+		command.changed.connect(_on_command_changed)
 		return
-	
-	command_name = command.command_name
-	command_icon = command.command_icon
-	if not command_icon:
-		command_icon = FALLBACK_ICON
-	command_hint = command.command_hint
-	command_hint_icon = command.command_hint_icon
-	
-	command.changed.connect(update)
+	_on_command_changed()
+	command.changed.connect(_on_command_changed)
 
 
 func _set_default_values() -> void:
@@ -90,6 +84,17 @@ func _set_default_values() -> void:
 	command_icon = FALLBACK_ICON
 	command_hint = ""
 	command_hint_icon = null
+
+
+func _on_command_changed() -> void:
+	command_name = command.command_name
+	command_icon = command.command_icon
+	if not command_icon:
+		command_icon = FALLBACK_ICON
+	command_hint = command.command_hint
+	command_hint_icon = command.command_hint_icon
+	update()
+
 
 func _init():
 	pass
