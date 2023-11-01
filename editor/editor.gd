@@ -41,6 +41,8 @@ var timeline_displayer:TimelineDisplayer
 var command_list:CommandList
 var title_label:Label
 var edit_callback:Callable
+var history_node:ItemList
+var history:Dictionary = {}
 
 var _current_timeline:Collection
 
@@ -79,6 +81,9 @@ func edit_timeline(timeline:Object) -> void:
 		path_hint = _current_timeline.resource_path
 		hide_help_panel()
 		_file_menu.set_item_disabled(_file_menu.get_item_index(ToolbarFileMenu.CLOSE_TIMELINE), false)
+		
+		history[path_hint.get_file()] = path_hint
+		update_history()
 	else:
 		_file_menu.set_item_disabled(_file_menu.get_item_index(ToolbarFileMenu.CLOSE_TIMELINE), true)
 		show_help_panel()
@@ -226,6 +231,15 @@ func show_help_panel():
 func hide_help_panel():
 	_help_panel.hide()
 
+func update_history() -> void:
+	history_node.clear()
+	var keys := history.keys()
+	for i in keys.size():
+		var history_key:String = keys[i]
+		history_node.add_item(history_key)
+		history_node.set_item_tooltip(i, history[history_key])
+		if history[history_key] == _current_timeline.resource_path:
+			history_node.select(i)
 
 func _request_load_timeline() -> void:
 	var __file_dialog := _get_file_dialog()
@@ -447,6 +461,11 @@ func _toolbar_file_menu_id_pressed(id:int) -> void:
 			edit_callback.get_object().call("edit_node", null)
 
 
+func _history_node_item_selected(index:int) -> void:
+	var res:Resource = load(history_node.get_item_tooltip(index))
+	if not res: return
+	edit_timeline(res)
+
 func _notification(what: int) -> void:
 	match what:
 		NOTIFICATION_ENTER_TREE, NOTIFICATION_THEME_CHANGED:
@@ -496,10 +515,23 @@ func _init() -> void:
 	hb.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	vb.add_child(hb)
 	
+	var left_section := VBoxContainer.new()
+	hb.add_child(left_section)
+	
 	command_list = CommandList.new()
 	command_list.name = "CommandList"
 	command_list.command_button_list_pressed = _command_button_list_pressed
-	hb.add_child(command_list)
+	left_section.add_child(command_list)
+	
+	var title := Label.new()
+	title.text = "Recent Collections"
+	left_section.add_child(title)
+	
+	history_node = ItemList.new()
+	history_node.name = "History"
+	history_node.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	history_node.item_selected.connect(_history_node_item_selected)
+	left_section.add_child(history_node)
 	
 	var pc = PanelContainer.new()
 	pc.size_flags_horizontal = Control.SIZE_EXPAND_FILL
