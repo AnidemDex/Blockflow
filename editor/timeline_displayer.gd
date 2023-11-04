@@ -72,13 +72,8 @@ func _add_command(command:Command, under_block:CommandBlock) -> void:
 	command.editor_block = block
 	
 	displayed_commands.append(command)
-	if command.branches:
-		for branch in command.branches:
-			_add_command(branch, block)
-	
-	if command.commands:
-		for subcommand in command.commands:
-			_add_command(subcommand, block)
+	for subcommand in command:
+		_add_command(subcommand, block)
 
 
 func _gui_input(event: InputEvent) -> void:
