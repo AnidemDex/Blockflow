@@ -2,6 +2,8 @@
 extends Command
 
 const _Utils = preload("res://addons/blockflow/core/utils.gd")
+const TrueBranchClass = preload("res://addons/blockflow/commands/branch_true.gd")
+const FalseBranchClass = preload("res://addons/blockflow/commands/branch_false.gd")
 
 @export var condition:String
 
@@ -43,7 +45,19 @@ func _get_name() -> StringName: return "Condition"
 func _get_icon() -> Texture:
 	return load("res://addons/blockflow/icons/branch.svg")
 
-func _get_default_branch_names() -> PackedStringArray:
-	return [&"is True", &"is False"]
+func _get_default_branch_for(branch_name:StringName) -> Branch:
+	if branch_name == &"is True":
+		var b := TrueBranchClass.new()
+		b.branch_name = branch_name
+		return b
+		
+	if branch_name == &"is False":
+		var b := FalseBranchClass.new()
+		b.branch_name = branch_name
+		return b
+	
+	return super(branch_name)
 
-func _can_hold_branches() -> bool: return true
+func _init() -> void:
+	add(_get_default_branch_for(&"is True"))
+	add(_get_default_branch_for(&"is False"))
