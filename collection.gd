@@ -7,6 +7,12 @@ class_name Collection
 ## Collection acts as an array with extra functions
 ## to interact with the array easily.
 
+enum {
+	NOTIFICATION_UPDATE_STRUCTURE = 1<<2
+	}
+
+const BlockflowHelper = preload("res://addons/blockflow/blockflow.gd")
+
 ## [WeakRef] owner of this collection.
 ## [br][method weak_owner.get_ref] value can be:
 ## [br]  - A [CommandCollection]
@@ -22,20 +28,16 @@ var weak_owner:WeakRef
 var weak_collection:WeakRef
 
 var collection:Array[Command] = []:
-	set(value):
-		collection = value
-		for c in value:
-			_update_command_owner(c)
-		_notify_changed()
-	get:
-		return collection
+	set = _set_collection
+
+var is_updating_data:bool
 
 func add(command:Command) -> void:
 	if has(command):
 		push_error("Trying to add an command to the collection, but the command is already added")
 		return
 	collection.append(command)
-	_update_command_owner(command)
+	command.weak_owner = weakref(self)
 	_notify_changed()
 
 func insert(command:Command, at_position:int) -> void:
@@ -45,7 +47,7 @@ func insert(command:Command, at_position:int) -> void:
 	
 	var idx = at_position if at_position > -1 else collection.size()
 	collection.insert(idx, command)
-	_update_command_owner(command)
+	command.weak_owner = weakref(self)
 	_notify_changed()
 
 # can't use duplicate lmao
@@ -53,7 +55,7 @@ func copy(command:Command, to_position:int) -> void:
 	var duplicated = command.duplicate()
 	var idx = to_position if to_position > -1 else collection.size()
 	collection.insert(idx, duplicated)
-	_update_command_owner(command)
+	command.weak_owner = weakref(self)
 	_notify_changed()
 
 func move(command:Command, to_position:int) -> void:
@@ -76,7 +78,7 @@ func move(command:Command, to_position:int) -> void:
 	else:
 		collection.insert(to_position, command)
 	
-	_update_command_owner(command)
+	command.weak_owner = weakref(self)
 	_notify_changed()
 
 func erase(command:Command) -> void:
@@ -121,14 +123,30 @@ func size() -> int:
 func is_empty() -> bool:
 	return collection.is_empty()
 
-func _update_command_owner(command:Command, remove:bool=false) -> void:
-	command.weak_owner = weakref(self)
+func _notify_changed() -> void: 
+	notification(NOTIFICATION_UPDATE_STRUCTURE)
+	BlockflowHelper.generate_tree(self)
+	emit_changed()
 
-func _notify_changed() -> void: emit_changed()
+func _set_collection(value:Array) -> void:
+	for command in collection:
+		command.weak_owner = null
+	
+	collection = value
+	for c in value:
+		c.weak_owner = weakref(self)
+	_notify_changed()
 
 func _get(property: StringName):
 	if property.is_valid_int():
 		return get_command(int(property))
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_UPDATE_STRUCTURE:
+		for command in collection:
+			command.weak_owner = weakref(self)
+			command.weak_collection = weak_collection
+
 
 func _get_property_list() -> Array:
 	var p:Array = []
@@ -136,9 +154,10 @@ func _get_property_list() -> Array:
 	return p
 
 func _to_string() -> String:
-	var owner:Object
-	if weak_owner: owner = weak_owner.get_ref()
-	return "<Collection:%s>" % owner
+	return "<Collection:%d>" % get_instance_id()
+
+func _init() -> void:
+	notification(NOTIFICATION_UPDATE_STRUCTURE)
 
 # ITERATOR
 var __itr_cnt:int

@@ -6,11 +6,16 @@ class_name CommandCollection
 ## This resource only keeps an ordered reference of all commands registered on it.
 ##
 
+var data:BlockflowHelper.CollectionData:
+	set(value):
+		if value == null:
+			value = BlockflowHelper.CollectionData.new()
+		data = value
+		_bookmarks = data.bookmarks
+		_command_list = data.command_list
+
 var _bookmarks:Dictionary = {}
 var _command_list:Array = []
-var _branches:Array = []
-var _subcommads:Array = []
-var _command_data:Dictionary = {}
 
 func get_command(position:int) -> Command:
 	if position >= _command_list.size():
