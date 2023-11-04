@@ -1,5 +1,5 @@
 @tool
-extends Resource
+extends "res://addons/blockflow/collection.gd"
 class_name Command
 
 ## Base class for all commands.
@@ -12,6 +12,9 @@ class_name Command
 signal command_started
 ## Emmited when the command finishes its execution.
 signal command_finished
+
+## Requests an update on the [member weak_collection] owner.
+signal update_tree
 
 const Group = preload("res://addons/blockflow/commands/group.gd")
 const Branch = preload("res://addons/blockflow/commands/branch.gd")
@@ -121,64 +124,12 @@ var editor_block:TreeItem
 var target_node:Node
 
 ## Current command position in the collection.
-## Index is determined by its [member weak_collection]
+## Index is determined by its [member weak_owner]
 ## and should not be set during runtime.
 var index:int
 
-## A [WeakRef] that points to the [CommandCollection] 
-## that holds this command.
-var weak_collection:WeakRef
-
-## A [WeakRef] that points to the owner of this command.
-## [br]The return value of [method weak_owner.get_ref] is
-## [Collection] or null.
-##[br]If value is null it means that owner failed to set
-## its own reference.
-var weak_owner:WeakRef
-
-## Branches of this command using a [Collection].
-##
-##[br]A [code]branch[/code] is a [Collection] of
-## this command that can hold other commands. 
-## Each [code]branch[/code] defined in
-## the [Collection] must be [constant Branch] type.
-##
-##[br]Any command can hold many branches, and  can request their usage
-## through [method go_to_brach].
-##
-## [br]Branches and its contained commands
-## are ignored if you use [method go_to_next_command].
-##
-##[br][br]If [member can_hold_branches] is [code]true[/code]
-## a [Collection] object will be set on creation, otherwise, this
-## will be [code]null[/code].
-var branches:Collection:
-	set(value):
-		if not can_hold_branches: return
-		if branches == value: return
-		if branches: branches.weak_owner = null
-		
-		branches = value
-		if branches: branches.weak_owner = weakref(self)
-		emit_changed()
-
-## Subcommands of this command using [Collection].
-##
-##[br][br]Subcommands are taken in consideration 
-## when you use [method go_to_next_command].
-##
-##[br][br]If [member can_hold_commands] is [code]true[/code]
-## a [Collection] object will be set on creation, otherwise, this
-## will be [code]null[/code].
-var commands:Collection:
-	set(value):
-		if not can_hold_commads: return
-		if commands == value: return
-		if commands: commands.weak_owner = null
-		
-		commands = value
-		if commands: commands.weak_owner = weakref(self)
-		emit_changed()
+## Command position determined by [member weak_collection]
+var position:int
 
 ## Specify if this command can hold commands as if they
 ## were subcommands.
@@ -193,9 +144,9 @@ var can_hold_commads:bool :
 ##[br][br]If [code]true[/code] enables
 ## the option to create branches on this command
 ## according to [method _get_default_branch_names].
-var can_hold_branches:bool:
+var defines_default_branches:bool:
 	set(value): return
-	get: return _can_hold_branches()
+	get: return _defines_default_branches()
 
 ## Specify if this command can be moved in editor after
 ## creation. Used mainly by [constant Branch] commands.
@@ -208,74 +159,44 @@ var can_be_selected:bool :
 	set(value): return
 	get: return _can_be_selected()
 
-var _branches:Dictionary
 
-func add_branch(branch_name:StringName) -> void:
-	if branch_name in _branches:
-		return
-	
-	if not branches:
-		push_error("!branches")
-		return
-	
-	for branch in branches:
-		if branch.command_name == branch_name:
-			return
-	
-	var branch := Branch.new()
-	branch.branch_name = branch_name
-	_branches[branch_name] = branch
-	branches.add(branch)
-	emit_changed()
-	
-
-func remove_branch(branch_name:StringName) -> void:
-	_branches.erase(branch_name)
-	for branch in branches:
-		if branch.command_name == branch_name:
-			branches.erase(branch)
-	emit_changed()
-
-func set_branch(branch_name:StringName, branch:Branch) -> void:
-	branch.branch_name = branch_name
-	_branches[branch_name] = branch
-	if branches.has(branch):
-		# Already has the branch RESOURCE, why bother?
-		return
-	
-	for _branch in branches:
-		if _branch.branch_name == branch_name:
-			# Well, it has a branch named the same
-			# but is not the same resource, time to replace
-			var branch_position:int = branches.get_command_position(branch)
-			branches.erase(_branch)
-			branches.insert(branch, branch_position)
-			emit_changed()
-			return
-	
-	# Well, it doesn't exist
-	branches.add(branch)
-	emit_changed()
-
-func get_branch(branch) -> Command:
-	match typeof(branch):
-		TYPE_INT:
-			return branches.get_command(branch)
-		TYPE_STRING:
-			return _branches.get(branch, null)
-		_:
-			push_error("typeof(branch) != TYPE_INT | TYPE_STRING")
+func get_main_collection() -> CommandCollection:
+	if weak_collection:
+		return weak_collection.get_ref() as CommandCollection
 	return null
 
-
-func get_main_collection() -> CommandCollection: return weak_collection.get_ref()
 func get_command_owner() -> Command:
-	if weak_owner and weak_owner.get_ref():
-		# WTF?
-		if weak_owner.get_ref().weak_owner:
-			#          Collection    ->   Command
-			return weak_owner.get_ref().weak_owner.get_ref()
+	if weak_owner:
+		return weak_owner.get_ref() as Command
 	return null
+
+func get_next_command_position() -> int:
+	return position + 1
+
+func get_next_command_index() -> int:
+	return index + 1
+
+func get_next_command() -> Command:
+	var main_collection := get_main_collection()
+	if not main_collection:
+		push_error("!main_collection")
+		return null
+	
+	if get_next_command_position() >= main_collection.get_command_count():
+		return null
+	
+	return main_collection.get_command(get_next_command_position())
+
+func get_next_available_command() -> Command:
+	var owner := get_command_owner()
+	if not owner:
+		push_error("!owner")
+		return null
+	
+	if get_next_command_index() >= owner.size():
+		return null
+	
+	return owner.collection[get_next_command_index()]
 
 ## Request [member command_manager] go to the next available command.
 ## [br][member command_manager] will go to the next subcommand if there's any.
@@ -302,35 +223,19 @@ func go_to_command(command_index:int) -> void:
 ## [br]  - [int] value, it'll use the branch according 
 ## [member branches.get_command]
 func go_to_branch(branch) -> void:
-	match typeof(branch):
-		TYPE_INT:
-			if branch < branches.size():
-				var _branch_position = branches.get_command(branch).index
-				command_manager.go_to_command(_branch_position)
-				return
-		TYPE_STRING:
-			var _branches:Dictionary
-			for _branch in branches:
-				_branches[_branch.command_name] = _branch
-			if branch in _branches:
-				command_manager.go_to_command(_branches[branch].index)
-				return
-			# untested stuff, hope it works
-		_:
-			push_error("typeof(branch) != TYPE_INT | TYPE_STRING")
-	push_error("!branch")
-	command_finished.emit()
+	assert(false, "Not implemented")
+	return
 
 ## Stops [member command_manager] processing.
 func stop() -> void:
 	command_manager.stop()
 	go_to_next_command()
 
-func has_branches() -> bool:
-	return not _branches.is_empty()
-
 func is_branch() -> bool:
 	return is_instance_of(self, Branch)
+
+func is_subcommand() -> bool:
+	return get_command_owner() != null
 
 ## Defines the execution behaviour of this command.
 ## This function is the default value of [member execution_steps]
@@ -374,47 +279,66 @@ func _get_description() -> String:
 func _can_hold_commands() -> bool:
 	return false
 
-func _can_hold_branches() -> bool:
+func _defines_default_branches() -> bool:
 	return false
 
 func _get_default_branch_names() -> PackedStringArray:
 	return []
 
 func _get_default_branch_for(branch_name:StringName) -> Branch:
-	return Branch.new()
+	var branch := Branch.new()
+	branch.branch_name = branch_name
+	return branch
 
 func _to_string() -> String:
-	return "<Command [%s:%s] #>" % [command_name,index]
+	return "<%s [%s:%s] #>" % [command_name,position,index]
 
-func _set(property: StringName, value) -> bool:
-	if property.begins_with("default_branch"):
-		var name:String = property.split("/")[1]
-		if name in _get_default_branch_names():
-			set_branch(name, value)
-			return true
-	return false
-
-func _get(property: StringName):
-	if property.begins_with("default_branch"):
-		var name:String = property.split("/")[1]
-		return get_branch(name)
-
-func _init() -> void:
-	resource_local_to_scene = true
-	if can_hold_branches:
-		branches = Collection.new()
-		for branch_name in _get_default_branch_names():
-			set_branch(branch_name, _get_default_branch_for(branch_name))
+func _set_collection(value:Array[Command]) -> void:
+#	if not can_hold_commads and not value.is_empty():
+#		push_warning("[%s]:!can_hold_commands == true"%self)
+#		value = []
 	
-	if can_hold_commads:
-		commands = Collection.new()
+	for command in collection:
+		command.weak_owner = null
+	
+	collection = value.duplicate()
+	
+	for command in collection:
+		command.weak_collection = weakref(self)
+	
+	notification(NOTIFICATION_UPDATE_STRUCTURE)
+	emit_changed()
 
-func _get_property_list() -> Array:
-	var p:Array = []
-	if can_hold_commads:
-		p.append({"name":"commands", "type":TYPE_OBJECT, "usage":PROPERTY_USAGE_NO_EDITOR})
-	if can_hold_branches:
-		p.append({"name":"branches", "type":TYPE_OBJECT, "usage":PROPERTY_USAGE_NO_EDITOR})
-		for branch_name in _branches:
-			p.append({"name":"default_branch/"+branch_name, "type":TYPE_OBJECT, "usage":PROPERTY_USAGE_EDITOR|PROPERTY_USAGE_READ_ONLY})
-	return p
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_UPDATE_STRUCTURE:
+		if collection.is_empty() and defines_default_branches:
+			# For some reason the collection is empty but
+			# command defines default branches.
+			# Maybe is the first time this command is created?
+			for branch_name in _get_default_branch_names():
+				collection.append(_get_default_branch_for(branch_name))
+	
+		for command_index in collection.size():
+			var command:Command = collection[command_index]
+			command.weak_owner = weakref(self)
+			command.index = command_index
+			
+			# Verify branch
+			if defines_default_branches:
+				if command.is_branch() and\
+				command.command_name in _get_default_branch_names():
+					var branch:Branch = _get_default_branch_for(command.command_name)
+					print("???")
+					if not is_instance_of(command, branch.get_script()):
+						# Old branch is not the same type as the defined in
+						# default branches. Update it, preserving subcommands.
+						branch.weak_owner = command.weak_owner
+						branch.index = command.index
+						branch.collection = command.collection
+						collection.remove_at(command_index)
+						collection.insert(command_index, branch)
+			
+#			if not Engine.is_editor_hint() or not can_hold_commads:
+#				collection.make_read_only()
+			
+			emit_changed()
