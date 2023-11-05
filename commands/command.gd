@@ -165,9 +165,9 @@ func get_main_collection() -> CommandCollection:
 		return weak_collection.get_ref() as CommandCollection
 	return null
 
-func get_command_owner() -> Command:
+func get_command_owner() -> Collection:
 	if weak_owner:
-		return weak_owner.get_ref() as Command
+		return weak_owner.get_ref() as Collection
 	return null
 
 func get_next_command_position() -> int:

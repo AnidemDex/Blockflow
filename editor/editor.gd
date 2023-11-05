@@ -176,28 +176,31 @@ func add_command(command:Command, at_position:int = -1, to_collection:Collection
 func move_command(command:Command, to_position:int, from_collection:Collection=null, to_collection:Collection=null) -> void:
 	if not _current_collection: return
 	if not command: return
-	if command.index == to_position: return
+	
+#	if command.index == to_position: return
 	if not from_collection:
-		from_collection = command.weak_owner.get_ref()
+		from_collection = command.get_command_owner()
 	if not to_collection:
-		to_collection = command.weak_owner.get_ref()
+		to_collection = command.get_command_owner()
 	
 	var from_position:int = from_collection.get_command_position(command)
 	var action_name:String = "Move command '%s'" % [command.command_name]
-	
 	if Engine.is_editor_hint():
-		editor_undoredo.create_action(action_name, 0, from_collection)
 		if from_collection == to_collection:
+			editor_undoredo.create_action(action_name, 0, from_collection)
 			editor_undoredo.add_do_method(from_collection, "move", command, to_position)
 			editor_undoredo.add_undo_method(from_collection, "move", command, from_position)
+			editor_undoredo.commit_action()
 		else:
+			editor_undoredo.create_action(action_name, UndoRedo.MERGE_ALL, from_collection)
 			editor_undoredo.add_do_method(from_collection, "erase", command)
 			editor_undoredo.add_undo_method(from_collection, "insert", command, from_position)
+			
+			editor_undoredo.create_action(action_name, 0, to_collection)
 			editor_undoredo.add_do_method(to_collection, "insert", command, to_position)
 			editor_undoredo.add_undo_method(to_collection, "erase", command)
-		editor_undoredo.add_do_method(_current_collection, "update")
-		editor_undoredo.add_undo_method(_current_collection, "update")
-		editor_undoredo.commit_action()
+			editor_undoredo.commit_action()
+			editor_undoredo.commit_action()
 	else:
 		undo_redo.create_action(action_name)
 		
@@ -453,14 +456,14 @@ func _collection_displayer_drop_data(at_position: Vector2, data) -> void:
 	var ref_item:TreeItem = collection_displayer.get_item_at_position(at_position)
 	var ref_item_collection:Collection
 	if ref_item and ref_item != collection_displayer.root:
-		ref_item_collection = ref_item.command.weak_owner.get_ref()
+		ref_item_collection = ref_item.command.get_command_owner()
 
 	match section:
 		_DropSection.NO_ITEM:
 			move_command(command, -1, null, _current_collection)
 
 		_DropSection.ABOVE_ITEM:
-			var new_index:int = ref_item.command.weak_owner.get_ref().get_command_position(ref_item.command)
+			var new_index:int = ref_item_collection.get_command_position(ref_item.command)
 			move_command(command, new_index, null, ref_item_collection)
 
 		_DropSection.ON_ITEM:
@@ -468,11 +471,11 @@ func _collection_displayer_drop_data(at_position: Vector2, data) -> void:
 				move_command(command, 0, null, _current_collection)
 				return
 			
-			move_command(command, -1, null, ref_item.command.commands)
+			move_command(command, -1, null, ref_item.command)
 			
 			
 		_DropSection.BELOW_ITEM:
-			var new_index:int = ref_item.command.weak_owner.get_ref().get_command_position(ref_item.command) + 1
+			var new_index:int = ref_item_collection.get_command_position(ref_item.command) + 1
 			move_command(command, new_index, null, ref_item_collection)
 
 

@@ -25,9 +25,9 @@ const BLOCK_ICON_MIN_SIZE = 32
 const Utils = preload("res://addons/blockflow/core/utils.gd")
 
 # Made to ensure that classes are loaded before class_name populates editor
-const CollectionClass = preload("res://addons/blockflow/collection.gd")
-const CommandCollectionClass = preload("res://addons/blockflow/command_collection.gd")
-const CommandClass = preload("res://addons/blockflow/commands/command.gd")
+#const CollectionClass = preload("res://addons/blockflow/collection.gd")
+#const CommandCollectionClass = preload("res://addons/blockflow/command_collection.gd")
+#const CommandClass = preload("res://addons/blockflow/commands/command.gd")
 
 enum Toast {
 	SEVERITY_INFO,
@@ -36,8 +36,8 @@ enum Toast {
 	}
 
 class CollectionData:
-	var main_collection:CollectionClass
-	var command_list:Array[CommandClass]
+	var main_collection:Collection
+	var command_list:Array[Command]
 	var bookmarks:Dictionary
 
 static func generate_tree(collection:Collection) -> CollectionData:
@@ -46,12 +46,12 @@ static func generate_tree(collection:Collection) -> CollectionData:
 	
 	var data := CollectionData.new()
 	
-	var command_pt:CommandClass
+	var command_pt:Command
 	
 	if collection.is_empty():
 		return data
 	
-	var command_list:Array[CommandClass] = []
+	var command_list:Array[Command] = []
 	var owner:Collection
 	command_pt = collection.collection[0]
 	
@@ -63,7 +63,7 @@ static func generate_tree(collection:Collection) -> CollectionData:
 	for command_position in command_list.size():
 		command_pt = command_list[command_position]
 		command_pt.position = command_position
-		command_pt.weak_collection = weakref(collection as CommandCollectionClass)
+		command_pt.weak_collection = weakref(collection as CommandCollection)
 	
 	data.command_list = command_list
 	data.bookmarks = bookmarks

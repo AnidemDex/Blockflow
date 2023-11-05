@@ -50,7 +50,7 @@ func update() -> void:
 	set_icon(ColumnPosition.HINT_COLUMN, command_hint_icon)
 	
 	var disabled_color = get_tree().get_theme_color("disabled_font_color", "Editor")
-	var position_hint:String = "%d:%d"%[command.index, command.position]
+	var position_hint:String = "%d" % [command.position]
 	set_text(ColumnPosition.LAST_COLUMN, position_hint)
 	set_custom_color(ColumnPosition.LAST_COLUMN, disabled_color)
 	set_text_alignment(ColumnPosition.LAST_COLUMN, HORIZONTAL_ALIGNMENT_RIGHT)
