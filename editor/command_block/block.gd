@@ -74,15 +74,11 @@ func set_command(value:CommandClass) -> void:
 	if value == command:
 		return
 	
-	if command and command.changed.is_connected(_on_command_changed):
-		command.changed.disconnect(_on_command_changed)
-	
 	command = value
 	set_metadata(0, command)
 	
 	if not command:
 		_set_default_values()
-		command.changed.connect(_on_command_changed)
 		return
 	
 	command.changed.connect(update)
