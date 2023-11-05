@@ -18,12 +18,22 @@ const PROJECT_SETTING_DEFAULT_COMMANDS =\
 const PROJECT_SETTING_CUSTOM_COMMANDS =\
 "blockflow/settings/commands/custom_commands"
 
+const PROJECT_SETTING_BLOCK_ICON_MIN_SIZE =\
+"blockflow/settings/editor/commands/icon_minimun_size"
+const BLOCK_ICON_MIN_SIZE = 32
+
 const Utils = preload("res://addons/blockflow/core/utils.gd")
 
 # Made to ensure that classes are loaded before class_name populates editor
 const CollectionClass = preload("res://addons/blockflow/collection.gd")
 const CommandCollectionClass = preload("res://addons/blockflow/command_collection.gd")
 const CommandClass = preload("res://addons/blockflow/commands/command.gd")
+
+enum Toast {
+	SEVERITY_INFO,
+	SEVERITY_WARNING,
+	SEVERITY_ERROR
+	}
 
 class CollectionData:
 	var main_collection:CollectionClass
