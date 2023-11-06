@@ -70,6 +70,10 @@ static func generate_tree(collection:CollectionClass) -> CollectionData:
 	data.bookmarks = bookmarks
 	data.main_collection = collection
 	
+	if collection is CommandCollectionClass:
+		command_list.make_read_only()
+		collection._bookmarks = bookmarks
+		collection._command_list = command_list
 #	collection.set("data", data)
 	
 	collection.is_updating_data = false
