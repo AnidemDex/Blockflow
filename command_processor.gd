@@ -106,10 +106,7 @@ func start(collection:Blockflow.CommandCollectionClass = null, from_command_inde
 	collection_started.emit(current_collection)
 	go_to_command(current_command_position)
 
-## Advances to a specific command in the [member main_collection]
-## according [param command_position].
-## If [param in_collection] is valid, replaces [member current_timeline]
-## and go to the command in [param command_position].
+## Advances to a specific command in the [member main_collection].
 func go_to_command(command_position:int) -> void:
 	if not main_collection:
 		# For some reason, there's no defined main collection.
@@ -184,7 +181,7 @@ func go_to_command_in_collection(command_position:int, collection:Blockflow.Coll
 func go_to_next_command() -> void:
 	var next_command_position = get_next_command_position()
 	# Seems like there are no more available commands?
-	if next_command_position < 0:
+	if next_command_position < 0 or next_command_position >= main_collection.get_command_count():
 		collection_finished.emit(main_collection)
 		return
 	current_command_position = next_command_position
@@ -238,11 +235,13 @@ func get_next_command_position() -> int:
 	if not current_collection:
 		return -1
 	
+	if not current_command:
+		return 0
+	
 	if current_command_position < 0:
 		return 0
 	
-	var next_position:int = \
-	main_collection.get_next_command_position_according(current_command_position)
+	var next_position:int = current_command.get_next_command_position()
 	
 	return next_position
 
