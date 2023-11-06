@@ -1,6 +1,6 @@
 extends Node
 
-const TimelineDisplayer = preload("res://addons/blockflow/editor/timeline_displayer.gd")
+const TimelineDisplayer = preload("res://addons/blockflow/editor/displayer.gd")
 const CommandManager = preload("res://addons/blockflow/command_manager.gd")
 
 ## Command manager node
