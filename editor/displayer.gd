@@ -3,8 +3,10 @@ extends Tree
 
 const Blockflow = preload("res://addons/blockflow/blockflow.gd")
 const CollectionClass = preload("res://addons/blockflow/command_collection.gd")
+
 const CommandBlock = preload("res://addons/blockflow/editor/command_block/block.gd")
 const RootBlock = preload("res://addons/blockflow/editor/command_block/root.gd")
+
 const FALLBACK_ICON = preload("res://icon.svg")
 const BOOKMARK_ICON = preload("res://addons/blockflow/icons/bookmark.svg")
 const STOP_ICON = preload("res://addons/blockflow/icons/stop.svg")
@@ -12,17 +14,17 @@ const CONTINUE_ICON = preload("res://addons/blockflow/icons/play.svg")
 
 var reselect_index = 0
 
-var _current_collection:Collection
+var _current_collection:CollectionClass
 
 var root:RootBlock
 var displayed_commands:Array = []
 
 func build_tree(object:Object) -> void:
-	var collection:Collection
-	if object is Timeline:
+	var collection:CollectionClass
+	if object is Blockflow.TimelineClass:
 		collection = object.get_collection_equivalent()
 	else:
-		collection = object as Collection
+		collection = object as CollectionClass
 	
 	_current_collection = collection
 	if _current_collection:
@@ -59,7 +61,7 @@ func _reload() -> void:
 		
 	root.call_recursive("update")
 
-func _add_command(command:Command, under_block:CommandBlock) -> void:
+func _add_command(command:Blockflow.CommandClass, under_block:CommandBlock) -> void:
 	if command in displayed_commands:
 		assert(false)
 		return

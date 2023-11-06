@@ -11,7 +11,7 @@ enum {
 	NOTIFICATION_UPDATE_STRUCTURE = 1<<2
 	}
 
-const BlockflowHelper = preload("res://addons/blockflow/blockflow.gd")
+const Blockflow = preload("res://addons/blockflow/blockflow.gd")
 
 ## [WeakRef] owner of this collection.
 ## [br][method weak_owner.get_ref] value can be:
@@ -27,12 +27,12 @@ var weak_owner:WeakRef
 ## [br]  - A [code]null[/code] value, meaning it's the "main" [CommandCollection]
 var weak_collection:WeakRef
 
-var collection:Array[Command] = []:
+var collection:Array = []:
 	set = _set_collection
 
 var is_updating_data:bool
 
-func add(command:Command) -> void:
+func add(command) -> void:
 	if has(command):
 		push_error("Trying to add an command to the collection, but the command is already added")
 		return
@@ -40,7 +40,7 @@ func add(command:Command) -> void:
 	command.weak_owner = weakref(self)
 	_notify_changed()
 
-func insert(command:Command, at_position:int) -> void:
+func insert(command, at_position:int) -> void:
 	if has(command):
 		push_error("Trying to add an command to the collection, but the command already exist")
 		return
@@ -51,14 +51,14 @@ func insert(command:Command, at_position:int) -> void:
 	_notify_changed()
 
 # can't use duplicate lmao
-func copy(command:Command, to_position:int) -> void:
+func copy(command, to_position:int) -> void:
 	var duplicated = command.duplicate()
 	var idx = to_position if to_position > -1 else collection.size()
 	collection.insert(idx, duplicated)
 	command.weak_owner = weakref(self)
 	_notify_changed()
 
-func move(command:Command, to_position:int) -> void:
+func move(command, to_position:int) -> void:
 	if !has(command):
 		push_error("Trying to move an command in the collection, but the command is not added.")
 		return
@@ -81,7 +81,7 @@ func move(command:Command, to_position:int) -> void:
 	command.weak_owner = weakref(self)
 	_notify_changed()
 
-func erase(command:Command) -> void:
+func erase(command:Blockflow.CommandClass) -> void:
 	collection.erase(command)
 	_notify_changed()
 
@@ -95,14 +95,14 @@ func clear() -> void:
 
 ## Get the command at [param position]. 
 ## [br]You can also use [method get] instead.
-func get_command(position:int) -> Command:
+func get_command(position:int):
 	if position < collection.size():
 		return collection[position]
 	
 	push_error("get_command: Tried to get an command on a non-existing position: ", position)
 	return null
 
-func get_last_command() -> Command:
+func get_last_command():
 	if not collection.is_empty():
 		return collection[collection.size()-1]
 	return null
@@ -111,7 +111,7 @@ func get_last_command() -> Command:
 func get_command_position(command) -> int:
 	return collection.find(command)
 
-func has(value:Command) -> bool:
+func has(value) -> bool:
 	return collection.has(value)
 
 func find(command) -> int:
@@ -125,7 +125,7 @@ func is_empty() -> bool:
 
 func _notify_changed() -> void: 
 	notification(NOTIFICATION_UPDATE_STRUCTURE)
-	BlockflowHelper.generate_tree(self)
+	Blockflow.generate_tree(self)
 	emit_changed()
 
 func _set_collection(value:Array) -> void:

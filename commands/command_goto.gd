@@ -1,5 +1,5 @@
 @tool
-extends Command
+extends "res://addons/blockflow/commands/command.gd"
 
 const _Utils = preload("res://addons/blockflow/core/utils.gd")
 
@@ -29,7 +29,7 @@ var target_collection:Collection:
 	get: return target_collection
 
 ## @deprecated
-var timeline:Timeline:
+var timeline:
 	set(value):
 		push_warning("timeline is deprecated and will be removed in future versions")
 		timeline = value
@@ -44,8 +44,8 @@ var condition:String:
 		return condition
 
 ## Helper function to get the defined [timeline]
-func get_target_collection() -> CommandCollection:
-	var target_c:CommandCollection = target_collection
+func get_target_collection() -> Blockflow.CommandCollectionClass:
+	var target_c:Blockflow.CommandCollectionClass = target_collection
 	# Workaroung while we try to remove @deprecate d timeline
 	if (not target_c) and timeline != null:
 		target_c = timeline.get_collection_equivalent()
@@ -60,8 +60,8 @@ func get_target_collection() -> CommandCollection:
 ## and [command_bookmark]
 func get_target_command_index() -> int:
 	if use_bookmark:
-		var target_timeline:CommandCollection = get_target_collection()
-		var target_command:Command = target_timeline.get_command_by_bookmark(command_bookmark)
+		var target_timeline:Blockflow.CommandCollectionClass = get_target_collection()
+		var target_command:Blockflow.CommandClass = target_timeline.get_command_by_bookmark(command_bookmark)
 		command_index = target_timeline.get_command_position(target_command)
 	return command_index
 
@@ -101,7 +101,7 @@ func _condition_is_true() -> bool:
 
 
 func _go_to_defined_command() -> void:
-	var _target:CommandCollection = get_target_collection()
+	var _target:Blockflow.CommandCollectionClass = get_target_collection()
 	var target_command:int = get_target_command_index()
 	
 	command_manager.jump_to_command(target_command, _target)

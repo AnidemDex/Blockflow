@@ -1,5 +1,5 @@
 @tool
-extends Command
+extends "res://addons/blockflow/commands/command.gd"
 
 @export var property:String
 var value

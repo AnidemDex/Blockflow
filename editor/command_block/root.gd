@@ -4,7 +4,7 @@ extends "res://addons/blockflow/editor/command_block/block.gd"
 const TimelineClass = preload("res://addons/blockflow/command_collection.gd")
 const ICON = preload("res://addons/blockflow/icons/timeline.svg")
 
-var collection:Collection:
+var collection:CollectionClass:
 	set(value):
 		if value == collection:
 			return

@@ -1,5 +1,5 @@
 @tool
-extends Command
+extends "res://addons/blockflow/commands/command.gd"
 
 ## A Command Specifically designed to hold commands.
 ##

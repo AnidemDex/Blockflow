@@ -1,4 +1,3 @@
-@tool
 ## Modifying values here requires a plugin reload after save.
 
 const DEFAULT_COMMAND_PATHS = [
@@ -25,9 +24,11 @@ const BLOCK_ICON_MIN_SIZE = 32
 const Utils = preload("res://addons/blockflow/core/utils.gd")
 
 # Made to ensure that classes are loaded before class_name populates editor
-#const CollectionClass = preload("res://addons/blockflow/collection.gd")
-#const CommandCollectionClass = preload("res://addons/blockflow/command_collection.gd")
-#const CommandClass = preload("res://addons/blockflow/commands/command.gd")
+const CollectionClass = preload("res://addons/blockflow/collection.gd")
+const CommandCollectionClass = preload("res://addons/blockflow/command_collection.gd")
+const CommandClass = preload("res://addons/blockflow/commands/command.gd")
+const CommandProcessorClass = preload("res://addons/blockflow/command_processor.gd")
+const TimelineClass = preload("res://addons/blockflow/timeline.gd")
 
 enum Toast {
 	SEVERITY_INFO,
@@ -36,23 +37,23 @@ enum Toast {
 	}
 
 class CollectionData:
-	var main_collection:Collection
-	var command_list:Array[Command]
+	var main_collection:CollectionClass
+	var command_list:Array[CommandClass]
 	var bookmarks:Dictionary
 
-static func generate_tree(collection:Collection) -> CollectionData:
+static func generate_tree(collection:CollectionClass) -> CollectionData:
 #	if collection.is_updating_data: return
 	collection.is_updating_data = true
 	
 	var data := CollectionData.new()
 	
-	var command_pt:Command
+	var command_pt:CommandClass
 	
 	if collection.is_empty():
 		return data
 	
-	var command_list:Array[Command] = []
-	var owner:Collection
+	var command_list:Array[CommandClass] = []
+	var owner:CollectionClass
 	command_pt = collection.collection[0]
 	
 	for command in collection.collection:
@@ -63,13 +64,13 @@ static func generate_tree(collection:Collection) -> CollectionData:
 	for command_position in command_list.size():
 		command_pt = command_list[command_position]
 		command_pt.position = command_position
-		command_pt.weak_collection = weakref(collection as CommandCollection)
+		command_pt.weak_collection = weakref(collection as CommandCollectionClass)
 	
 	data.command_list = command_list
 	data.bookmarks = bookmarks
 	data.main_collection = collection
 	
-	collection.set("data", data)
+#	collection.set("data", data)
 	
 	collection.is_updating_data = false
 	

@@ -1,5 +1,5 @@
 @tool
-extends Command
+extends "res://addons/blockflow/commands/command.gd"
 
 @export_multiline var comment:String:
 	set(value):

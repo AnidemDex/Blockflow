@@ -1,7 +1,8 @@
 @tool
-extends Command
+extends "res://addons/blockflow/commands/command.gd"
 
-@export var behavior:CommandProcessor.ReturnValue = CommandProcessor.ReturnValue.AFTER
+@export var behavior:Blockflow.CommandProcessorClass.ReturnValue\
+ = Blockflow.CommandProcessorClass.ReturnValue.AFTER
 
 func _execution_steps() -> void:
 	command_started.emit()

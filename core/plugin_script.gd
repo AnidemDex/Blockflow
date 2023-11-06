@@ -62,8 +62,8 @@ func _handles(object: Object) -> bool:
 	if not o: return false
 	var condition:bool = false
 	condition =\
-	(object is Collection) or \
-	(object is Timeline)
+	(object is Settings.CollectionClass) or \
+	(object is Settings.TimelineClass)
 	
 	last_handled_object = object
 	

@@ -6,10 +6,10 @@ class_name CommandCollection
 ## This resource only keeps an ordered reference of all commands registered on it.
 ##
 
-var data:BlockflowHelper.CollectionData:
+var data:Blockflow.CollectionData:
 	set(value):
 		if value == null:
-			value = BlockflowHelper.CollectionData.new()
+			value = Blockflow.CollectionData.new()
 		data = value
 		_bookmarks = data.bookmarks
 		_command_list = data.command_list
@@ -17,14 +17,14 @@ var data:BlockflowHelper.CollectionData:
 var _bookmarks:Dictionary = {}
 var _command_list:Array = []
 
-func get_command(position:int) -> Command:
+func get_command(position:int) -> Blockflow.CommandClass:
 	if position >= _command_list.size():
 		push_error("position >= _command_list.size()")
 		return null
 	return _command_list[position]
 
 ## Get the command [code]position[/code] from its [code]bookmark[/code]
-func get_command_by_bookmark(bookmark:StringName) -> Command:
+func get_command_by_bookmark(bookmark:StringName) -> Blockflow.CommandClass:
 	if not bookmark in _bookmarks:
 		push_error("get_command_by_bookmark: Couldn't find command with a bookmark: ", bookmark)
 	
@@ -54,7 +54,7 @@ func _set_collection(value:Array) -> void:
 	collection = value.duplicate()
 	
 	for command_index in collection.size():
-		var command:Command = collection[command_index]
+		var command:Blockflow.CommandClass = collection[command_index]
 		command.weak_owner = weakref(self)
 		command.weak_collection = weakref(self)
 		command.index = command_index

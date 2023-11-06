@@ -9,6 +9,7 @@ const BOOKMARK_ICON = preload("res://addons/blockflow/icons/bookmark.svg")
 const STOP_ICON = preload("res://addons/blockflow/icons/stop.svg")
 const CONTINUE_ICON = preload("res://addons/blockflow/icons/play.svg")
 const CommandClass = preload("res://addons/blockflow/commands/command.gd")
+const CollectionClass = preload("res://addons/blockflow/collection.gd")
 const Blockflow = preload("res://addons/blockflow/blockflow.gd")
 
 enum ColumnPosition {

@@ -1,5 +1,5 @@
 @tool
-extends Command
+extends "res://addons/blockflow/commands/command.gd"
 
 const _Utils = preload("res://addons/blockflow/core/utils.gd")
 const TrueBranchClass = preload("res://addons/blockflow/commands/branch_true.gd")

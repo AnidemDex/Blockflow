@@ -160,9 +160,9 @@ var can_be_selected:bool :
 	get: return _can_be_selected()
 
 
-func get_main_collection() -> CommandCollection:
+func get_main_collection() -> Blockflow.CommandCollectionClass:
 	if weak_collection:
-		return weak_collection.get_ref() as CommandCollection
+		return weak_collection.get_ref() as Blockflow.CommandCollectionClass
 	return null
 
 func get_command_owner() -> Collection:

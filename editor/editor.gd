@@ -49,7 +49,7 @@ var history_node:ItemList
 var history:Dictionary = {}
 
 var edited_object:Object
-var _current_collection:Collection
+var _current_collection:Blockflow.CollectionClass
 
 var _item_popup:PopupMenu
 var _moving_command:bool = false
@@ -66,12 +66,12 @@ var _editor_file_dialog:EditorFileDialog
 var _file_dialog:FileDialog
 
 func edit(object:Object) -> void:
-	if object is Timeline:
-		edit_timeline(object as Timeline)
-	if object is CommandCollection:
-		edit_collection(object as CommandCollection)
+	if object is Blockflow.TimelineClass:
+		edit_timeline(object as Blockflow.TimelineClass)
+	if object is Blockflow.CommandCollectionClass:
+		edit_collection(object as Blockflow.CommandCollectionClass)
 
-func edit_collection(collection:Collection) -> void:
+func edit_collection(collection:Blockflow.CollectionClass) -> void:
 	if not collection:
 		collection_displayer.build_tree(null)
 		_file_menu.set_item_disabled(
@@ -108,7 +108,7 @@ func edit_collection(collection:Collection) -> void:
 	load_function.call(_current_collection)
 
 func edit_timeline(timeline:Object) -> void:
-	timeline = timeline as Timeline
+	timeline = timeline as Blockflow.TimelineClass
 	if not timeline:
 		return
 	
@@ -140,7 +140,7 @@ func edit_timeline(timeline:Object) -> void:
 	title_label.text = path_hint
 	load_function.call(timeline)
 
-func add_command(command:Command, at_position:int = -1, to_collection:Collection = null) -> void:
+func add_command(command:Blockflow.CommandClass, at_position:int = -1, to_collection:Blockflow.CollectionClass = null) -> void:
 	if not _current_collection: return
 	if not command: return
 	if not to_collection:
@@ -173,7 +173,7 @@ func add_command(command:Command, at_position:int = -1, to_collection:Collection
 		undo_redo.commit_action()
 
 
-func move_command(command:Command, to_position:int, from_collection:Collection=null, to_collection:Collection=null) -> void:
+func move_command(command:Blockflow.CommandClass, to_position:int, from_collection:Blockflow.CollectionClass=null, to_collection:Blockflow.CollectionClass=null) -> void:
 	if not _current_collection: return
 	if not command: return
 	
@@ -218,10 +218,10 @@ func move_command(command:Command, to_position:int, from_collection:Collection=n
 		undo_redo.commit_action()
 
 
-func duplicate_command(command:Command, to_position:int) -> void:
+func duplicate_command(command:Blockflow.CommandClass, to_position:int) -> void:
 	if not _current_collection: return
 	if not command: return
-	var command_collection:Collection
+	var command_collection:Blockflow.CollectionClass
 	if not command.weak_owner:
 		push_error("!command.weak_owner")
 		return
@@ -247,10 +247,10 @@ func duplicate_command(command:Command, to_position:int) -> void:
 		undo_redo.commit_action()
 
 
-func remove_command(command:Command) -> void:
+func remove_command(command:Blockflow.CommandClass) -> void:
 	if not _current_collection: return
 	if not command: return
-	var command_collection:Collection
+	var command_collection:Blockflow.CollectionClass
 	if not command.weak_owner:
 		push_error("not command.weak_owner")
 		return
@@ -312,7 +312,7 @@ func _request_new() -> void:
 
 
 func _item_popup_id_pressed(id:int) -> void:
-	var command:Command = collection_displayer.get_selected().get_metadata(0)
+	var command:Blockflow.CommandClass = collection_displayer.get_selected().get_metadata(0)
 	var command_idx:int = command.weak_owner.get_ref().get_command_position(command)
 	match id:
 		_ItemPopup.MOVE_UP:
@@ -338,11 +338,11 @@ func _command_button_list_pressed(command_script:Script) -> void:
 	var command_idx:int = -1
 	var tree_item:TreeItem = collection_displayer.get_selected()
 	if tree_item:
-		var selected:Command = collection_displayer.get_selected().get_metadata(0)
+		var selected:Blockflow.CommandClass = collection_displayer.get_selected().get_metadata(0)
 		if selected:
 			command_idx = _current_collection.get_command_absolute_position(selected) + 1
 			collection_displayer.reselect_index = command_idx
-	var command:Command = command_script.new()
+	var command:Blockflow.CommandClass = command_script.new()
 	add_command(command, command_idx)
 
 
@@ -383,7 +383,7 @@ func _collection_displayer_button_clicked(item: TreeItem, column: int, id: int, 
 	var block:CollectionDisplayer.CommandBlock = item as CollectionDisplayer.CommandBlock
 	if not block: return
 	
-	var command:Command = block.command
+	var command:Blockflow.CommandClass = block.command
 	if not command: return
 	
 	if id == CollectionDisplayer.CommandBlock.ButtonHint.CONTINUE_AT_END:
@@ -410,7 +410,7 @@ func _collection_displayer_get_drag_data(at_position: Vector2):
 		return
 	
 	var drag_preview = Button.new()
-	drag_preview.text = (drag_data.resource as Command).command_name
+	drag_preview.text = (drag_data.resource as Blockflow.CommandClass).command_name
 	set_drag_preview(drag_preview)
 	
 	return drag_data
@@ -421,7 +421,7 @@ func _collection_displayer_can_drop_data(at_position: Vector2, data) -> bool:
 		return false
 	
 	var ref_block:TreeItem = collection_displayer.get_item_at_position(at_position)
-	var moved_command:Command = data.get(&"resource") as Command
+	var moved_command:Blockflow.CommandClass = data.get(&"resource") as Blockflow.CommandClass
 	if not moved_command:
 		collection_displayer.drop_mode_flags = Tree.DROP_MODE_DISABLED
 		return false
@@ -430,7 +430,7 @@ func _collection_displayer_can_drop_data(at_position: Vector2, data) -> bool:
 		collection_displayer.drop_mode_flags = Tree.DROP_MODE_ON_ITEM
 		return true
 	
-	var ref_block_command:Command
+	var ref_block_command:Blockflow.CommandClass
 	if ref_block:
 		ref_block_command = ref_block.get(&"command")
 	
@@ -442,7 +442,7 @@ func _collection_displayer_can_drop_data(at_position: Vector2, data) -> bool:
 		collection_displayer.drop_mode_flags = Tree.DROP_MODE_DISABLED
 		return false
 	
-	var command:Command = (data as Dictionary).get("resource") as Command
+	var command:Blockflow.CommandClass = (data as Dictionary).get("resource") as Blockflow.CommandClass
 	if command:
 		collection_displayer.drop_mode_flags = Tree.DROP_MODE_INBETWEEN
 		return true
@@ -452,9 +452,9 @@ func _collection_displayer_can_drop_data(at_position: Vector2, data) -> bool:
 
 func _collection_displayer_drop_data(at_position: Vector2, data) -> void:
 	var section:int = collection_displayer.get_drop_section_at_position(at_position)
-	var command:Command = data["resource"]
+	var command:Blockflow.CommandClass = data["resource"]
 	var ref_item:TreeItem = collection_displayer.get_item_at_position(at_position)
-	var ref_item_collection:Collection
+	var ref_item_collection:Blockflow.CollectionClass
 	if ref_item and ref_item != collection_displayer.root:
 		ref_item_collection = ref_item.command.get_command_owner()
 
@@ -480,11 +480,11 @@ func _collection_displayer_drop_data(at_position: Vector2, data) -> void:
 
 
 func _editor_file_dialog_file_selected(path:String) -> void:
-	var timeline:CommandCollection
+	var timeline:Blockflow.CommandCollectionClass
 	var __file_dialog := _get_file_dialog()
 		
 	if __file_dialog.file_mode == EditorFileDialog.FILE_MODE_SAVE_FILE:
-		timeline = CommandCollection.new()
+		timeline = Blockflow.CommandCollectionClass.new()
 		timeline.resource_name = path.get_file()
 		
 		var err:int = ResourceSaver.save(timeline, path)
@@ -493,7 +493,7 @@ func _editor_file_dialog_file_selected(path:String) -> void:
 			return
 		timeline = load(path)
 	
-	timeline = load(path) as CommandCollection
+	timeline = load(path) as Blockflow.CommandCollectionClass
 	
 	if not timeline:
 		push_error("CollectionEditor: '%s' is not a valid Collection" % path)

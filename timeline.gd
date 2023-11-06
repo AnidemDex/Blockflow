@@ -8,7 +8,7 @@ class_name Timeline
 ## This resource only keeps an ordered reference of all commands registered on it.
 ##
 
-var commands:Array[Command]:
+var commands:Array:
 	set(value):
 		commands = value
 		_notify_changed()
@@ -19,7 +19,7 @@ var _bookmarks:Dictionary
 
 
 ## Adds a [Command] to the timeline
-func add_command(command:Command) -> void:
+func add_command(command) -> void:
 	if has(command):
 		push_error("add_command: Trying to add an command to the timeline, but the command is already added")
 		return
@@ -27,7 +27,7 @@ func add_command(command:Command) -> void:
 	_notify_changed()
 
 ## Insert an [code]Command[/code] at position.
-func insert_command(command:Command, at_position:int) -> void:
+func insert_command(command, at_position:int) -> void:
 	if has(command):
 		push_error("insert_command: Trying to add an command to the timeline, but the command already exist")
 		return
@@ -38,7 +38,7 @@ func insert_command(command:Command, at_position:int) -> void:
 	_notify_changed()
 
 ## Duplicates a [Command] to the timeline
-func duplicate_command(command:Command, to_position:int) -> void:
+func duplicate_command(command, to_position:int) -> void:
 	var duplicated = command.duplicate()
 	var idx = to_position if to_position > -1 else commands.size()
 	commands.insert(idx, duplicated)
@@ -99,7 +99,7 @@ func remove_command(position:int) -> void:
 func get_command_idx(command) -> int:
 	return commands.find(command)
 
-func has(value:Command) -> bool:
+func has(value) -> bool:
 	return commands.has(value)
 
 func update_bookmarks() -> void:
@@ -112,8 +112,8 @@ func update_indexes() -> void:
 	for command_idx in commands.size():
 		commands[command_idx].index = command_idx
 
-func get_collection_equivalent() -> CommandCollection:
-	var collection := CommandCollection.new()
+func get_collection_equivalent():
+	var collection = load("res://addons/blockflow/command_collection.gd").new()
 	collection.collection = commands.duplicate()
 	return collection
 			
