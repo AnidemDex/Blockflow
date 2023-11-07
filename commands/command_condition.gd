@@ -6,6 +6,7 @@ const TrueBranchClass = preload("res://addons/blockflow/commands/branch_true.gd"
 const FalseBranchClass = preload("res://addons/blockflow/commands/branch_false.gd")
 
 @export var condition:String
+@export var generate_default_branches:bool = true
 
 func _execution_steps() -> void:
 	command_started.emit()
@@ -58,6 +59,14 @@ func _get_default_branch_for(branch_name:StringName) -> Branch:
 	
 	return super(branch_name)
 
-func _init() -> void:
-	add(_get_default_branch_for(&"is True"))
-	add(_get_default_branch_for(&"is False"))
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_UPDATE_STRUCTURE:
+		if generate_default_branches:
+			var branches = [TrueBranchClass, FalseBranchClass]
+			for command in collection:
+				if command.get_script() in branches:
+					branches.erase(command.get_script())
+			for branch in branches:
+				add(branch.new())
+			
+			generate_default_branches = false
