@@ -84,4 +84,14 @@ static func _recursive_add(command, to) -> void:
 	to.append(command)
 	for subcommand in command:
 		_recursive_add(subcommand, to)
-	
+
+static func move_to_collection(command, to_collection, to_position=0) -> void:
+	var owner_collection = command.get_command_owner()
+	owner_collection.erase(command)
+	to_collection.insert(command, to_position)
+#	var idx = to_position if to_position > -1 else to_collection.collection.size()
+#	to_collection.collection.insert(idx, command)
+#	owner_collection.emit_changed()
+#	to_collection.emit_changed()
+#	owner_collection._notify_changed()
+#	to_collection._notify_changed()

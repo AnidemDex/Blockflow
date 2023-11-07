@@ -177,11 +177,11 @@ func move_command(command:Blockflow.CommandClass, to_position:int, from_collecti
 	if not _current_collection: return
 	if not command: return
 	
-#	if command.index == to_position: return
 	if not from_collection:
 		from_collection = command.get_command_owner()
 	if not to_collection:
 		to_collection = command.get_command_owner()
+	
 	
 	var from_position:int = from_collection.get_command_position(command)
 	var action_name:String = "Move command '%s'" % [command.command_name]
@@ -192,14 +192,10 @@ func move_command(command:Blockflow.CommandClass, to_position:int, from_collecti
 			editor_undoredo.add_undo_method(from_collection, "move", command, from_position)
 			editor_undoredo.commit_action()
 		else:
-			editor_undoredo.create_action(action_name, UndoRedo.MERGE_ALL, from_collection)
-			editor_undoredo.add_do_method(from_collection, "erase", command)
-			editor_undoredo.add_undo_method(from_collection, "insert", command, from_position)
-			
-			editor_undoredo.create_action(action_name, 0, to_collection)
-			editor_undoredo.add_do_method(to_collection, "insert", command, to_position)
-			editor_undoredo.add_undo_method(to_collection, "erase", command)
-			editor_undoredo.commit_action()
+			action_name += " (collection change)"
+			editor_undoredo.create_action(action_name, 0, Blockflow)
+			editor_undoredo.add_do_method(Blockflow, "move_to_collection", command, to_collection, to_position)
+			editor_undoredo.add_undo_method(Blockflow, "move_to_collection", command, from_collection, from_position)
 			editor_undoredo.commit_action()
 	else:
 		undo_redo.create_action(action_name)
@@ -216,7 +212,6 @@ func move_command(command:Blockflow.CommandClass, to_position:int, from_collecti
 		undo_redo.add_undo_method(_current_collection.update)
 		
 		undo_redo.commit_action()
-
 
 func duplicate_command(command:Blockflow.CommandClass, to_position:int) -> void:
 	if not _current_collection: return
