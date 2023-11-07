@@ -291,9 +291,9 @@ func _get_default_branch_for(branch_name:StringName) -> Branch:
 	return branch
 
 func _to_string() -> String:
-	return "<%s [%s:%s] #>" % [command_name,position,index]
+	return "<%s [%s:%s] # %d>" % [command_name,position,index, get_instance_id()]
 
-func _set_collection(value:Array[Command]) -> void:
+func _set_collection(value:Array) -> void:
 #	if not can_hold_commads and not value.is_empty():
 #		push_warning("[%s]:!can_hold_commands == true"%self)
 #		value = []
