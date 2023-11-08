@@ -249,24 +249,23 @@ func remove_command(command:Blockflow.CommandClass) -> void:
 	if not command.weak_owner:
 		push_error("not command.weak_owner")
 		return
-	command_collection = command.weak_owner.get_ref()
+	command_collection = command.get_command_owner()
 	if not command_collection:
 		push_error("not command_collection")
 		return
 	
-	var command_idx:int = _current_collection.get_command_position(command)
 	var action_name:String = "Remove command '%s'" % [command.command_name]
 	
 	if Engine.is_editor_hint():
 		editor_undoredo.create_action(action_name)
-		editor_undoredo.add_do_method(command_collection, "remove", command_idx)
-		editor_undoredo.add_undo_method(command_collection, "insert", command, command_idx)
+		editor_undoredo.add_do_method(command_collection, "remove", command.index)
+		editor_undoredo.add_undo_method(command_collection, "insert", command, command.index)
 		editor_undoredo.commit_action()
 	else:
 		undo_redo.create_action(action_name)
 		
-		undo_redo.add_do_method(command_collection.remove.bind(command_idx))
-		undo_redo.add_undo_method(command_collection.insert.bind(command, command_idx))
+		undo_redo.add_do_method(command_collection.remove.bind(command.index))
+		undo_redo.add_undo_method(command_collection.insert.bind(command, command.index))
 		
 		undo_redo.commit_action()
 
