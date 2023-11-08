@@ -68,8 +68,8 @@ var _file_dialog:FileDialog
 func edit(object:Object) -> void:
 	if object is Blockflow.TimelineClass:
 		edit_timeline(object as Blockflow.TimelineClass)
-	if object is Blockflow.CommandCollectionClass:
-		edit_collection(object as Blockflow.CommandCollectionClass)
+		return
+	edit_collection(object as Blockflow.CommandCollectionClass)
 
 func edit_collection(collection:Blockflow.CollectionClass) -> void:
 	if not collection:
