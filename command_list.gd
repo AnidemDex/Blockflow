@@ -3,6 +3,7 @@ extends HFlowContainer
 
 const FALLBACK_ICON = preload("res://icon.svg")
 const Settings = preload("res://addons/blockflow/blockflow.gd")
+const CommandClass = preload("res://addons/blockflow/commands/command.gd")
 
 var command_button_list_pressed:Callable
 
@@ -32,7 +33,7 @@ func build_command_list() -> void:
 		commands.append(command_script)
 	
 	for command_script in commands:
-		var command:Command = command_script.new() as Command
+		var command:CommandClass = command_script.new() as CommandClass
 		if not command:
 			push_error("CommandList: Can't create a command from '%s'."%command_script.resource_path)
 			continue

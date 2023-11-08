@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3 uid="uid://d2t2hha81ptiu"]
 
 [ext_resource type="Script" path="res://addons/blockflow/debugger/timeline_debugger.gd" id="1_0ph2s"]
-[ext_resource type="Script" path="res://addons/blockflow/editor/timeline_displayer.gd" id="3_ub5fw"]
+[ext_resource type="Script" path="res://addons/blockflow/editor/displayer.gd" id="3_ub5fw"]
 
 [node name="TimelineDebugger" type="Node"]
 script = ExtResource("1_0ph2s")

@@ -1,7 +1,8 @@
 @tool
 extends PanelContainer
 
-const TimelineDisplayer = preload("res://addons/blockflow/editor/timeline_displayer.gd")
+const Blockflow = preload("res://addons/blockflow/blockflow.gd")
+const CollectionDisplayer = preload("res://addons/blockflow/editor/displayer.gd")
 const CommandList = preload("res://addons/blockflow/command_list.gd")
 
 enum _ItemPopup {
@@ -19,9 +20,9 @@ enum _DropSection {
 	}
 
 enum ToolbarFileMenu {
-	NEW_TIMELINE,
-	OPEN_TIMELINE,
-	CLOSE_TIMELINE,
+	NEW_COLLECTION,
+	OPEN_COLLECTION,
+	CLOSE_COLLECTION,
 }
 
 var undo_redo:UndoRedo:
@@ -37,14 +38,18 @@ var undo_redo:UndoRedo:
 
 var editor_undoredo:EditorUndoRedoManager
 
-var timeline_displayer:TimelineDisplayer
+var collection_displayer:CollectionDisplayer
 var command_list:CommandList
 var title_label:Label
+
 var edit_callback:Callable
+var toast_callback:Callable
+
 var history_node:ItemList
 var history:Dictionary = {}
 
-var _current_timeline:Collection
+var edited_object:Object
+var _current_collection:Blockflow.CollectionClass
 
 var _item_popup:PopupMenu
 var _moving_command:bool = false
@@ -60,42 +65,86 @@ var _file_menu:PopupMenu
 var _editor_file_dialog:EditorFileDialog
 var _file_dialog:FileDialog
 
-func edit_timeline(timeline:Object) -> void:
-	if timeline is Timeline:
-		push_warning("Timeline is deprecated")
+func edit(object:Object) -> void:
+	if object is Blockflow.TimelineClass:
+		edit_timeline(object as Blockflow.TimelineClass)
+	if object is Blockflow.CommandCollectionClass:
+		edit_collection(object as Blockflow.CommandCollectionClass)
+
+func edit_collection(collection:Blockflow.CollectionClass) -> void:
+	if not collection:
+		collection_displayer.build_tree(null)
+		_file_menu.set_item_disabled(
+			_file_menu.get_item_index(ToolbarFileMenu.CLOSE_COLLECTION),
+			true
+		)
+		
+		show_help_panel()
 		return
-	if not(timeline is CommandCollection): return
+		
+	var load_function:Callable = collection_displayer.build_tree
+	var path_hint:String = ""
+	if edited_object:
+		if edited_object.changed.is_connected(load_function):
+			edited_object.changed.disconnect(load_function)
 	
-	var load_function:Callable = timeline_displayer.load_timeline
+	_current_collection = collection
+	edited_object = collection
+	
+	if not _current_collection.changed.is_connected(load_function):
+		_current_collection.changed.connect(
+			load_function.bind(_current_collection),
+			CONNECT_DEFERRED
+		)
+		
+	path_hint = _current_collection.resource_path
+	hide_help_panel()
+	_file_menu.set_item_disabled(_file_menu.get_item_index(ToolbarFileMenu.CLOSE_COLLECTION), false)
+	
+	history[path_hint.get_file()] = path_hint
+	update_history()
+	
+	title_label.text = path_hint
+	load_function.call(_current_collection)
+
+func edit_timeline(timeline:Object) -> void:
+	timeline = timeline as Blockflow.TimelineClass
+	if not timeline:
+		return
+	
+	toast_callback.call(
+		"Timeline class is deprecated.",
+		Blockflow.Toast.SEVERITY_WARNING,
+		"Timeline class is deprecated and will be removed in the future."
+	)
+	
+	var load_function:Callable = collection_displayer.build_tree
 	var path_hint:String = ""
 	
-	if _current_timeline:
-		if _current_timeline.changed.is_connected(load_function):
-			_current_timeline.changed.disconnect(load_function)
+	if edited_object:
+		if edited_object.changed.is_connected(load_function):
+			edited_object.changed.disconnect(load_function)
 	
-	_current_timeline = timeline
+	_current_collection = timeline
 	
-	if _current_timeline:
+	if _current_collection:
 		if not timeline.changed.is_connected(load_function):
 			timeline.changed.connect(load_function.bind(timeline), CONNECT_DEFERRED)
-		path_hint = _current_timeline.resource_path
+		path_hint = _current_collection.resource_path
 		hide_help_panel()
-		_file_menu.set_item_disabled(_file_menu.get_item_index(ToolbarFileMenu.CLOSE_TIMELINE), false)
-		
-		history[path_hint.get_file()] = path_hint
-		update_history()
+		_file_menu.set_item_disabled(_file_menu.get_item_index(ToolbarFileMenu.CLOSE_COLLECTION), false)
 	else:
-		_file_menu.set_item_disabled(_file_menu.get_item_index(ToolbarFileMenu.CLOSE_TIMELINE), true)
+		_file_menu.set_item_disabled(_file_menu.get_item_index(ToolbarFileMenu.CLOSE_COLLECTION), true)
 		show_help_panel()
 	
 	title_label.text = path_hint
 	load_function.call(timeline)
 
-func add_command(command:Command, at_position:int = -1, to_collection:Collection = null) -> void:
-	if not _current_timeline: return
+func add_command(command:Blockflow.CommandClass, at_position:int = -1, to_collection:Blockflow.CollectionClass = null) -> void:
+	if not _current_collection: return
 	if not command: return
 	if not to_collection:
-		to_collection = _current_timeline
+		to_collection = _current_collection
 	
 	
 	var action_name:String = "Add command '%s'" % [command.command_name]
@@ -124,31 +173,30 @@ func add_command(command:Command, at_position:int = -1, to_collection:Collection
 		undo_redo.commit_action()
 
 
-func move_command(command:Command, to_position:int, from_collection:Collection=null, to_collection:Collection=null) -> void:
-	if not _current_timeline: return
+func move_command(command:Blockflow.CommandClass, to_position:int, from_collection:Blockflow.CollectionClass=null, to_collection:Blockflow.CollectionClass=null) -> void:
+	if not _current_collection: return
 	if not command: return
-	if command.index == to_position: return
+	
 	if not from_collection:
-		from_collection = command.weak_owner.get_ref()
+		from_collection = command.get_command_owner()
 	if not to_collection:
-		to_collection = command.weak_owner.get_ref()
+		to_collection = command.get_command_owner()
+	
 	
 	var from_position:int = from_collection.get_command_position(command)
 	var action_name:String = "Move command '%s'" % [command.command_name]
-	
 	if Engine.is_editor_hint():
-		editor_undoredo.create_action(action_name, 0, from_collection)
 		if from_collection == to_collection:
+			editor_undoredo.create_action(action_name, 0, from_collection)
 			editor_undoredo.add_do_method(from_collection, "move", command, to_position)
 			editor_undoredo.add_undo_method(from_collection, "move", command, from_position)
+			editor_undoredo.commit_action()
 		else:
-			editor_undoredo.add_do_method(from_collection, "erase", command)
-			editor_undoredo.add_undo_method(from_collection, "insert", command, from_position)
-			editor_undoredo.add_do_method(to_collection, "insert", command, to_position)
-			editor_undoredo.add_undo_method(to_collection, "erase", command)
-		editor_undoredo.add_do_method(_current_timeline, "update")
-		editor_undoredo.add_undo_method(_current_timeline, "update")
-		editor_undoredo.commit_action()
+			action_name += " (collection change)"
+			editor_undoredo.create_action(action_name, 0, Blockflow)
+			editor_undoredo.add_do_method(Blockflow, "move_to_collection", command, to_collection, to_position)
+			editor_undoredo.add_undo_method(Blockflow, "move_to_collection", command, from_collection, from_position)
+			editor_undoredo.commit_action()
 	else:
 		undo_redo.create_action(action_name)
 		
@@ -160,16 +208,15 @@ func move_command(command:Command, to_position:int, from_collection:Collection=n
 			undo_redo.add_undo_method(from_collection.insert.bind(command, from_position))
 			undo_redo.add_do_method(to_collection.insert.bind(command, to_position))
 			undo_redo.add_undo_method(to_collection.erase.bind(command))
-		undo_redo.add_do_method(_current_timeline.update)
-		undo_redo.add_undo_method(_current_timeline.update)
+		undo_redo.add_do_method(_current_collection.update)
+		undo_redo.add_undo_method(_current_collection.update)
 		
 		undo_redo.commit_action()
 
-
-func duplicate_command(command:Command, to_position:int) -> void:
-	if not _current_timeline: return
+func duplicate_command(command:Blockflow.CommandClass, to_position:int) -> void:
+	if not _current_collection: return
 	if not command: return
-	var command_collection:Collection
+	var command_collection:Blockflow.CollectionClass
 	if not command.weak_owner:
 		push_error("!command.weak_owner")
 		return
@@ -178,9 +225,9 @@ func duplicate_command(command:Command, to_position:int) -> void:
 		push_error("!command_collection")
 		return
 	
-	var at_position:int = _current_timeline.get_command_position(command)
+	var at_position:int = _current_collection.get_command_position(command)
 	var action_name:String = "Duplicate command '%s'" % [command.get_command_name()]
-	timeline_displayer.reselect_index = to_position
+	collection_displayer.reselect_index = to_position
 	if Engine.is_editor_hint():
 		editor_undoredo.create_action(action_name)
 		editor_undoredo.add_do_method(command_collection, "copy", command, to_position)
@@ -195,31 +242,30 @@ func duplicate_command(command:Command, to_position:int) -> void:
 		undo_redo.commit_action()
 
 
-func remove_command(command:Command) -> void:
-	if not _current_timeline: return
+func remove_command(command:Blockflow.CommandClass) -> void:
+	if not _current_collection: return
 	if not command: return
-	var command_collection:Collection
+	var command_collection:Blockflow.CollectionClass
 	if not command.weak_owner:
 		push_error("not command.weak_owner")
 		return
-	command_collection = command.weak_owner.get_ref()
+	command_collection = command.get_command_owner()
 	if not command_collection:
 		push_error("not command_collection")
 		return
 	
-	var command_idx:int = _current_timeline.get_command_position(command)
 	var action_name:String = "Remove command '%s'" % [command.command_name]
 	
 	if Engine.is_editor_hint():
 		editor_undoredo.create_action(action_name)
-		editor_undoredo.add_do_method(command_collection, "remove", command_idx)
-		editor_undoredo.add_undo_method(command_collection, "insert", command, command_idx)
+		editor_undoredo.add_do_method(command_collection, "remove", command.index)
+		editor_undoredo.add_undo_method(command_collection, "insert", command, command.index)
 		editor_undoredo.commit_action()
 	else:
 		undo_redo.create_action(action_name)
 		
-		undo_redo.add_do_method(command_collection.remove.bind(command_idx))
-		undo_redo.add_undo_method(command_collection.insert.bind(command, command_idx))
+		undo_redo.add_do_method(command_collection.remove.bind(command.index))
+		undo_redo.add_undo_method(command_collection.insert.bind(command, command.index))
 		
 		undo_redo.commit_action()
 
@@ -238,10 +284,10 @@ func update_history() -> void:
 		var history_key:String = keys[i]
 		history_node.add_item(history_key)
 		history_node.set_item_tooltip(i, history[history_key])
-		if history[history_key] == _current_timeline.resource_path:
+		if history[history_key] == _current_collection.resource_path:
 			history_node.select(i)
 
-func _request_load_timeline() -> void:
+func _request_open() -> void:
 	var __file_dialog := _get_file_dialog()
 	__file_dialog.current_dir = ""
 	__file_dialog.file_mode = EditorFileDialog.FILE_MODE_OPEN_FILE
@@ -250,7 +296,7 @@ func _request_load_timeline() -> void:
 	__file_dialog.popup_centered_ratio(0.5)
 
 
-func _request_new_timeline() -> void:
+func _request_new() -> void:
 	var __file_dialog := _get_file_dialog()
 	__file_dialog.current_dir = ""
 	__file_dialog.file_mode = EditorFileDialog.FILE_MODE_SAVE_FILE
@@ -260,7 +306,7 @@ func _request_new_timeline() -> void:
 
 
 func _item_popup_id_pressed(id:int) -> void:
-	var command:Command = timeline_displayer.get_selected().get_metadata(0)
+	var command:Blockflow.CommandClass = collection_displayer.get_selected().get_metadata(0)
 	var command_idx:int = command.weak_owner.get_ref().get_command_position(command)
 	match id:
 		_ItemPopup.MOVE_UP:
@@ -284,19 +330,26 @@ func _get_file_dialog() -> ConfirmationDialog:
 
 func _command_button_list_pressed(command_script:Script) -> void:
 	var command_idx:int = -1
-	var tree_item:TreeItem = timeline_displayer.get_selected()
+	var tree_item:TreeItem = collection_displayer.get_selected()
+	var new_command:Blockflow.CommandClass = command_script.new()
+	var in_collection:Blockflow.CollectionClass = _current_collection
 	if tree_item:
-		var selected:Command = timeline_displayer.get_selected().get_metadata(0)
+		var selected:Blockflow.CommandClass = collection_displayer.get_selected().get_metadata(0) as Blockflow.CommandClass
 		if selected:
-			command_idx = _current_timeline.get_command_absolute_position(selected) + 1
-			timeline_displayer.reselect_index = command_idx
-	var command:Command = command_script.new()
-	add_command(command, command_idx)
+			if selected.can_hold_commands:
+				command_idx = -1
+				in_collection = selected
+			else:
+				command_idx = selected.index + 1
+				in_collection = selected.get_command_owner()
+			
+			collection_displayer.last_selected_command = new_command
+	add_command(new_command, command_idx, in_collection)
 
 
-func _timeline_displayer_item_mouse_selected(_position:Vector2, button_index:int) -> void:
+func _collection_displayer_item_mouse_selected(_position:Vector2, button_index:int) -> void:
 	if button_index == MOUSE_BUTTON_RIGHT:
-		var item = timeline_displayer.get_item_at_position(_position)
+		var item = collection_displayer.get_item_at_position(_position)
 		var can_move_up:bool
 		var can_move_down:bool
 		if item.command:
@@ -318,23 +371,23 @@ func _timeline_displayer_item_mouse_selected(_position:Vector2, button_index:int
 		_item_popup.popup()
 
 
-func _timeline_displayer_item_selected() -> void:
+func _collection_displayer_item_selected() -> void:
 	if edit_callback.is_null():
 		push_error("CollectionEditor: No edit callback was defined.")
 		return
 	
-	var selected_command = timeline_displayer.get_selected().get_metadata(0)
+	var selected_command = collection_displayer.get_selected().get_metadata(0)
 	edit_callback.bind(selected_command).call_deferred()
 
 
-func _timeline_displayer_button_clicked(item: TreeItem, column: int, id: int, mouse_button_index: int) -> void:
-	var block:TimelineDisplayer.CommandBlock = item as TimelineDisplayer.CommandBlock
+func _collection_displayer_button_clicked(item: TreeItem, column: int, id: int, mouse_button_index: int) -> void:
+	var block:CollectionDisplayer.CommandBlock = item as CollectionDisplayer.CommandBlock
 	if not block: return
 	
-	var command:Command = block.command
+	var command:Blockflow.CommandClass = block.command
 	if not command: return
 	
-	if id == TimelineDisplayer.CommandBlock.ButtonHint.CONTINUE_AT_END:
+	if id == CollectionDisplayer.CommandBlock.ButtonHint.CONTINUE_AT_END:
 		if Engine.is_editor_hint():
 			editor_undoredo.create_action("Set continue_at_end")
 			editor_undoredo.add_do_property(command, "continue_at_end", not command.continue_at_end)
@@ -342,8 +395,8 @@ func _timeline_displayer_button_clicked(item: TreeItem, column: int, id: int, mo
 			editor_undoredo.commit_action()
 
 
-func _timeline_displayer_get_drag_data(at_position: Vector2):
-	var ref_block:TreeItem = timeline_displayer.get_item_at_position(at_position)
+func _collection_displayer_get_drag_data(at_position: Vector2):
+	var ref_block:TreeItem = collection_displayer.get_item_at_position(at_position)
 
 	if not ref_block:
 		return null
@@ -358,81 +411,81 @@ func _timeline_displayer_get_drag_data(at_position: Vector2):
 		return
 	
 	var drag_preview = Button.new()
-	drag_preview.text = (drag_data.resource as Command).command_name
+	drag_preview.text = (drag_data.resource as Blockflow.CommandClass).command_name
 	set_drag_preview(drag_preview)
 	
 	return drag_data
 
 
-func _timeline_displayer_can_drop_data(at_position: Vector2, data) -> bool:
+func _collection_displayer_can_drop_data(at_position: Vector2, data) -> bool:
 	if typeof(data) != TYPE_DICTIONARY:
 		return false
 	
-	var ref_block:TreeItem = timeline_displayer.get_item_at_position(at_position)
-	var moved_command:Command = data.get(&"resource") as Command
+	var ref_block:TreeItem = collection_displayer.get_item_at_position(at_position)
+	var moved_command:Blockflow.CommandClass = data.get(&"resource") as Blockflow.CommandClass
 	if not moved_command:
-		timeline_displayer.drop_mode_flags = Tree.DROP_MODE_DISABLED
+		collection_displayer.drop_mode_flags = Tree.DROP_MODE_DISABLED
 		return false
 	
-	if ref_block == timeline_displayer.root:
-		timeline_displayer.drop_mode_flags = Tree.DROP_MODE_ON_ITEM
+	if ref_block == collection_displayer.root:
+		collection_displayer.drop_mode_flags = Tree.DROP_MODE_ON_ITEM
 		return true
 	
-	var ref_block_command:Command
+	var ref_block_command:Blockflow.CommandClass
 	if ref_block:
 		ref_block_command = ref_block.get(&"command")
 	
-		if ref_block_command.can_hold_commads:
-			timeline_displayer.drop_mode_flags = Tree.DROP_MODE_ON_ITEM
+		if ref_block_command.can_hold_commands:
+			collection_displayer.drop_mode_flags = Tree.DROP_MODE_ON_ITEM
 			return true
 	
 	if ref_block_command == moved_command:
-		timeline_displayer.drop_mode_flags = Tree.DROP_MODE_DISABLED
+		collection_displayer.drop_mode_flags = Tree.DROP_MODE_DISABLED
 		return false
 	
-	var command:Command = (data as Dictionary).get("resource") as Command
+	var command:Blockflow.CommandClass = (data as Dictionary).get("resource") as Blockflow.CommandClass
 	if command:
-		timeline_displayer.drop_mode_flags = Tree.DROP_MODE_INBETWEEN
+		collection_displayer.drop_mode_flags = Tree.DROP_MODE_INBETWEEN
 		return true
 	
 	return false
 
 
-func _timeline_displayer_drop_data(at_position: Vector2, data) -> void:
-	var section:int = timeline_displayer.get_drop_section_at_position(at_position)
-	var command:Command = data["resource"]
-	var ref_item:TreeItem = timeline_displayer.get_item_at_position(at_position)
-	var ref_item_collection:Collection
-	if ref_item and ref_item != timeline_displayer.root:
-		ref_item_collection = ref_item.command.weak_owner.get_ref()
+func _collection_displayer_drop_data(at_position: Vector2, data) -> void:
+	var section:int = collection_displayer.get_drop_section_at_position(at_position)
+	var command:Blockflow.CommandClass = data["resource"]
+	var ref_item:TreeItem = collection_displayer.get_item_at_position(at_position)
+	var ref_item_collection:Blockflow.CollectionClass
+	if ref_item and ref_item != collection_displayer.root:
+		ref_item_collection = ref_item.command.get_command_owner()
 
 	match section:
 		_DropSection.NO_ITEM:
-			move_command(command, -1, null, _current_timeline)
+			move_command(command, -1, null, _current_collection)
 
 		_DropSection.ABOVE_ITEM:
-			var new_index:int = ref_item.command.weak_owner.get_ref().get_command_position(ref_item.command)
+			var new_index:int = ref_item_collection.get_command_position(ref_item.command)
 			move_command(command, new_index, null, ref_item_collection)
 
 		_DropSection.ON_ITEM:
-			if ref_item == timeline_displayer.root:
-				move_command(command, 0, null, _current_timeline)
+			if ref_item == collection_displayer.root:
+				move_command(command, 0, null, _current_collection)
 				return
 			
-			move_command(command, -1, null, ref_item.command.commands)
+			move_command(command, -1, null, ref_item.command)
 			
 			
 		_DropSection.BELOW_ITEM:
-			var new_index:int = ref_item.command.weak_owner.get_ref().get_command_position(ref_item.command) + 1
+			var new_index:int = ref_item_collection.get_command_position(ref_item.command) + 1
 			move_command(command, new_index, null, ref_item_collection)
 
 
 func _editor_file_dialog_file_selected(path:String) -> void:
-	var timeline:CommandCollection
+	var timeline:Blockflow.CommandCollectionClass
 	var __file_dialog := _get_file_dialog()
 		
 	if __file_dialog.file_mode == EditorFileDialog.FILE_MODE_SAVE_FILE:
-		timeline = CommandCollection.new()
+		timeline = Blockflow.CommandCollectionClass.new()
 		timeline.resource_name = path.get_file()
 		
 		var err:int = ResourceSaver.save(timeline, path)
@@ -441,7 +494,7 @@ func _editor_file_dialog_file_selected(path:String) -> void:
 			return
 		timeline = load(path)
 	
-	timeline = load(path) as CommandCollection
+	timeline = load(path) as Blockflow.CommandCollectionClass
 	
 	if not timeline:
 		push_error("CollectionEditor: '%s' is not a valid Collection" % path)
@@ -452,19 +505,19 @@ func _editor_file_dialog_file_selected(path:String) -> void:
 
 func _toolbar_file_menu_id_pressed(id:int) -> void:
 	match id:
-		ToolbarFileMenu.NEW_TIMELINE:
-			_request_new_timeline()
-		ToolbarFileMenu.OPEN_TIMELINE:
-			_request_load_timeline()
-		ToolbarFileMenu.CLOSE_TIMELINE:
-			edit_timeline(null)
+		ToolbarFileMenu.NEW_COLLECTION:
+			_request_new()
+		ToolbarFileMenu.OPEN_COLLECTION:
+			_request_open()
+		ToolbarFileMenu.CLOSE_COLLECTION:
+			edit(null)
 			edit_callback.get_object().call("edit_node", null)
 
 
 func _history_node_item_selected(index:int) -> void:
 	var res:Resource = load(history_node.get_item_tooltip(index))
 	if not res: return
-	edit_timeline(res)
+	edit(res)
 
 func _notification(what: int) -> void:
 	match what:
@@ -497,11 +550,11 @@ func _init() -> void:
 	_file_menu = PopupMenu.new()
 	_file_menu.allow_search = false
 	_file_menu.id_pressed.connect(_toolbar_file_menu_id_pressed)
-	_file_menu.add_item("New Collection...", ToolbarFileMenu.NEW_TIMELINE)
-	_file_menu.add_item("Open Collection...", ToolbarFileMenu.OPEN_TIMELINE)
+	_file_menu.add_item("New Collection...", ToolbarFileMenu.NEW_COLLECTION)
+	_file_menu.add_item("Open Collection...", ToolbarFileMenu.OPEN_COLLECTION)
 	_file_menu.add_separator()
-	_file_menu.add_item("Close current timeline", ToolbarFileMenu.CLOSE_TIMELINE)
-	_file_menu.set_item_disabled(_file_menu.get_item_index(ToolbarFileMenu.CLOSE_TIMELINE), true)
+	_file_menu.add_item("Close current collection", ToolbarFileMenu.CLOSE_COLLECTION)
+	_file_menu.set_item_disabled(_file_menu.get_item_index(ToolbarFileMenu.CLOSE_COLLECTION), true)
 	_toolbar.add_child(_file_menu)
 	
 	_toolbar.set_menu_title(0, "File")
@@ -539,15 +592,15 @@ func _init() -> void:
 	pc.clip_contents = true
 	hb.add_child(pc)
 	
-	timeline_displayer = TimelineDisplayer.new()
-	timeline_displayer.name = "CollectionDisplayer"
-	timeline_displayer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	timeline_displayer.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	timeline_displayer.item_mouse_selected.connect(_timeline_displayer_item_mouse_selected)
-	timeline_displayer.item_selected.connect(_timeline_displayer_item_selected)
-	timeline_displayer.button_clicked.connect(_timeline_displayer_button_clicked)
-	timeline_displayer.set_drag_forwarding(_timeline_displayer_get_drag_data, _timeline_displayer_can_drop_data, _timeline_displayer_drop_data)
-	pc.add_child(timeline_displayer)
+	collection_displayer = CollectionDisplayer.new()
+	collection_displayer.name = "CollectionDisplayer"
+	collection_displayer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	collection_displayer.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	collection_displayer.item_mouse_selected.connect(_collection_displayer_item_mouse_selected)
+	collection_displayer.item_selected.connect(_collection_displayer_item_selected)
+	collection_displayer.button_clicked.connect(_collection_displayer_button_clicked)
+	collection_displayer.set_drag_forwarding(_collection_displayer_get_drag_data, _collection_displayer_can_drop_data, _collection_displayer_drop_data)
+	pc.add_child(collection_displayer)
 	
 	_help_panel = PanelContainer.new()
 	_help_panel.name = "HelpPanel"
@@ -560,7 +613,7 @@ func _init() -> void:
 	_help_panel.add_child(vb)
 	
 	_help_panel_label = Label.new()
-	_help_panel_label.text = "You're not editing any timeline."
+	_help_panel_label.text = "You're not editing any collection."
 	_help_panel_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vb.add_child(_help_panel_label)
 	
@@ -570,12 +623,12 @@ func _init() -> void:
 	
 	_help_panel_new_btn = Button.new()
 	_help_panel_new_btn.text = "New Collection"
-	_help_panel_new_btn.pressed.connect(_request_new_timeline)
+	_help_panel_new_btn.pressed.connect(_request_new)
 	hb.add_child(_help_panel_new_btn)
 	
 	_help_panel_load_btn = Button.new()
 	_help_panel_load_btn.text = "Load Collection"
-	_help_panel_load_btn.pressed.connect(_request_load_timeline)
+	_help_panel_load_btn.pressed.connect(_request_open)
 	hb.add_child(_help_panel_load_btn)
 	
 	show_help_panel()

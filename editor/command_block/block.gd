@@ -1,7 +1,7 @@
 @tool
 extends TreeItem
 
-## Command visual representation for TimelineDisplayer
+## Command visual representation for CollectionDisplayer
 
 const FALLBACK_ICON = preload("res://icon.svg")
 const FALLBACK_NAME = "UNKNOW_COMMAND"
@@ -9,6 +9,8 @@ const BOOKMARK_ICON = preload("res://addons/blockflow/icons/bookmark.svg")
 const STOP_ICON = preload("res://addons/blockflow/icons/stop.svg")
 const CONTINUE_ICON = preload("res://addons/blockflow/icons/play.svg")
 const CommandClass = preload("res://addons/blockflow/commands/command.gd")
+const CollectionClass = preload("res://addons/blockflow/collection.gd")
+const Blockflow = preload("res://addons/blockflow/blockflow.gd")
 
 enum ColumnPosition {
 	NAME_COLUMN,
@@ -25,6 +27,13 @@ var command_hint:String = ""
 var command_hint_icon:Texture = null
 
 func update() -> void:
+	command_name = command.command_name
+	command_icon = command.command_icon
+	if not command_icon:
+		command_icon = FALLBACK_ICON
+	command_hint = command.command_hint
+	command_hint_icon = command.command_hint_icon
+	
 	var hint_tooltip:String = "Bookmark:\n"+command.bookmark
 	var bookmark_icon:Texture = BOOKMARK_ICON
 	
@@ -33,7 +42,7 @@ func update() -> void:
 		bookmark_icon = null
 	
 	for i in get_tree().columns:
-		set_icon_max_width(i, 32)
+		set_icon_max_width(i, Blockflow.BLOCK_ICON_MIN_SIZE)
 	
 	set_text(ColumnPosition.NAME_COLUMN, command_name)
 	set_icon(ColumnPosition.NAME_COLUMN, command_icon)
@@ -42,7 +51,8 @@ func update() -> void:
 	set_icon(ColumnPosition.HINT_COLUMN, command_hint_icon)
 	
 	var disabled_color = get_tree().get_theme_color("disabled_font_color", "Editor")
-	set_text(ColumnPosition.LAST_COLUMN, str(command.index))
+	var position_hint:String = "%d" % [command.position]
+	set_text(ColumnPosition.LAST_COLUMN, position_hint)
 	set_custom_color(ColumnPosition.LAST_COLUMN, disabled_color)
 	set_text_alignment(ColumnPosition.LAST_COLUMN, HORIZONTAL_ALIGNMENT_RIGHT)
 	
@@ -65,18 +75,16 @@ func set_command(value:CommandClass) -> void:
 	if value == command:
 		return
 	
-	if command and command.changed.is_connected(_on_command_changed):
-		command.changed.disconnect(_on_command_changed)
-	
 	command = value
 	set_metadata(0, command)
 	
 	if not command:
 		_set_default_values()
-		command.changed.connect(_on_command_changed)
 		return
-	_on_command_changed()
-	command.changed.connect(_on_command_changed)
+	
+	command.changed.connect(update)
+	update()
+
 
 
 func _set_default_values() -> void:
@@ -84,17 +92,3 @@ func _set_default_values() -> void:
 	command_icon = FALLBACK_ICON
 	command_hint = ""
 	command_hint_icon = null
-
-
-func _on_command_changed() -> void:
-	command_name = command.command_name
-	command_icon = command.command_icon
-	if not command_icon:
-		command_icon = FALLBACK_ICON
-	command_hint = command.command_hint
-	command_hint_icon = command.command_hint_icon
-	update()
-
-
-func _init():
-	pass

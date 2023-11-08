@@ -54,7 +54,9 @@ enum ReturnValue {
 enum _HistoryData {COLLECTION, COMMAND_POSITION}
 enum _JumpHistoryData {HISTORY_INDEX, FROM, TO}
 
-@export var initial_collection:CommandCollection
+const Blockflow = preload("res://addons/blockflow/blockflow.gd")
+
+@export var initial_collection:Blockflow.CommandCollectionClass
 ## Node were commands will be applied to.
 ##
 ## [br]This node is used if the command doesn't 
@@ -66,12 +68,12 @@ enum _JumpHistoryData {HISTORY_INDEX, FROM, TO}
 ## when owner is ready automatically.
 @export var start_on_ready:bool = false
 
-var main_collection:CommandCollection
+var main_collection:Blockflow.CommandCollectionClass
 
-var current_collection:Collection
+var current_collection:Blockflow.CollectionClass
 
 ## Current executed command.
-var current_command:Command = null
+var current_command:Blockflow.CommandClass
 
 ## The current command index relative to [member timeline] resource.
 var current_command_position:int = -1
@@ -93,7 +95,7 @@ var _jump_history:Array = []
 ## [code]timeline[/code] was passed.
 ## You can optionally pass [code]from_command_index[/code] to define from
 ## where the timeline should start.
-func start(collection:CommandCollection = null, from_command_index:int = 0) -> void:
+func start(collection:Blockflow.CommandCollectionClass = null, from_command_index:int = 0) -> void:
 	current_command = null
 	current_command_position = from_command_index
 	main_collection = initial_collection
@@ -104,10 +106,7 @@ func start(collection:CommandCollection = null, from_command_index:int = 0) -> v
 	collection_started.emit(current_collection)
 	go_to_command(current_command_position)
 
-## Advances to a specific command in the [member main_collection]
-## according [param command_position].
-## If [param in_collection] is valid, replaces [member current_timeline]
-## and go to the command in [param command_position].
+## Advances to a specific command in the [member main_collection].
 func go_to_command(command_position:int) -> void:
 	if not main_collection:
 		# For some reason, there's no defined main collection.
@@ -119,7 +118,7 @@ func go_to_command(command_position:int) -> void:
 		assert( false, str(self)+"::go_to_command: Can't advance to command in position %s"%command_position )
 		return
 	
-	var command:Command = main_collection.get_command(command_position)
+	var command:Blockflow.CommandClass = main_collection.get_command(command_position)
 	
 	if command == null:
 		assert( false, str(self)+"::go_to_command: current_command == null")
@@ -134,12 +133,12 @@ func go_to_command(command_position:int) -> void:
 	
 	_execute_command(current_command)
 
-func go_to_command_in_collection(command_position:int, collection:Collection) -> void:
+func go_to_command_in_collection(command_position:int, collection:Blockflow.CollectionClass) -> void:
 	if not collection:
 		assert(false)
 		return
 	
-	var command:Command = collection.get_command(command_position)
+	var command:Blockflow.CommandClass = collection.get_command(command_position)
 	if not command:
 		assert(false)
 		return
@@ -182,7 +181,7 @@ func go_to_command_in_collection(command_position:int, collection:Collection) ->
 func go_to_next_command() -> void:
 	var next_command_position = get_next_command_position()
 	# Seems like there are no more available commands?
-	if next_command_position < 0:
+	if next_command_position < 0 or next_command_position >= main_collection.get_command_count():
 		collection_finished.emit(main_collection)
 		return
 	current_command_position = next_command_position
@@ -193,12 +192,12 @@ func go_to_next_command() -> void:
 func go_to_previous_command() -> void:
 	assert(!_history.is_empty())
 	var history_data:Array = _history.pop_back()
-	var previous_collection:Collection = history_data[_HistoryData.COLLECTION]
+	var previous_collection:Blockflow.CollectionClass = history_data[_HistoryData.COLLECTION]
 	var previous_position:int = history_data[_HistoryData.COMMAND_POSITION]
 	go_to_command_in_collection(previous_position, previous_collection)
 
 
-func jump_to_command(command_position:int, on_collection:Collection) -> void:
+func jump_to_command(command_position:int, on_collection:Blockflow.CollectionClass) -> void:
 	if not on_collection:
 		on_collection = current_collection
 	_add_to_jump_history(command_position, on_collection)
@@ -217,7 +216,7 @@ func return_to_previous_jump(return_value:ReturnValue):
 	var next_command_position:int = history_from\
 	[ _HistoryData.COMMAND_POSITION ] + return_value
 	
-	var next_collection:Collection =  history_from[ _HistoryData.COLLECTION ]
+	var next_collection:Blockflow.CollectionClass =  history_from[ _HistoryData.COLLECTION ]
 	
 	go_to_command_in_collection(next_command_position, next_collection)
 
@@ -236,16 +235,18 @@ func get_next_command_position() -> int:
 	if not current_collection:
 		return -1
 	
+	if not current_command:
+		return 0
+	
 	if current_command_position < 0:
 		return 0
 	
-	var next_position:int = \
-	main_collection.get_next_command_position_according(current_command_position)
+	var next_position:int = current_command.get_next_command_position()
 	
 	return next_position
 
 
-func _prepare_command(command:Command) -> void:
+func _prepare_command(command:Blockflow.CommandClass) -> void:
 	if command == null:
 		assert(false)
 		return
@@ -265,7 +266,7 @@ func _prepare_command(command:Command) -> void:
 	command.target_node = target_node
 
 
-func _execute_command(command:Command) -> void:
+func _execute_command(command:Blockflow.CommandClass) -> void:
 	if command == null:
 		assert(false)
 		return
@@ -284,7 +285,7 @@ func _add_to_history() -> void:
 
 # Adds a history value to [_jump_history].
 # This function should NEVER be called manually.
-func _add_to_jump_history(target_position:int, target_collection:Collection) -> void:
+func _add_to_jump_history(target_position:int, target_collection:Blockflow.CollectionClass) -> void:
 	assert(bool(current_collection != null))
 	var jump_data := []
 	var history_from := []
@@ -306,23 +307,23 @@ func _add_to_jump_history(target_position:int, target_collection:Collection) -> 
 	jump_data[_JumpHistoryData.TO] = history_to
 	_jump_history.append(jump_data)
 
-func _connect_command_signals(command:Command) -> void:
+func _connect_command_signals(command:Blockflow.CommandClass) -> void:
 	if not command.command_started.is_connected(_on_command_started):
 		command.command_started.connect(_on_command_started.bind(command), CONNECT_ONE_SHOT)
 	if not command.command_finished.is_connected(_on_command_finished):
 		command.command_finished.connect(_on_command_finished.bind(command), CONNECT_ONE_SHOT)
 
 
-func _disconnect_command_signals(command:Command) -> void:
+func _disconnect_command_signals(command:Blockflow.CommandClass) -> void:
 	if command.command_started.is_connected(_on_command_started):
 		command.command_started.disconnect(_on_command_started)
 	if command.command_finished.is_connected(_on_command_finished):
 		command.command_finished.disconnect(_on_command_finished)
 
-func _on_command_started(command:Command) -> void:
+func _on_command_started(command:Blockflow.CommandClass) -> void:
 	command_started.emit(command)
 
-func _on_command_finished(command:Command) -> void:
+func _on_command_finished(command:Blockflow.CommandClass) -> void:
 	command_finished.emit(command)
 	if command.continue_at_end:
 		go_to_next_command()

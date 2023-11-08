@@ -2,6 +2,8 @@
 extends EditorInspectorPlugin
 
 var editor_plugin:EditorPlugin
+const CommandClass = preload("res://addons/blockflow/commands/command.gd")
+const CollectionClass = preload("res://addons/blockflow/collection.gd")
 
 class NodeSelector extends ConfirmationDialog:
 	var editor_plugin:EditorPlugin

@@ -69,7 +69,7 @@ var node_selector:NodeSelector
 var _should_ignore:bool = false
 
 func _can_handle(object: Object) -> bool:
-	return object is Command
+	return object is CommandClass
 
 func _parse_begin(object: Object) -> void:
 	_should_ignore = false

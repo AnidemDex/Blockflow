@@ -2,20 +2,34 @@
 extends EditorPlugin
 
 const Settings = preload("res://addons/blockflow/blockflow.gd")
-const TimelineEditor = preload("res://addons/blockflow/editor/editor.gd")
+const BlockEditor = preload("res://addons/blockflow/editor/editor.gd")
 const TimelineConverter = preload("res://addons/blockflow/timeline_converter.gd")
 const InspectorTools = preload("res://addons/blockflow/editor/inspector/inspector_tools.gd")
 const CommandInspector = preload("res://addons/blockflow/editor/inspector/command_inspector.gd")
 const CommandCallInspector = preload("res://addons/blockflow/editor/inspector/call_inspector.gd")
 
-var timeline_editor:TimelineEditor
-var last_edited_timeline:CommandCollection
+var block_editor:BlockEditor
+
+var last_edited_object:Object
 var last_handled_object:Object
+
 var timeline_converter:TimelineConverter
+
 var node_selector:InspectorTools.NodeSelector
 var method_selector:InspectorTools.MethodSelector
+
 var command_inspector:CommandInspector
 var command_call_inspector:CommandCallInspector
+
+var editor_toaster:Node
+
+func toast(message:String, severity:int = 0, tooltip:String = ""):
+	if not is_inside_tree():
+		return
+	if not is_instance_valid(editor_toaster):
+		return
+	
+	editor_toaster.call("_popup_str", message, severity, tooltip)
 
 func _enable_plugin() -> void:
 	if not ProjectSettings.has_setting(Settings.PROJECT_SETTING_CUSTOM_COMMANDS):
@@ -30,7 +44,10 @@ func _enable_plugin() -> void:
 	ProjectSettings.save()
 
 func _enter_tree():
-	get_editor_interface().get_editor_main_screen().add_child(timeline_editor)
+	_define_toaster()
+	block_editor.toast_callback = toast
+	
+	get_editor_interface().get_editor_main_screen().add_child(block_editor)
 	get_editor_interface().get_base_control().add_child(node_selector)
 	get_editor_interface().get_base_control().add_child(method_selector)
 	_make_visible(false)
@@ -44,7 +61,9 @@ func _handles(object: Object) -> bool:
 	var o:Resource = object as Resource
 	if not o: return false
 	var condition:bool = false
-	condition = is_instance_of(object, CommandCollection) or is_instance_of(object, Command)
+	condition =\
+	(object is Settings.CollectionClass) or \
+	(object is Settings.TimelineClass)
 	
 	last_handled_object = object
 	
@@ -52,15 +71,14 @@ func _handles(object: Object) -> bool:
 
 
 func _edit(object: Object) -> void:
-	if object is CommandCollection:
-		timeline_editor.editor_undoredo = get_undo_redo()
-		timeline_editor.edit_timeline(object as CommandCollection)
-		last_edited_timeline = object
+	block_editor.editor_undoredo = get_undo_redo()
+	block_editor.edit(object)
+	last_edited_object = object
 
 
 func _make_visible(visible: bool) -> void:
-	if is_instance_valid(timeline_editor):
-		timeline_editor.visible = visible
+	if is_instance_valid(block_editor):
+		block_editor.visible = visible
 	return
 
 func _has_main_screen() -> bool:
@@ -75,12 +93,25 @@ func _get_plugin_name() -> String:
 func _get_plugin_icon():
 	return get_editor_interface().get_base_control().get_theme_icon("Node", "EditorIcons")
 
+func _define_toaster() -> void:
+	var dummy = Control.new()
+	dummy.name = "Dummy"
+	var d_btn = add_control_to_bottom_panel(dummy, "test")
+	d_btn.name = "dummy test"
+
+	for child in d_btn.get_parent().get_parent().get_children():
+		if child.get_class() == "EditorToaster":
+			editor_toaster = child
+			break
+
+	remove_control_from_bottom_panel(dummy)
+	dummy.queue_free()
 
 func _project_settings_changed() -> void:
-	timeline_editor.command_list.build_command_list()
+	block_editor.command_list.build_command_list()
 
 func _exit_tree():
-	timeline_editor.queue_free()
+	block_editor.queue_free()
 	
 	remove_resource_conversion_plugin(timeline_converter)
 	timeline_converter = null
@@ -92,10 +123,10 @@ func _exit_tree():
 
 
 func _init() -> void:
-	timeline_editor = TimelineEditor.new()
-	timeline_editor.edit_callback = Callable(get_editor_interface(), "edit_resource")
-	timeline_editor.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	timeline_editor.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	block_editor = BlockEditor.new()
+	block_editor.edit_callback = Callable(get_editor_interface(), "edit_resource")
+	block_editor.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	block_editor.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	
 	timeline_converter = TimelineConverter.new()
 	command_inspector = CommandInspector.new()
