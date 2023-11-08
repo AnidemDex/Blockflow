@@ -497,8 +497,13 @@ func _editor_file_dialog_file_selected(path:String) -> void:
 	timeline = load(path) as Blockflow.CommandCollectionClass
 	
 	if not timeline:
-		push_error("CollectionEditor: '%s' is not a valid Collection" % path)
-		return
+		var timeline_class = load(path) as Blockflow.TimelineClass
+		timeline = timeline_class.get_collection_equivalent()
+		if not timeline:
+			push_error("CollectionEditor: '%s' is not a valid Collection" % path)
+			return
+		else:
+			push_warning("CollectionEditor: '%s' is a timeline, converting to Collection..." % path)
 	
 	edit_callback.bind(timeline).call_deferred()
 
