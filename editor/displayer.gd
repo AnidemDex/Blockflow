@@ -103,6 +103,30 @@ func _on_item_edited() -> void:
 	if get_selected() == root:
 		_current_collection.resource_name = root.get_text(0)
 
+func _notification(what: int) -> void:
+	match what:
+		NOTIFICATION_ENTER_TREE, NOTIFICATION_THEME_CHANGED:
+			
+			set_column_expand(CommandBlock.ColumnPosition.NAME_COLUMN, false)
+			set_column_expand(CommandBlock.ColumnPosition.HINT_COLUMN, true)
+			set_column_expand(CommandBlock.ColumnPosition.LAST_COLUMN, false)
+			
+			set_column_clip_content(
+				CommandBlock.ColumnPosition.NAME_COLUMN,
+				false
+			)
+			
+			set_column_clip_content(
+				CommandBlock.ColumnPosition.HINT_COLUMN,
+				true
+			)
+			
+			set_column_clip_content(
+				CommandBlock.ColumnPosition.LAST_COLUMN,
+				false
+			)
+			
+			
 
 func _init() -> void:
 	# Allows multiple column stuff without manually change
@@ -110,33 +134,6 @@ func _init() -> void:
 	allow_rmb_select = true
 	select_mode = SELECT_ROW
 	scroll_horizontal_enabled = false
-	
-	set_column_expand(0, false)
-	set_column_expand(1, true)
-	set_column_expand(2, false)
-	
-	set_column_custom_minimum_width(
-		CommandBlock.ColumnPosition.HINT_COLUMN,
-		Blockflow.BLOCK_ICON_MIN_SIZE
-	)
-	set_column_clip_content(
-		CommandBlock.ColumnPosition.HINT_COLUMN,
-		false
-		)
-	
-#	set_column_custom_minimum_width(
-#		CommandBlock.ColumnPosition.HINT_COLUMN,
-#		Blockflow.BLOCK_ICON_MIN_SIZE*2
-#	)
-	set_column_clip_content(
-		CommandBlock.ColumnPosition.HINT_COLUMN,
-		true
-	)
-	
-	set_column_custom_minimum_width(
-		CommandBlock.ColumnPosition.LAST_COLUMN,
-		Blockflow.BLOCK_ICON_MIN_SIZE
-	)
 	
 	item_edited.connect(_on_item_edited)
 

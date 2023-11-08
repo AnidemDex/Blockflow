@@ -311,7 +311,7 @@ func _request_new() -> void:
 
 func _item_popup_id_pressed(id:int) -> void:
 	var command:Blockflow.CommandClass = collection_displayer.get_selected().get_metadata(0)
-	var command_idx:int = command.weak_owner.get_ref().get_command_position(command)
+	var command_idx:int = command.index
 	match id:
 		_ItemPopup.MOVE_UP:
 			move_command(command, max(0, command_idx - 1))
