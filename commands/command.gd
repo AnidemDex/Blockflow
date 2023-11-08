@@ -234,6 +234,9 @@ func is_branch() -> bool:
 func is_subcommand() -> bool:
 	return get_command_owner() != null
 
+func can_hold(command) -> bool:
+	return can_hold_commands
+
 ## Defines the execution behaviour of this command.
 ## This function is the default value of [member execution_steps]
 ## and you should override it if you are defining the command in a
