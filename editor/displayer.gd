@@ -66,7 +66,7 @@ func _reload() -> void:
 	
 	for command in displayed_commands:
 		if not command.collection_changed.is_connected(_reload):
-			command.collection_changed.connect(_reload, CONNECT_ONE_SHOT)
+			command.collection_changed.connect(_reload)
 	root.call_recursive("update")
 	if last_selected_command and last_selected_command.editor_block:
 		last_selected_command.editor_block.select(0)
