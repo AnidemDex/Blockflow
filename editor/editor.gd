@@ -344,7 +344,7 @@ func _command_button_list_pressed(command_script:Script) -> void:
 				command_idx = selected.index + 1
 				in_collection = selected.get_command_owner()
 			
-			collection_displayer.reselect_index = selected.position
+			collection_displayer.last_selected_command = new_command
 	add_command(new_command, command_idx, in_collection)
 
 

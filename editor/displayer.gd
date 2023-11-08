@@ -12,7 +12,7 @@ const BOOKMARK_ICON = preload("res://addons/blockflow/icons/bookmark.svg")
 const STOP_ICON = preload("res://addons/blockflow/icons/stop.svg")
 const CONTINUE_ICON = preload("res://addons/blockflow/icons/play.svg")
 
-var reselect_index = 0
+var last_selected_command:Blockflow.CommandClass
 
 var _current_collection:CollectionClass
 
@@ -29,15 +29,20 @@ func build_tree(object:Object) -> void:
 	_current_collection = collection
 	if _current_collection:
 		Blockflow.generate_tree(_current_collection)
-	reselect_index = 0
+	last_selected_command = null
 	_reload()
 
 
 func _reload() -> void:
 	clear()
+	for command in displayed_commands:
+		if command.collection_changed.is_connected(_reload):
+			command.collection_changed.disconnect(_reload)
+	
 	displayed_commands = []
 	
 	if not _current_collection:
+		last_selected_command = null
 		return
 	
 	var min_width:int = Blockflow.BLOCK_ICON_MIN_SIZE
@@ -58,8 +63,16 @@ func _reload() -> void:
 	
 	for command in _current_collection:
 		_add_command(command, root)
-		
+	
+	for command in displayed_commands:
+		if not command.collection_changed.is_connected(_reload):
+			command.collection_changed.connect(_reload, CONNECT_ONE_SHOT)
 	root.call_recursive("update")
+	if last_selected_command and last_selected_command.editor_block:
+		last_selected_command.editor_block.select(0)
+	else:
+		last_selected_command = null
+	
 
 func _add_command(command:Blockflow.CommandClass, under_block:CommandBlock) -> void:
 	if command in displayed_commands:
