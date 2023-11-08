@@ -66,10 +66,20 @@ var _editor_file_dialog:EditorFileDialog
 var _file_dialog:FileDialog
 
 func edit(object:Object) -> void:
+	if object == null:
+		collection_displayer.build_tree(null)
+		_file_menu.set_item_disabled(
+			_file_menu.get_item_index(ToolbarFileMenu.CLOSE_COLLECTION),
+			true
+		)
+		
+		show_help_panel()
 	if object is Blockflow.TimelineClass:
 		edit_timeline(object as Blockflow.TimelineClass)
 		return
-	edit_collection(object as Blockflow.CommandCollectionClass)
+	if object is Blockflow.CommandCollectionClass:
+		edit_collection(object as Blockflow.CommandCollectionClass)
+
 
 func edit_collection(collection:Blockflow.CollectionClass) -> void:
 	if not collection:
