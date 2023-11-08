@@ -30,7 +30,8 @@ class TargetProperty extends EditorProperty:
 				text = "[Scene Root]"
 		
 		selector.tooltip_text = "NodePath(\"%s\")"%current_value
-		selector.text = text
+		selector.text = text.get_file()
+		selector.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 		selector.icon = icon
 		
 	
@@ -39,10 +40,9 @@ class TargetProperty extends EditorProperty:
 		node_selector.confirmed.connect(_selector_confirmed, CONNECT_ONE_SHOT)
 	
 	func _selector_confirmed() -> void:
-		if not node_selector.selected_item:
+		if not node_selector.node_path:
 			return
-		var path:NodePath = node_selector.selected_item.get_metadata(0)
-		emit_changed(get_edited_property(), path)
+		emit_changed(get_edited_property(), node_selector.node_path)
 	
 	func _revert_pressed() -> void:
 		emit_changed(get_edited_property(), NodePath())
