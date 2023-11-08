@@ -435,7 +435,7 @@ func _collection_displayer_can_drop_data(at_position: Vector2, data) -> bool:
 	if ref_block:
 		ref_block_command = ref_block.get(&"command")
 	
-		if ref_block_command.can_hold_commads:
+		if ref_block_command.can_hold_commands:
 			collection_displayer.drop_mode_flags = Tree.DROP_MODE_ON_ITEM
 			return true
 	
