@@ -136,8 +136,7 @@ func _set_collection(value:Array) -> void:
 		command.weak_owner = null
 	
 	collection = value
-	for c in value:
-		c.weak_owner = weakref(self)
+	
 	_notify_changed()
 
 func _get(property: StringName):

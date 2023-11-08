@@ -13,9 +13,6 @@ signal command_started
 ## Emmited when the command finishes its execution.
 signal command_finished
 
-## Requests an update on the [member weak_collection] owner.
-signal update_tree
-
 const Group = preload("res://addons/blockflow/commands/group.gd")
 const Branch = preload("res://addons/blockflow/commands/branch.gd")
 
@@ -126,10 +123,10 @@ var target_node:Node
 ## Current command position in the collection.
 ## Index is determined by its [member weak_owner]
 ## and should not be set during runtime.
-var index:int
+var index:int = -1
 
 ## Command position determined by [member weak_collection]
-var position:int
+var position:int = -1
 
 ## Specify if this command can hold commands as if they
 ## were subcommands.
@@ -292,21 +289,6 @@ func _get_default_branch_for(branch_name:StringName) -> Branch:
 
 func _to_string() -> String:
 	return "<%s [%s:%s] # %d>" % [command_name,position,index, get_instance_id()]
-
-func _set_collection(value:Array) -> void:
-#	if not can_hold_commads and not value.is_empty():
-#		push_warning("[%s]:!can_hold_commands == true"%self)
-#		value = []
-	
-	for command in collection:
-		command.weak_owner = null
-	
-	collection = value.duplicate()
-	
-	for command in collection:
-		command.weak_collection = weakref(self)
-	
-	_notify_changed()
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_UPDATE_STRUCTURE:
