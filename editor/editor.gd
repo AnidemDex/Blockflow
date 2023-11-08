@@ -332,13 +332,20 @@ func _get_file_dialog() -> ConfirmationDialog:
 func _command_button_list_pressed(command_script:Script) -> void:
 	var command_idx:int = -1
 	var tree_item:TreeItem = collection_displayer.get_selected()
+	var new_command:Blockflow.CommandClass = command_script.new()
+	var in_collection:Blockflow.CollectionClass = _current_collection
 	if tree_item:
-		var selected:Blockflow.CommandClass = collection_displayer.get_selected().get_metadata(0)
+		var selected:Blockflow.CommandClass = collection_displayer.get_selected().get_metadata(0) as Blockflow.CommandClass
 		if selected:
-			command_idx = _current_collection.get_command_absolute_position(selected) + 1
-			collection_displayer.reselect_index = command_idx
-	var command:Blockflow.CommandClass = command_script.new()
-	add_command(command, command_idx)
+			if selected.can_hold_commands:
+				command_idx = -1
+				in_collection = selected
+			else:
+				command_idx = selected.index + 1
+				in_collection = selected.get_command_owner()
+			
+			collection_displayer.reselect_index = selected.position
+	add_command(new_command, command_idx, in_collection)
 
 
 func _collection_displayer_item_mouse_selected(_position:Vector2, button_index:int) -> void:
