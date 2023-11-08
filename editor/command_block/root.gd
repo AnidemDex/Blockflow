@@ -32,7 +32,7 @@ func update() -> void:
 	
 	set_text(ColumnPosition.NAME_COLUMN, timeline_name)
 	set_text_alignment(ColumnPosition.NAME_COLUMN, HORIZONTAL_ALIGNMENT_LEFT)
-	set_text(ColumnPosition.LAST_COLUMN, str(collection.get_command_count()))
+	set_text(ColumnPosition.INDEX_COLUMN, str(collection.get_command_count()))
 	set_icon(0, ICON)
 
 

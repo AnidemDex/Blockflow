@@ -15,7 +15,8 @@ const Blockflow = preload("res://addons/blockflow/blockflow.gd")
 enum ColumnPosition {
 	NAME_COLUMN,
 	HINT_COLUMN,
-	LAST_COLUMN
+	BUTTON_COLUMN,
+	INDEX_COLUMN,
 	}
 
 enum ButtonHint {CONTINUE_AT_END}
@@ -52,23 +53,24 @@ func update() -> void:
 	
 	var disabled_color = get_tree().get_theme_color("disabled_font_color", "Editor")
 	var position_hint:String = "%d" % [command.position]
-	set_text(ColumnPosition.LAST_COLUMN, position_hint)
-	set_custom_color(ColumnPosition.LAST_COLUMN, disabled_color)
-	set_text_alignment(ColumnPosition.LAST_COLUMN, HORIZONTAL_ALIGNMENT_RIGHT)
 	
-	set_icon(ColumnPosition.LAST_COLUMN, bookmark_icon)
-	set_icon_modulate(ColumnPosition.LAST_COLUMN, disabled_color)
-	set_tooltip_text(ColumnPosition.LAST_COLUMN, hint_tooltip)
+	set_icon(ColumnPosition.BUTTON_COLUMN, bookmark_icon)
+	set_icon_modulate(ColumnPosition.BUTTON_COLUMN, disabled_color)
+	set_tooltip_text(ColumnPosition.BUTTON_COLUMN, hint_tooltip)
 	
-	if get_button_count(ColumnPosition.LAST_COLUMN) > 0:
-		erase_button(ColumnPosition.LAST_COLUMN, ButtonHint.CONTINUE_AT_END)
+	if get_button_count(ColumnPosition.BUTTON_COLUMN) > 0:
+		erase_button(ColumnPosition.BUTTON_COLUMN, ButtonHint.CONTINUE_AT_END)
 	
 	hint_tooltip = "CommandManager will stop when this command ends."
 	var continue_icon = STOP_ICON
 	if command.continue_at_end:
 		hint_tooltip = "CommandManager will continue automatically to next command when this command ends."
 		continue_icon = CONTINUE_ICON
-	add_button(ColumnPosition.LAST_COLUMN, continue_icon, ButtonHint.CONTINUE_AT_END, false, hint_tooltip)
+	add_button(ColumnPosition.BUTTON_COLUMN, continue_icon, ButtonHint.CONTINUE_AT_END, false, hint_tooltip)
+
+	set_text(ColumnPosition.INDEX_COLUMN, position_hint)
+	set_custom_color(ColumnPosition.INDEX_COLUMN, disabled_color)
+	set_text_alignment(ColumnPosition.INDEX_COLUMN, HORIZONTAL_ALIGNMENT_RIGHT)
 
 
 func set_command(value:CommandClass) -> void:
