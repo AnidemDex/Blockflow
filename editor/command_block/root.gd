@@ -30,8 +30,8 @@ func update() -> void:
 		set_expand_right(i, false)
 		set_icon_max_width(i, Blockflow.BLOCK_ICON_MIN_SIZE)
 	
-	set_text(ColumnPosition.NAME_COLUMN, timeline_name)
-	set_text_alignment(ColumnPosition.NAME_COLUMN, HORIZONTAL_ALIGNMENT_LEFT)
+	set_text(ColumnPosition.HINT_COLUMN, timeline_name)
+	set_text_alignment(ColumnPosition.HINT_COLUMN, HORIZONTAL_ALIGNMENT_CENTER)
 	set_text(ColumnPosition.INDEX_COLUMN, str(collection.get_command_count()))
 	set_icon(0, ICON)
 
