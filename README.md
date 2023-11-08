@@ -1,12 +1,7 @@
-# [UnnamedPlugin]
-
-> CommandTimeline and GodotBlockFlow are potential names
-
 <!-- Gosh, somebody help me here, I have no words for now -->
 <!-- Update: Still have no words -->
-[UnnamedPlugin] is a visual [DESCRIPTION]
 
-Hi future devs!
+<!-- Hi future devs!
 
 While testing stuff in this very early stage, make sure to use `playground` scene.
 
@@ -14,35 +9,45 @@ That scene will be moved eventually (like any other file in this repository)
 so make sure to know always where `playground` is to test stuff.
 
 I'll make sure to point where it'll be in future release, after defining the
-plugin structure.
+plugin structure. -->
 
-## For now, this thing can...
+# <img src="icons/timeline.svg" width="48" height="48"> Godot Blockflow
 
-### With code:
+A visual block style scripting for Godot 4.
 
-- Create timeline (`Timeline.new()`).
-- Create a command (`Command.new()`).
-- Add a command to the timeline `<Timeline>.add_command(<Command>)`.
-- Create custom commands (`extends Command`).
-- Define the name and the icon of the command (`_get_command_name()` and
-`_get_command_icon()`).
+---
 
-### With editor:
+Blockflow is a visual scripting plugin for Godot, made to create sequential instructions
+that are executed one by one, easy to implement and highly customizable, allowing you to execute
+code fragments in order according to the conditions you give it.
 
-- See a timeline (See [timeline_displayer.gd`](timeline_displayer.gd)).
-- Display a bunch of buttons that are tied to a command to add them into the
-current timeline when you press them (See [`command_list.gd`](command_list.gd)).
-- Make appear a context menu when you right press an item in the timeline.
-  - Modify the timeline structure with this context menu.
-- Drag and drop items to modify the structure.
+It helps in scenarios where you require a controlled execution of steps in
+your games, such as a dialog system or the creation of cutscenes, without the need to recreate
+an entire sequence by code.
 
-## This should be doing:
+Supports **any Godot 4** version.
 
-### With code:
+## Getting started
+Blockflow is a Godot plugin, it can be installed normally as [official Godot documentation](https://docs.godotengine.org/en/stable/tutorials/plugins/editor/installing_plugins.html) guides:
 
-- [ ] Executing the command behaviour.
-- [ ] Managing the execution of the command behaviour.
+- Download the plugin from the latest release.
+- Extract the folder under your project `addons` folder (if the folder doesn't exist, create one).
+- Go to Project -> Project Settings -> Plugins and mark `Blockflow` checkbox.
 
-### With editor:
+If everything works, you'll see `Block Editor` button at the top of Godot editor, next to 2D/3D/AssetLib buttons.
+![]()
 
-- [x] Modifying the timeline structure with the context menu.
+### Using git
+You can install this repository as a submodule from your project root folder:
+```shell
+git submodule add https://github.com/AnidemDex/Blockflow  addons/blockflow
+```
+
+### Updating
+
+To update the plugin manually:
+
+- Close Godot editor.
+- Remove `blockflow` folder.
+- Add the new `blockflow` folder.
+
