@@ -136,7 +136,7 @@ var position:int
 ## If [code]true[/code] enables
 ## the option to drop commands on this command
 ## to handle them as subcommands.
-var can_hold_commads:bool :
+var can_hold_commands:bool :
 	set(value): return
 	get: return _can_hold_commands()
 
