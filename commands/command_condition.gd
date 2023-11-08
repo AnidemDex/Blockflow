@@ -24,6 +24,11 @@ func _get_name() -> StringName: return "Condition"
 func _get_icon() -> Texture:
 	return load("res://addons/blockflow/icons/branch.svg")
 
+func _can_hold_commands() -> bool: return true
+
+func can_hold(command) -> bool:
+	return command.is_branch()
+
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_UPDATE_STRUCTURE:
 		if generate_default_branches:

@@ -8,3 +8,5 @@ func _get_icon() -> Texture:
 
 func _init() -> void:
 	branch_name = "is False"
+
+func _can_be_moved() -> bool: return false
