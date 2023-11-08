@@ -306,8 +306,7 @@ func _set_collection(value:Array) -> void:
 	for command in collection:
 		command.weak_collection = weakref(self)
 	
-	notification(NOTIFICATION_UPDATE_STRUCTURE)
-	emit_changed()
+	_notify_changed()
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_UPDATE_STRUCTURE:
@@ -337,8 +336,3 @@ func _notification(what: int) -> void:
 						branch.collection = command.collection
 						collection.remove_at(command_index)
 						collection.insert(command_index, branch)
-			
-#			if not Engine.is_editor_hint() or not can_hold_commads:
-#				collection.make_read_only()
-			
-			emit_changed()

@@ -13,6 +13,8 @@ enum {
 
 const Blockflow = preload("res://addons/blockflow/blockflow.gd")
 
+signal collection_changed
+
 ## [WeakRef] owner of this collection.
 ## [br][method weak_owner.get_ref] value can be:
 ## [br]  - A [CommandCollection]
@@ -126,6 +128,7 @@ func is_empty() -> bool:
 func _notify_changed() -> void: 
 	notification(NOTIFICATION_UPDATE_STRUCTURE)
 	Blockflow.generate_tree(self)
+	collection_changed.emit()
 	emit_changed()
 
 func _set_collection(value:Array) -> void:
