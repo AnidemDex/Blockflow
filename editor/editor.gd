@@ -182,6 +182,10 @@ func move_command(command:Blockflow.CommandClass, to_position:int, from_collecti
 	if not to_collection:
 		to_collection = command.get_command_owner()
 	
+	if not from_collection:
+		# It comes from nowhere, maybe we're adding instead of moving?
+		add_command(command, to_position, to_collection)
+		return
 	
 	var from_position:int = from_collection.get_command_position(command)
 	var action_name:String = "Move command '%s'" % [command.command_name]
