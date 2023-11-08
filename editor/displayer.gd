@@ -27,8 +27,6 @@ func build_tree(object:Object) -> void:
 		collection = object as CollectionClass
 	
 	_current_collection = collection
-	if _current_collection:
-		Blockflow.generate_tree(_current_collection)
 	last_selected_command = null
 	_reload()
 
@@ -44,6 +42,8 @@ func _reload() -> void:
 	if not _current_collection:
 		last_selected_command = null
 		return
+	# Force generation of the tree
+	Blockflow.generate_tree(_current_collection)
 	
 	var min_width:int = Blockflow.BLOCK_ICON_MIN_SIZE
 	set_column_custom_minimum_width(0, min_width*columns)
