@@ -8,7 +8,8 @@ const CollectionClass = preload("res://addons/blockflow/collection.gd")
 class NodeSelector extends ConfirmationDialog:
 	var editor_plugin:EditorPlugin
 	var fake_tree:Tree
-	var selected_item:TreeItem
+	var line_edit:LineEdit
+	var node_path:NodePath
 	
 	func _recursive_create(ref_item:TreeItem, ref_node:Node, root_node:Node) -> void:
 		ref_item.set_text(0, ref_node.name)
@@ -26,6 +27,7 @@ class NodeSelector extends ConfirmationDialog:
 			
 			fake_tree.clear()
 			fake_tree.deselect_all()
+			line_edit.text = ""
 			get_ok_button().disabled = true
 			var scene_root:Node =\
 			editor_plugin.get_editor_interface().get_edited_scene_root()
@@ -38,24 +40,42 @@ class NodeSelector extends ConfirmationDialog:
 			_recursive_create(root, scene_root, scene_root)
 	
 	func _fake_tree_item_selected() -> void:
-		selected_item = fake_tree.get_selected()
-		get_ok_button().disabled = selected_item == null
+		line_edit.text = fake_tree.get_selected().get_metadata(0)
+		get_ok_button().disabled = line_edit.text.is_empty()
+		node_path = NodePath(line_edit.text)
 	
 	func _fake_tree_item_activated() -> void:
-		selected_item = fake_tree.get_selected()
+		node_path = NodePath(fake_tree.get_selected().get_metadata(0))
 		confirmed.emit()
 		hide()
+	
+	func _line_edit_text_changed(new_text: String) -> void:
+		fake_tree.deselect_all()
+		get_ok_button().disabled = new_text.is_empty()
+		node_path = NodePath(new_text)
 	
 	func _init() -> void:
 		name = "NodeSelector"
 		title = "Node Selector"
 		
+		var vb := VBoxContainer.new()
+		vb.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		vb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		add_child(vb)
+		
+		line_edit = LineEdit.new()
+		line_edit.placeholder_text = "Input NodePath"
+		line_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		line_edit.text_changed.connect(_line_edit_text_changed)
+		vb.add_child(line_edit)
+		register_text_enter(line_edit)
+
 		fake_tree = Tree.new()
 		fake_tree.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		fake_tree.size_flags_vertical = Control.SIZE_EXPAND_FILL
 		fake_tree.item_selected.connect(_fake_tree_item_selected)
 		fake_tree.item_activated.connect(_fake_tree_item_activated)
-		add_child(fake_tree)
+		vb.add_child(fake_tree)
 
 class PrevNodeVanisher extends Control:
 	func _ready() -> void:
