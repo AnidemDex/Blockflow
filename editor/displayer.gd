@@ -45,19 +45,14 @@ func _reload() -> void:
 	# Force generation of the tree
 	Blockflow.generate_tree(_current_collection)
 	
-	var min_width:int = Blockflow.BLOCK_ICON_MIN_SIZE
-	set_column_custom_minimum_width(0, min_width*columns)
+	var min_width:int = 24 + Blockflow.BLOCK_ICON_MIN_SIZE
+	set_column_custom_minimum_width(CommandBlock.ColumnPosition.NAME_COLUMN, min_width*columns)
 	
 	var r:TreeItem = create_item()
 	r.set_script(RootBlock)
 	root = r as RootBlock
 	root.collection = _current_collection
 	
-#	for i in columns:
-#		root.set_expand_right(i, false)
-	# See this little trick here? Is to remove the column expand.
-	# I hate it.
-	#root.set_text(columns-1, " ")
 	var commands:Array = _current_collection.collection
 	var subcommand:Array = []
 	
@@ -106,10 +101,10 @@ func _on_item_edited() -> void:
 func _notification(what: int) -> void:
 	match what:
 		NOTIFICATION_ENTER_TREE, NOTIFICATION_THEME_CHANGED:
-			
 			set_column_expand(CommandBlock.ColumnPosition.NAME_COLUMN, false)
 			set_column_expand(CommandBlock.ColumnPosition.HINT_COLUMN, true)
-			set_column_expand(CommandBlock.ColumnPosition.LAST_COLUMN, false)
+			set_column_expand(CommandBlock.ColumnPosition.BUTTON_COLUMN, false)
+			set_column_expand(CommandBlock.ColumnPosition.INDEX_COLUMN, false)
 			
 			set_column_clip_content(
 				CommandBlock.ColumnPosition.NAME_COLUMN,
@@ -122,11 +117,10 @@ func _notification(what: int) -> void:
 			)
 			
 			set_column_clip_content(
-				CommandBlock.ColumnPosition.LAST_COLUMN,
+				CommandBlock.ColumnPosition.INDEX_COLUMN,
 				false
 			)
-			
-			
+
 
 func _init() -> void:
 	# Allows multiple column stuff without manually change
