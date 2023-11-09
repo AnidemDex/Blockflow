@@ -122,33 +122,26 @@ func edit_timeline(timeline:Object) -> void:
 	if not timeline:
 		return
 	
+	var collection:Blockflow.CommandCollectionClass
+	
+	collection = timeline.get_collection_equivalent()
+	
+	var err := ResourceSaver.save(collection, timeline.resource_path, ResourceSaver.FLAG_CHANGE_PATH|ResourceSaver.FLAG_REPLACE_SUBRESOURCE_PATHS)
+	if err != OK:
+		toast_callback.call("An error occurred while creating a collection from timeline: %s(%s)" % [error_string(err), err])
+		edit(null)
+		return
+	
+	collection.take_over_path(timeline.resource_path)
+	
 	toast_callback.call(
 		"Timeline class is deprecated.",
 		Blockflow.Toast.SEVERITY_WARNING,
-		"Timeline class is deprecated and will be removed in the future."
+		"Timeline class is deprecated and will be removed in the future. We created an equivalent at the same path for you"
 	)
 	
-	var load_function:Callable = collection_displayer.build_tree
-	var path_hint:String = ""
-	
-	if edited_object:
-		if edited_object.changed.is_connected(load_function):
-			edited_object.changed.disconnect(load_function)
-	
-	_current_collection = timeline
-	
-	if _current_collection:
-		if not timeline.changed.is_connected(load_function):
-			timeline.changed.connect(load_function.bind(timeline), CONNECT_DEFERRED)
-		path_hint = _current_collection.resource_path
-		hide_help_panel()
-		_file_menu.set_item_disabled(_file_menu.get_item_index(ToolbarFileMenu.CLOSE_COLLECTION), false)
-	else:
-		_file_menu.set_item_disabled(_file_menu.get_item_index(ToolbarFileMenu.CLOSE_COLLECTION), true)
-		show_help_panel()
-	
-	title_label.text = path_hint
-	load_function.call(timeline)
+	edit_callback.bind(collection).call_deferred()
+
 
 func add_command(command:Blockflow.CommandClass, at_position:int = -1, to_collection:Blockflow.CollectionClass = null) -> void:
 	if not _current_collection: return
