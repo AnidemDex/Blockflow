@@ -122,33 +122,28 @@ func edit_timeline(timeline:Object) -> void:
 	if not timeline:
 		return
 	
+	var collection:Blockflow.CommandCollectionClass
+	
+	collection = timeline.get_collection_equivalent()
+	
+	var err := ResourceSaver.save(collection, timeline.resource_path, ResourceSaver.FLAG_CHANGE_PATH|ResourceSaver.FLAG_REPLACE_SUBRESOURCE_PATHS)
+	if err != OK:
+		var err_msg := "An error occurred while creating a collection from timeline: %s(%s)" % [error_string(err), err]
+		push_error(err_msg)
+		toast_callback.call("Failed to create a new collection!",Blockflow.Toast.SEVERITY_ERROR,err_msg)
+		edit(null)
+		return
+	
+	collection.take_over_path(timeline.resource_path)
+	
 	toast_callback.call(
 		"Timeline class is deprecated.",
 		Blockflow.Toast.SEVERITY_WARNING,
-		"Timeline class is deprecated and will be removed in the future."
+		"Timeline class is deprecated and will be removed in the future. We created an equivalent at the same path for you"
 	)
 	
-	var load_function:Callable = collection_displayer.build_tree
-	var path_hint:String = ""
-	
-	if edited_object:
-		if edited_object.changed.is_connected(load_function):
-			edited_object.changed.disconnect(load_function)
-	
-	_current_collection = timeline
-	
-	if _current_collection:
-		if not timeline.changed.is_connected(load_function):
-			timeline.changed.connect(load_function.bind(timeline), CONNECT_DEFERRED)
-		path_hint = _current_collection.resource_path
-		hide_help_panel()
-		_file_menu.set_item_disabled(_file_menu.get_item_index(ToolbarFileMenu.CLOSE_COLLECTION), false)
-	else:
-		_file_menu.set_item_disabled(_file_menu.get_item_index(ToolbarFileMenu.CLOSE_COLLECTION), true)
-		show_help_panel()
-	
-	title_label.text = path_hint
-	load_function.call(timeline)
+	edit_callback.bind(collection).call_deferred()
+
 
 func add_command(command:Blockflow.CommandClass, at_position:int = -1, to_collection:Blockflow.CollectionClass = null) -> void:
 	if not _current_collection: return
@@ -511,31 +506,26 @@ func _collection_displayer_drop_data(at_position: Vector2, data) -> void:
 
 
 func _editor_file_dialog_file_selected(path:String) -> void:
-	var timeline:Blockflow.CommandCollectionClass
+	var collection:Blockflow.CommandCollectionClass
 	var __file_dialog := _get_file_dialog()
 		
 	if __file_dialog.file_mode == EditorFileDialog.FILE_MODE_SAVE_FILE:
-		timeline = Blockflow.CommandCollectionClass.new()
-		timeline.resource_name = path.get_file()
+		collection = Blockflow.CommandCollectionClass.new()
+		collection.resource_name = path.get_file()
 		
-		var err:int = ResourceSaver.save(timeline, path)
+		var err:int = ResourceSaver.save(collection, path)
 		if err != 0:
-			push_error("Saving timeline failed with Error '%s'" % err)
+			push_error("Saving CommandCollection failed with Error '%s'(%s)" % [err, error_string(err)])
 			return
-		timeline = load(path)
+		collection = load(path)
 	
-	timeline = load(path) as Blockflow.CommandCollectionClass
+	var resource:Resource = load(path)
+	var condition:bool = resource is Blockflow.CommandCollectionClass or resource is Blockflow.TimelineClass
+	if not resource or not condition:
+		push_error("CollectionEditor: '%s' is not a valid Collection" % path)
+		return
 	
-	if not timeline:
-		var timeline_class = load(path) as Blockflow.TimelineClass
-		timeline = timeline_class.get_collection_equivalent()
-		if not timeline:
-			push_error("CollectionEditor: '%s' is not a valid Collection" % path)
-			return
-		else:
-			push_warning("CollectionEditor: '%s' is a timeline, converting to Collection..." % path)
-	
-	edit_callback.bind(timeline).call_deferred()
+	edit_callback.bind(resource).call_deferred()
 
 
 func _toolbar_file_menu_id_pressed(id:int) -> void:
