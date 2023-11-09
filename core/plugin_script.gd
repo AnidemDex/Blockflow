@@ -58,8 +58,6 @@ func _enter_tree():
 
 
 func _handles(object: Object) -> bool:
-	var o:Resource = object as Resource
-	if not o: return false
 	var condition:bool = false
 	condition =\
 	(object is Settings.CollectionClass) or \
