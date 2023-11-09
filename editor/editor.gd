@@ -128,7 +128,9 @@ func edit_timeline(timeline:Object) -> void:
 	
 	var err := ResourceSaver.save(collection, timeline.resource_path, ResourceSaver.FLAG_CHANGE_PATH|ResourceSaver.FLAG_REPLACE_SUBRESOURCE_PATHS)
 	if err != OK:
-		toast_callback.call("An error occurred while creating a collection from timeline: %s(%s)" % [error_string(err), err])
+		var err_msg := "An error occurred while creating a collection from timeline: %s(%s)" % [error_string(err), err]
+		push_error(err_msg)
+		toast_callback.call("Failed to create a new collection!",Blockflow.Toast.SEVERITY_ERROR,err_msg)
 		edit(null)
 		return
 	
