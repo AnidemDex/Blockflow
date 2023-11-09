@@ -54,7 +54,7 @@ func insert(command, at_position:int) -> void:
 
 # can't use duplicate lmao
 func copy(command, to_position:int) -> void:
-	var duplicated = command.duplicate()
+	var duplicated = command.duplicate() # This may give errors due sharing an array
 	var idx = to_position if to_position > -1 else collection.size()
 	collection.insert(idx, duplicated)
 	command.weak_owner = weakref(self)
@@ -145,14 +145,16 @@ func _get(property: StringName):
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_UPDATE_STRUCTURE:
-		for command in collection:
+		for command_index in collection.size():
+			var command:Command = collection[command_index]
 			command.weak_owner = weakref(self)
+			command.index = command_index
 			command.weak_collection = weak_collection
 
 
 func _get_property_list() -> Array:
 	var p:Array = []
-	p.append({"name":"collection", "type":TYPE_ARRAY, "usage":PROPERTY_USAGE_NO_EDITOR|PROPERTY_USAGE_SCRIPT_VARIABLE})
+	p.append({"name":"collection", "type":TYPE_ARRAY, "usage":PROPERTY_USAGE_NO_EDITOR|PROPERTY_USAGE_SCRIPT_VARIABLE|PROPERTY_USAGE_ALWAYS_DUPLICATE})
 	return p
 
 func _to_string() -> String:

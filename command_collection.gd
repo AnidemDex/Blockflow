@@ -45,16 +45,16 @@ func _set_collection(value:Array) -> void:
 	
 	collection = value.duplicate()
 	
-	for command_index in collection.size():
-		var command:Blockflow.CommandClass = collection[command_index]
-		command.weak_owner = weakref(self)
-		command.weak_collection = weakref(self)
-		command.index = command_index
-		command.notification(NOTIFICATION_UPDATE_STRUCTURE)
-	
 #	if not Engine.is_editor_hint():
 #		collection.make_read_only()
 	
 	_notify_changed()
 
-#func _get_iterator_ref() -> Array: return _command_list
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_UPDATE_STRUCTURE:
+		for command_index in collection.size():
+			var command:Blockflow.CommandClass = collection[command_index]
+			command.weak_owner = weakref(self)
+			command.weak_collection = weakref(self)
+			command.index = command_index
+			command.notification(NOTIFICATION_UPDATE_STRUCTURE)
