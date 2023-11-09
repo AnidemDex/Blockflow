@@ -40,7 +40,7 @@ class TargetProperty extends EditorProperty:
 		node_selector.confirmed.connect(_selector_confirmed, CONNECT_ONE_SHOT)
 	
 	func _selector_confirmed() -> void:
-		if not node_selector.node_path:
+		if node_selector.node_path.is_empty():
 			return
 		emit_changed(get_edited_property(), node_selector.node_path)
 	
