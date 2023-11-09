@@ -68,7 +68,7 @@ func _reload() -> void:
 		if not command.collection_changed.is_connected(_reload):
 			command.collection_changed.connect(_reload)
 	root.call_recursive("update")
-	if last_selected_command and last_selected_command.editor_block:
+	if last_selected_command and is_instance_valid(last_selected_command.editor_block):
 		last_selected_command.editor_block.select(0)
 	else:
 		last_selected_command = null

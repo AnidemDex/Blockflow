@@ -224,12 +224,11 @@ func duplicate_command(command:Blockflow.CommandClass, to_position:int) -> void:
 	if not command.weak_owner:
 		push_error("!command.weak_owner")
 		return
-	command_collection = command.weak_owner.get_ref()
+	command_collection = command.get_command_owner()
 	if not command_collection:
 		push_error("!command_collection")
 		return
 	
-	var at_position:int = _current_collection.get_command_position(command)
 	var action_name:String = "Duplicate command '%s'" % [command.get_command_name()]
 	collection_displayer.reselect_index = to_position
 	if Engine.is_editor_hint():
@@ -463,13 +462,23 @@ func _collection_displayer_drop_data(at_position: Vector2, data) -> void:
 	var ref_item_collection:Blockflow.CollectionClass
 	if ref_item and ref_item != collection_displayer.root:
 		ref_item_collection = ref_item.command.get_command_owner()
+	
 
 	match section:
 		_DropSection.NO_ITEM:
 			move_command(command, -1, null, _current_collection)
 
 		_DropSection.ABOVE_ITEM:
-			var new_index:int = ref_item_collection.get_command_position(ref_item.command)
+			
+			var prev_c:Blockflow.CommandClass = ref_item_collection.get_command(ref_item.command.index - 1)
+			if prev_c == command:
+				# No need to move
+				return
+			
+			var new_index:int = ref_item.command.index - int(ref_item.command.index >= command.index)
+			if ref_item_collection != command.get_command_owner():
+				new_index = ref_item.command.index
+			
 			move_command(command, new_index, null, ref_item_collection)
 
 		_DropSection.ON_ITEM:
@@ -481,7 +490,13 @@ func _collection_displayer_drop_data(at_position: Vector2, data) -> void:
 			
 			
 		_DropSection.BELOW_ITEM:
-			var new_index:int = ref_item_collection.get_command_position(ref_item.command) + 1
+			var next_c:Blockflow.CommandClass
+			
+			var new_index:int = ref_item.command.index + int(ref_item.command.index < command.index)
+			
+			if ref_item_collection != command.get_command_owner():
+				new_index = ref_item.command.index + 1
+			
 			move_command(command, new_index, null, ref_item_collection)
 
 
