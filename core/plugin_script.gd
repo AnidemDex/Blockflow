@@ -89,7 +89,7 @@ func _get_plugin_name() -> String:
 # TODO:
 # Replace with custom icon
 func _get_plugin_icon():
-	return get_editor_interface().get_base_control().get_theme_icon("Node", "EditorIcons")
+	return get_editor_interface().get_base_control().get_theme_icon("ThemeSelectAll", "EditorIcons")
 
 func _define_toaster() -> void:
 	var dummy = Control.new()
