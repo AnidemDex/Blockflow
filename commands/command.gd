@@ -8,7 +8,7 @@ class_name Command
 ## If you want to do your own command, you should [code]extend[/code] from this class.
 ##
 
-## Emmited when the event starts its execution.
+## Emmited when the command starts its execution.
 signal command_started
 ## Emmited when the command finishes its execution.
 signal command_finished
@@ -17,17 +17,19 @@ const Group = preload("res://addons/blockflow/commands/group.gd")
 const Branch = preload("res://addons/blockflow/commands/branch.gd")
 
 ## Marks this command with a [code]bookmark[/code]. This bookmark will be registered in
-## the timeline when the timeline is loaded, and will be used when other
+## the [member weak_collection] when the collection is loaded, and will be used when other
 ## command refers to that specific bookmark.
-## Bookmarks should be unique.
+##
+##[br][br]Bookmarks should be unique. If a subsequent command uses the same bookmark
+##that command will be used instead.
 @export var bookmark:StringName = "":
 	set(value):
 		bookmark = value
 		emit_changed()
 	get: return bookmark
 
-## Determines if the command will go to next event inmediatly or not. 
-## If value is true, the next event will be executed when command ends.
+## Determines if the command will go to next command inmediatly or not. 
+## If value is true, the next command will be executed when command ends.
 @export var continue_at_end:bool = true:
 	set(value):
 		continue_at_end = value
@@ -91,7 +93,7 @@ var command_hint:String :
 	get: return _get_hint()
 
 ## Command hint icon. Use [method _get_hint_icon] to define the texture.
-## [br]This texture will be displayed before [command_hint].
+## [br]This texture will be displayed before [member command_hint].
 ## [codeblock]
 ## func _get_hint_icon() -> Texture:
 ##     return load("res://icon.svg")
@@ -111,7 +113,7 @@ var command_description:String :
 	get: return _get_description()
 
 ## [CommandBlock] item assigned by editor.
-## [br]This reference is assigned by timeline displayer editor.
+## [br]This reference is assigned by Block Editor.
 var editor_block:TreeItem
 
 ## Target node that [member target] points to. This value is assigned by
@@ -132,47 +134,80 @@ var position:int = -1
 ## were subcommands.
 ## If [code]true[/code] enables
 ## the option to drop commands on this command
-## to handle them as subcommands.
+## to handle them as subcommands in Block Editor.
+##
+##[br][br]Use [method _can_hold_commands] to define the value.
+## [codeblock]
+## func _can_hold_commands() -> bool:
+##     return true
+## [/codeblock]
 var can_hold_commands:bool :
 	set(value): return
 	get: return _can_hold_commands()
 
 ## Specify if this command can hold branches.
+##
 ##[br][br]If [code]true[/code] enables
 ## the option to create branches on this command
 ## according to [method _get_default_branch_names].
+##
+##[br][br]Use [method _defines_default_branches] to define the value.
+## [codeblock]
+## func _defines_default_branches() -> bool:
+##     return true
+## [/codeblock]
 var defines_default_branches:bool:
 	set(value): return
 	get: return _defines_default_branches()
 
 ## Specify if this command can be moved in editor after
-## creation. Used mainly by [constant Branch] commands.
+## creation. Used mainly by custom [constant Branch] commands.
+##
+##[br][br]Use [method _can_be_moved] to define the value.
+## [codeblock]
+## func _can_be_moved() -> bool:
+##     return true
+## [/codeblock]
 var can_be_moved:bool :
 	set(value): return
 	get: return _can_be_moved()
 
 ## Specify if this command can be selected in editor.
+## If value is [code]false[/code], user will not be able
+## to select and inspect the command block in Block Editor.
+##
+##[br][br]Use [method _can_be_selected] to define the value.
+## [codeblock]
+## func _can_be_selected() -> bool:
+##     return true
+## [/codeblock]
 var can_be_selected:bool :
 	set(value): return
 	get: return _can_be_selected()
 
-
+## Returns the assigned [CommandCollection]. See [member Collection.weak_collection]
+## for possible values.
 func get_main_collection() -> Blockflow.CommandCollectionClass:
 	if weak_collection:
 		return weak_collection.get_ref() as Blockflow.CommandCollectionClass
 	return null
 
+## Returns the assigned [Collection]. See [member Collection.weak_owner] for possible values.
 func get_command_owner() -> Collection:
 	if weak_owner:
 		return weak_owner.get_ref() as Collection
 	return null
 
+## Get the next command position.
 func get_next_command_position() -> int:
 	return position + 1
 
+## Get the next command index.
 func get_next_command_index() -> int:
 	return index + 1
 
+## Get the next command according [method get_next_command_position] on
+## [method get_main_collection].
 func get_next_command() -> Command:
 	var main_collection := get_main_collection()
 	if not main_collection:
@@ -184,6 +219,9 @@ func get_next_command() -> Command:
 	
 	return main_collection.get_command(get_next_command_position())
 
+## Get the next available command. This is the next command to this
+## command according [method get_next_command_index] on
+## [method get_command_owner]
 func get_next_available_command() -> Command:
 	var owner := get_command_owner()
 	if not owner:
@@ -203,14 +241,13 @@ func go_to_next_command() -> void:
 	command_finished.emit()
 
 ## Request [member command_manager] to go to a specific
-## command in the timeline with [param command_index].
-## [br][Command], [member commands] and [member branches] are taken 
-## in consideration for this index.
+## [param command_position] command in the main collection.
+##
 ## [br][br]Note: Calling this method will not trigger 
 ## [signal command_finished] and will go to the requested
-## [param command_index] inmediatly.
-func go_to_command(command_index:int) -> void:
-	command_manager.jump_to_command(command_index, null)
+## [param command_position] inmediatly.
+func go_to_command(command_position:int) -> void:
+	command_manager.jump_to_command(command_position, null)
 
 ## Request [member command_manager] to go to a specific branch defined in
 ## [member branches].
@@ -234,6 +271,10 @@ func is_branch() -> bool:
 func is_subcommand() -> bool:
 	return get_command_owner() != null
 
+## Called by editor.
+##[br][br]Acts as a filter to know what types of commands this command can hold.
+## This does not forces the collection accept only that type of commands and
+## only serves as guide to block editor.
 func can_hold(command) -> bool:
 	return can_hold_commands
 
