@@ -8,11 +8,13 @@ class_name Collection
 ## to interact with the array easily.
 
 enum {
-	NOTIFICATION_UPDATE_STRUCTURE = 1<<2
+	NOTIFICATION_UPDATE_STRUCTURE = 1<<2 ## Notify that internal structure must be updated.
 	}
 
+## Blockflow constant
 const Blockflow = preload("res://addons/blockflow/blockflow.gd")
 
+## Emmited when internal [member collection] is modified.
 signal collection_changed
 
 ## [WeakRef] owner of this collection.
@@ -29,11 +31,13 @@ var weak_owner:WeakRef
 ## [br]  - A [code]null[/code] value, meaning it's the "main" [CommandCollection]
 var weak_collection:WeakRef
 
+## Array of [Command]
 var collection:Array = []:
 	set = _set_collection
 
 var is_updating_data:bool
 
+## Adds a [Command] to [member collection]
 func add(command) -> void:
 	if has(command):
 		push_error("Trying to add an command to the collection, but the command is already added")
@@ -42,6 +46,7 @@ func add(command) -> void:
 	command.weak_owner = weakref(self)
 	_notify_changed()
 
+## Insert [Command] [param command] at [param position] in [member collection]
 func insert(command, at_position:int) -> void:
 	if has(command):
 		push_error("Trying to add an command to the collection, but the command already exist")
@@ -53,6 +58,7 @@ func insert(command, at_position:int) -> void:
 	_notify_changed()
 
 # can't use duplicate lmao
+## Copy a [Command] in position [param to_position] of [member collection]
 func copy(command, to_position:int) -> void:
 	var duplicated = command.duplicate() # This may give errors due sharing an array
 	var idx = to_position if to_position > -1 else collection.size()
@@ -60,6 +66,7 @@ func copy(command, to_position:int) -> void:
 	command.weak_owner = weakref(self)
 	_notify_changed()
 
+## Moves a [Command] from its current [Command.index] to [param to_position]
 func move(command, to_position:int) -> void:
 	if !has(command):
 		push_error("Trying to move an command in the collection, but the command is not added.")
@@ -83,14 +90,17 @@ func move(command, to_position:int) -> void:
 	command.weak_owner = weakref(self)
 	_notify_changed()
 
+## Erases a [Command] from [member collection]
 func erase(command:Blockflow.CommandClass) -> void:
 	collection.erase(command)
 	_notify_changed()
 
+## Removes a command from [member collection] at [param position]
 func remove(position:int) -> void:
 	collection.remove_at(position)
 	_notify_changed()
 
+## Clear [member collection]
 func clear() -> void:
 	collection.clear()
 	_notify_changed()
@@ -104,24 +114,30 @@ func get_command(position:int):
 	push_error("get_command: Tried to get an command on a non-existing position: ", position)
 	return null
 
+## Get the last command in [member collection] or null if collection is empty.
 func get_last_command():
 	if not collection.is_empty():
 		return collection[collection.size()-1]
 	return null
 	
 
+## Get [Command.index] of [param command] or -1 if the command is not in collection.
 func get_command_position(command) -> int:
 	return collection.find(command)
 
+## Returns true if collection has [param value]
 func has(value) -> bool:
 	return collection.has(value)
 
+## Searches in [member collection] for a [param command] and returns its index or -1 if not found.
 func find(command) -> int:
 	return collection.find(command)
 
+## Returns the number of commands that collection contains.
 func size() -> int:
 	return collection.size()
 
+## Returns true if collection is empty.
 func is_empty() -> bool:
 	return collection.is_empty()
 
