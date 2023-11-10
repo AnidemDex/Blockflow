@@ -9,6 +9,8 @@ class_name CommandCollection
 var _bookmarks:Dictionary = {}
 var _command_list:Array = []
 
+## Get command at [param position]. This takes in consideration all commands
+## in internal collection ([member Command.position] instead of [member Command.index])
 func get_command(position:int) -> Blockflow.CommandClass:
 	if position >= _command_list.size():
 		push_error("position >= _command_list.size()")
@@ -26,6 +28,7 @@ func get_command_by_bookmark(bookmark:StringName) -> Blockflow.CommandClass:
 func get_command_absolute_position(command) -> int:
 	return _command_list.find(command)
 
+## Returns the command total count that this collection (and any internal collection) has.
 func get_command_count() -> int:
 	return _command_list.size()
 
