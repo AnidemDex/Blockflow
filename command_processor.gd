@@ -56,7 +56,9 @@ enum _JumpHistoryData {HISTORY_INDEX, FROM, TO}
 
 const Blockflow = preload("res://addons/blockflow/blockflow.gd")
 
+## Initial collection that will be used if [method start] is called without arguments.
 @export var initial_collection:Blockflow.CommandCollectionClass
+
 ## Node were commands will be applied to.
 ##
 ## [br]This node is used if the command doesn't 
@@ -68,14 +70,16 @@ const Blockflow = preload("res://addons/blockflow/blockflow.gd")
 ## when owner is ready automatically.
 @export var start_on_ready:bool = false
 
+## Main [CommandCollection] used.
 var main_collection:Blockflow.CommandCollectionClass
 
+## Current [Collection] used.
 var current_collection:Blockflow.CollectionClass
 
-## Current executed command.
+## Current executed [Command].
 var current_command:Blockflow.CommandClass
 
-## The current command index relative to [member timeline] resource.
+## The [member current_command] position according to [member main_collection].
 var current_command_position:int = -1
 
 # [ [<Timeline>, <index>], ... ]
@@ -91,10 +95,10 @@ var _history:Array = []
 var _jump_history:Array = []
 
 ## Starts the command behavior. This method must be called to start CommandManager process.
-## CommandManager will use [member]current_timeline[/member] if no 
-## [code]timeline[/code] was passed.
-## You can optionally pass [code]from_command_index[/code] to define from
-## where the timeline should start.
+## CommandManager will use [member initial_collection] if no 
+## [param collection] is passed.
+## You can optionally pass [param from_command_index] to define the initial
+## position that will be used.
 func start(collection:Blockflow.CommandCollectionClass = null, from_command_index:int = 0) -> void:
 	current_command = null
 	current_command_position = from_command_index
@@ -133,6 +137,7 @@ func go_to_command(command_position:int) -> void:
 	
 	_execute_command(current_command)
 
+## Advances to certain command in [param collection] at given [param command_position]
 func go_to_command_in_collection(command_position:int, collection:Blockflow.CollectionClass) -> void:
 	if not collection:
 		assert(false)
@@ -196,14 +201,15 @@ func go_to_previous_command() -> void:
 	var previous_position:int = history_data[_HistoryData.COMMAND_POSITION]
 	go_to_command_in_collection(previous_position, previous_collection)
 
-
+## Jumps to a command, appending the call to jump history.
 func jump_to_command(command_position:int, on_collection:Blockflow.CollectionClass) -> void:
 	if not on_collection:
 		on_collection = current_collection
 	_add_to_jump_history(command_position, on_collection)
 	go_to_command_in_collection(command_position, on_collection)
 
-
+## Returns to last [method jump_to_command] call according to [param return_value].
+##[br]See [enum ReturnValue] for possible values.
 func return_to_previous_jump(return_value:ReturnValue):
 	assert(!_jump_history.is_empty())
 	if return_value == ReturnValue.NO_RETURN:
@@ -220,17 +226,13 @@ func return_to_previous_jump(return_value:ReturnValue):
 	
 	go_to_command_in_collection(next_command_position, next_collection)
 
-func go_to_branch(branch_name:StringName) -> void:
-	var branch = current_command.get_branch(branch_name)
-	if not branch:
-		push_error("Current command doesn't have '%s' branch."%branch_name)
-		return
-
-
+## Stops behavior. Current command finished status will be ignored and current 
+## collection will be threated as finished.
 func stop() -> void:
 	collection_finished.emit(current_collection)
 	_disconnect_command_signals(current_command)
 
+## Get the next available command position or -1 if there is none.
 func get_next_command_position() -> int:
 	if not current_collection:
 		return -1
