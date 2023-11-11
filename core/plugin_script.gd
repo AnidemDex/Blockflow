@@ -84,7 +84,7 @@ func _has_main_screen() -> bool:
 
 
 func _get_plugin_name() -> String:
-	return "Block Editor"
+	return "Blockflow"
 
 # TODO:
 # Replace with custom icon
