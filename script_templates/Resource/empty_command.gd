@@ -14,7 +14,7 @@ func _execution_steps() -> void:
 	## Never forget to notify that you command have finished in order
 	## to let the command manager know that is safe to continue to
 	## the next event.
-	command_finished.emit() # Notify that your command finished
+	go_to_next_command()
 
 
 func _get_name() -> StringName:
