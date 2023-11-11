@@ -65,6 +65,8 @@ static func generate_tree(collection:CollectionClass) -> CollectionData:
 		command_pt = command_list[command_position]
 		command_pt.position = command_position
 		command_pt.weak_collection = weakref(collection as CommandCollectionClass)
+		if not command_pt.bookmark.is_empty():
+			bookmarks[command_pt.bookmark] = command_pt
 	
 	data.command_list = command_list
 	data.bookmarks = bookmarks
