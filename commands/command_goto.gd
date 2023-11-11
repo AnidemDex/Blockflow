@@ -120,7 +120,7 @@ func _get_hint() -> String:
 	if target_collection != null:
 		hint_str += " on collection "
 		if target_collection.resource_name.is_empty():
-			hint_str += "'" + timeline.resource_path + "'"
+			hint_str += "'" + target_collection.resource_path + "'"
 		else:
 			hint_str += "'" + target_collection.resource_name + "'"
 	if not condition.is_empty():
