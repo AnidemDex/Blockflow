@@ -35,7 +35,7 @@ Blockflow is a Godot plugin, it can be installed normally as [official Godot doc
 - Extract the folder under your project `addons` folder (if the folder doesn't exist, create one).
 - Go to Project -> Project Settings -> Plugins and mark `Blockflow` checkbox.
 
-If everything works, you'll see `Block Editor` button at the top of Godot editor, next to 2D/3D/AssetLib buttons.
+If everything works, you'll see `Blockflow` button at the top of Godot editor, next to 2D/3D/AssetLib buttons.
 ![]()
 
 #### Using git
@@ -63,7 +63,7 @@ First, create a new Scene and create a `CommandProcessor` node, that node will b
 
 ![]()
 
-Go to `Block Editor` screen and select `New Collection`. Save it with any name you like, for this example we'll name it `example_collection.tres`.
+Go to `Blockflow` screen and select `New Collection`. Save it with any name you like, for this example we'll name it `example_collection.tres`.
 
 ![]()
 ![]()
@@ -92,7 +92,7 @@ Blockflow doesn't expose many commands by its own, only very basic and commonly 
 
 ## Features
 
-### Fully Integrated Editor: Block Editor
+### Fully Integrated Editor: Blockflow
 A visual tool for viewing and editing sequences of commands and each individual propery of the command as well.
 
 See, edit and control commands in the CommandCollection. The commands will be executed in order, one by one.
