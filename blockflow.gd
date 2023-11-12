@@ -21,6 +21,8 @@ const PROJECT_SETTING_BLOCK_ICON_MIN_SIZE =\
 "blockflow/settings/editor/commands/icon_minimun_size"
 const BLOCK_ICON_MIN_SIZE = 32
 
+const Debugger = preload("res://addons/blockflow/debugger/debugger_messages.gd")
+
 const Utils = preload("res://addons/blockflow/core/utils.gd")
 
 # Made to ensure that classes are loaded before class_name populates editor
