@@ -59,7 +59,7 @@ func get_next_command_position() -> int:
 	return owner_sibling.position
 
 func _get_icon() -> Texture:
-	return load("res://addons/blockflow/icons/branch.svg")
+	return load("res://addons/blockflow/icons/sub-branch.svg")
 
 func _get_name() -> StringName: return branch_name
 
