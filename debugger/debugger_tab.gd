@@ -34,6 +34,8 @@ func session_continue() -> void:
 
 func session_stop() -> void:
 	processors_list.clear()
+	commands.clear()
+	collections.clear()
 	
 	show_inactive()
 
