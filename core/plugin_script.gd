@@ -7,6 +7,7 @@ const TimelineConverter = preload("res://addons/blockflow/timeline_converter.gd"
 const InspectorTools = preload("res://addons/blockflow/editor/inspector/inspector_tools.gd")
 const CommandInspector = preload("res://addons/blockflow/editor/inspector/command_inspector.gd")
 const CommandCallInspector = preload("res://addons/blockflow/editor/inspector/call_inspector.gd")
+const BlockflowDebugger = preload("res://addons/blockflow/debugger/blockflow_debugger.gd")
 
 var block_editor:BlockEditor
 
@@ -22,6 +23,8 @@ var command_inspector:CommandInspector
 var command_call_inspector:CommandCallInspector
 
 var editor_toaster:Node
+
+var debugger:BlockflowDebugger
 
 func toast(message:String, severity:int = 0, tooltip:String = ""):
 	if not is_inside_tree():
@@ -55,6 +58,8 @@ func _enter_tree():
 	add_resource_conversion_plugin(timeline_converter)
 	add_inspector_plugin(command_inspector)
 	add_inspector_plugin(command_call_inspector)
+	
+	add_debugger_plugin(debugger)
 
 
 func _handles(object: Object) -> bool:
@@ -118,6 +123,8 @@ func _exit_tree():
 	remove_inspector_plugin(command_call_inspector)
 	command_inspector = null
 	command_call_inspector = null
+	
+	remove_debugger_plugin(debugger)
 
 
 func _init() -> void:
@@ -144,3 +151,5 @@ func _init() -> void:
 	command_call_inspector.editor_plugin = self
 	
 	project_settings_changed.connect(_project_settings_changed)
+	
+	debugger = BlockflowDebugger.new()
