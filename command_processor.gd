@@ -273,6 +273,13 @@ func _execute_command(command:Blockflow.CommandClass) -> void:
 		assert(false)
 		return
 	
+	var main_collection_data := Blockflow.Utils.get_object_data(main_collection)
+	var curr_collection_data := Blockflow.Utils.get_object_data(current_collection)
+	
+	Blockflow.Debugger.processing_collection(get_instance_id(), main_collection_data)
+	Blockflow.Debugger.processing_collection(get_instance_id(), curr_collection_data)
+	Blockflow.Debugger.processing_command(get_instance_id(), Blockflow.Utils.get_object_data(command))
+	
 	command.execution_steps.call()
 
 
@@ -338,9 +345,14 @@ func _notification(what: int) -> void:
 		NOTIFICATION_READY:
 			if Engine.is_editor_hint(): return
 			
+			Blockflow.Debugger.register_processor(Blockflow.Utils.get_object_data(self))
+			
 			if start_on_ready:
 				if get_parent().is_node_ready():
 					start()
 				else:
 					get_parent().ready.connect(start.bind(initial_collection), CONNECT_ONE_SHOT)
 			return
+		
+		NOTIFICATION_PREDELETE:
+			Blockflow.Debugger.unregister_processor(get_instance_id())
