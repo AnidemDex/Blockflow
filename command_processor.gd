@@ -129,7 +129,7 @@ func go_to_command(command_position:int) -> void:
 		return
 	
 	current_command = command
-	current_command_position = current_command.index
+	current_command_position = current_command.position
 	current_collection = current_command.weak_owner.get_ref()
 	
 	_prepare_command(current_command)
