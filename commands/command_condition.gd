@@ -15,8 +15,9 @@ func _execution_steps() -> void:
 		stop()
 		return
 	for command in collection:
-		command.set("condition", condition)
-		command.set("target", target)
+		if typeof(command.get("condition")) == TYPE_STRING:
+			command.set("condition", condition + command.get("condition"))
+			command.set("target", target)
 	go_to_next_command()
 
 func _get_name() -> StringName: return "Condition"
