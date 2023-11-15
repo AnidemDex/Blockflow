@@ -73,3 +73,88 @@ static func obj_to_str(object:Object) -> void:
 static func str_to_obj(string:String) -> void:
 	push_error("Not implemented")
 	return
+
+static func get_default_value_for_type(type:Variant.Type):
+	var value = null
+	
+	# Yes, I'm about to give all possible default values
+	match type:
+		TYPE_NIL:
+			value = null
+		TYPE_BOOL:
+			value = false
+		TYPE_INT:
+			value = 0
+		TYPE_FLOAT:
+			value = 0.0
+		TYPE_STRING:
+			value = ""
+		TYPE_VECTOR2:
+			value = Vector2()
+		TYPE_VECTOR2I:
+			value = Vector2i()
+		TYPE_RECT2:
+			value = Rect2()
+		TYPE_RECT2I:
+			value = Rect2i()
+		TYPE_VECTOR3:
+			value = Vector3()
+		TYPE_VECTOR3I:
+			value = Vector3i()
+		TYPE_TRANSFORM2D:
+			value = Transform2D()
+		TYPE_VECTOR4:
+			value = Vector4()
+		TYPE_VECTOR4I:
+			value = Vector4i()
+		TYPE_PLANE:
+			value = Plane()
+		TYPE_QUATERNION:
+			value = Quaternion()
+		TYPE_AABB:
+			value = AABB()
+		TYPE_BASIS:
+			value = Basis()
+		TYPE_TRANSFORM3D:
+			value = Transform3D()
+		TYPE_PROJECTION:
+			value = Projection()
+		TYPE_COLOR:
+			value = Color()
+		TYPE_STRING_NAME:
+			value = StringName()
+		TYPE_NODE_PATH:
+			value = NodePath()
+		TYPE_RID:
+			value = RID()
+		TYPE_OBJECT:
+			value = null
+		TYPE_CALLABLE:
+			value = Callable()
+		TYPE_SIGNAL:
+			value = Signal()
+		TYPE_DICTIONARY:
+			value = {}
+		TYPE_ARRAY:
+			value = []
+		TYPE_PACKED_BYTE_ARRAY:
+			value = PackedByteArray()
+		TYPE_PACKED_INT32_ARRAY:
+			value = PackedInt32Array()
+		TYPE_PACKED_INT64_ARRAY:
+			value = PackedInt64Array()
+		TYPE_PACKED_FLOAT32_ARRAY:
+			value = PackedFloat32Array()
+		TYPE_PACKED_FLOAT64_ARRAY:
+			value = PackedFloat64Array()
+		TYPE_PACKED_STRING_ARRAY:
+			value = PackedStringArray()
+		TYPE_PACKED_VECTOR2_ARRAY:
+			value = PackedVector2Array()
+		TYPE_PACKED_VECTOR3_ARRAY:
+			value = PackedVector3Array()
+		TYPE_PACKED_COLOR_ARRAY:
+			value = PackedColorArray()
+		_, TYPE_MAX:
+			push_error("get_default_value_for_type:: UNKNOW_TYPE %s"%type)
+	return value
