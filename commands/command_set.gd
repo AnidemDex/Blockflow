@@ -1,6 +1,7 @@
 @tool
 extends "res://addons/blockflow/commands/command.gd"
 
+## TYPE_INT,[br]TYPE_FLOAT,[br]TYPE_VECTOR2,[br]TYPE_VECTOR2I,[br]TYPE_VECTOR3,[br]TYPE_VECTOR3I,[br]TYPE_VECTOR4,[br]TYPE_VECTOR4I,[br]TYPE_COLOR,[br]TYPE_STRING,[br]TYPE_STRING_NAME,[br]TYPE_ARRAY,[br]29,[br]30,[br]31,[br]32,[br]33,[br]34,[br]35,[br]36,[br]37
 const PlusOperables = [
 	TYPE_INT, TYPE_FLOAT,
 	TYPE_VECTOR2, TYPE_VECTOR2I,
