@@ -3,8 +3,8 @@ extends "res://addons/blockflow/commands/command.gd"
 
 @export var branch_name:StringName
 
-var condition:String
-var evaluate_next_branch:bool = true
+@export var condition:String
+@export var evaluate_next_branch:bool = true
 
 func _execution_steps() -> void: go_to_next_command()
 
@@ -61,6 +61,10 @@ func get_next_command_position() -> int:
 func _get_icon() -> Texture:
 	return load("res://addons/blockflow/icons/sub-branch.svg")
 
-func _get_name() -> StringName: return branch_name
+func _get_name() -> StringName:
+	var name := branch_name
+	if name.is_empty():
+		name = &"Branch"
+	return name
 
 func _can_hold_commands() -> bool: return true
