@@ -114,7 +114,7 @@ var command_description:String :
 
 ## The color of this command's text
 ## Used by the Comment command to fade the text out
-var command_color:Color :
+var command_text_color:Color :
 	set(value): return
 	get: return _get_color()
 
