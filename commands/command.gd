@@ -36,6 +36,14 @@ const Branch = preload("res://addons/blockflow/commands/branch.gd")
 		emit_changed()
 	get: return continue_at_end
 
+## What color to paint this command with.
+## Purely visual!
+@export_enum("Blank", "Red", "Yellow", "Green", "Aqua", "Blue", "Purple", "Pink") var background_color:int:
+	set(value):
+		background_color = value
+		emit_changed()
+	get: return background_color
+
 ## Target [NodePath] this command points to.
 ## This value is used in runtime by its [member command_manager] 
 ##  to determine the [member target_node] and is always 
