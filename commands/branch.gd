@@ -1,15 +1,20 @@
 @tool
 extends "res://addons/blockflow/commands/command.gd"
 
-var branch_name:StringName
 
-@export var condition:String = "true":
+@export var branch_name:StringName:
+	set(value):
+		branch_name = value
+		emit_changed()
+
+@export var condition:String: = "true"
 	set(value):
 		condition = value
 		emit_changed()
-	get:
-		return condition
-@export var evaluate_next_branch:bool = true
+
+# Assume is deprecated. Helper variable.
+var evaluate_next_branch:bool = true
+
 
 func _execution_steps() -> void: go_to_next_command()
 
@@ -41,11 +46,11 @@ func get_next_command_position() -> int:
 	
 	var sibling_command := get_next_available_command()
 	# Only works for consecutive branches.
-	if evaluate_next_branch:
-		if sibling_command:
-			return sibling_command.position
+#	if evaluate_next_branch:
+#		if sibling_command:
+#			return sibling_command.position
 	
-	if sibling_command and not is_instance_of(sibling_command, Branch):
+	if sibling_command:
 		return sibling_command.position
 	
 	# No more commands?
