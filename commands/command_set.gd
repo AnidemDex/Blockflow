@@ -14,10 +14,18 @@ const PlusOperables = [
 
 ## If [code]true[/code], the [param value] will be [b]added[/b] instead of [b]set[/b].[br]
 ## To [b]subtract[/b], use a negative value like [param value] of -1
-var add_value:bool = false
+var add_value:bool = false:
+	set(value):
+		add_value = value
+		emit_changed()
+	get: return add_value
 
 ## The path towards the [param property] from [param target] (such as [member name] etc.)
-@export var property:String
+@export var property:String:
+	set(value):
+		property = value
+		emit_changed()
+	get: return property
 
 ## Sets the type for the [param value] to set the [param property] to.
 @export var value_type:Variant.Type = TYPE_NIL:
@@ -76,8 +84,10 @@ func _get_hint() -> String:
 	var fake_value := str(value)
 	if fake_value.is_empty():
 		fake_value = "<Not Defined>"
-	
-	hint += property + " = " + str(fake_value)
+	var operator = "="
+	if add_value:
+		operator = "+="
+	hint += property + " " + operator + " " + str(fake_value)
 	return hint
 
 func _get_property_list() -> Array:

@@ -1,18 +1,20 @@
 @tool
 extends "res://addons/blockflow/commands/command.gd"
 
+
 @export var branch_name:StringName:
 	set(value):
 		branch_name = value
 		emit_changed()
 
-@export var condition:String:
+@export var condition:String: = "true"
 	set(value):
 		condition = value
 		emit_changed()
 
 # Assume is deprecated. Helper variable.
 var evaluate_next_branch:bool = true
+
 
 func _execution_steps() -> void: go_to_next_command()
 
@@ -74,5 +76,11 @@ func _get_name() -> StringName:
 	if name.is_empty():
 		name = &"Branch"
 	return name
+
+func _get_hint() -> String:
+	var hint_str = "if " + condition
+	if target != NodePath():
+		hint_str += " on " + str(target)
+	return hint_str
 
 func _can_hold_commands() -> bool: return true
