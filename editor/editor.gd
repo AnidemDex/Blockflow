@@ -65,15 +65,21 @@ var _file_menu:PopupMenu
 var _editor_file_dialog:EditorFileDialog
 var _file_dialog:FileDialog
 
+
+func close() -> void:
+	collection_displayer.build_tree(null)
+	_file_menu.set_item_disabled(
+		_file_menu.get_item_index(ToolbarFileMenu.CLOSE_COLLECTION),
+		true
+	)
+	_current_collection = null
+	edited_object = null
+	title_label.text = ""
+	update_history()
+	show_help_panel()
+
+
 func edit(object:Object) -> void:
-	if object == null:
-		collection_displayer.build_tree(null)
-		_file_menu.set_item_disabled(
-			_file_menu.get_item_index(ToolbarFileMenu.CLOSE_COLLECTION),
-			true
-		)
-		
-		show_help_panel()
 	if object is Blockflow.TimelineClass:
 		edit_timeline(object as Blockflow.TimelineClass)
 		return
@@ -131,7 +137,7 @@ func edit_timeline(timeline:Object) -> void:
 		var err_msg := "An error occurred while creating a collection from timeline: %s(%s)" % [error_string(err), err]
 		push_error(err_msg)
 		toast_callback.call("Failed to create a new collection!",Blockflow.Toast.SEVERITY_ERROR,err_msg)
-		edit(null)
+		close()
 		return
 	
 	collection.take_over_path(timeline.resource_path)
@@ -292,7 +298,7 @@ func update_history() -> void:
 		var history_key:String = keys[i]
 		history_node.add_item(history_key)
 		history_node.set_item_tooltip(i, history[history_key])
-		if history[history_key] == _current_collection.resource_path:
+		if _current_collection and history[history_key] == _current_collection.resource_path:
 			history_node.select(i)
 
 func _request_open() -> void:
@@ -535,7 +541,7 @@ func _toolbar_file_menu_id_pressed(id:int) -> void:
 		ToolbarFileMenu.OPEN_COLLECTION:
 			_request_open()
 		ToolbarFileMenu.CLOSE_COLLECTION:
-			edit(null)
+			close()
 			edit_callback.get_object().call("edit_node", null)
 
 

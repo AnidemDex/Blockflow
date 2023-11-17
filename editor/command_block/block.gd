@@ -26,6 +26,7 @@ var command_name:String = FALLBACK_NAME
 var command_icon:Texture = FALLBACK_ICON
 var command_hint:String = ""
 var command_hint_icon:Texture = null
+
 var command_background_color:Color = Color()
 var background_colors:PackedColorArray = [
 	Color(), # Blank
@@ -38,6 +39,9 @@ var background_colors:PackedColorArray = [
 	Color("#ff4596"), # Pink
 ]
 
+var command_text_color:Color = Color()
+
+
 func update() -> void:
 	command_name = command.command_name
 	command_icon = command.command_icon
@@ -45,9 +49,14 @@ func update() -> void:
 		command_icon = FALLBACK_ICON
 	command_hint = command.command_hint
 	command_hint_icon = command.command_hint_icon
+
 	command_background_color = background_colors[command.background_color]
 	if command_background_color:
 		command_background_color.a = 0.25
+
+
+	command_text_color = command.command_text_color
+	
 
 	var hint_tooltip:String = "Bookmark:\n"+command.bookmark
 	var bookmark_icon:Texture = BOOKMARK_ICON
@@ -58,10 +67,17 @@ func update() -> void:
 	
 	for i in get_tree().columns:
 		set_icon_max_width(i, Blockflow.BLOCK_ICON_MIN_SIZE)
+
 		if not command_background_color:
 			clear_custom_bg_color(i)
 		else:
 			set_custom_bg_color(i, command_background_color, i != ColumnPosition.NAME_COLUMN)
+
+		if command_text_color:
+			set_custom_color(i, command_text_color)
+		else:
+			clear_custom_color(i)
+
 	
 	set_text(ColumnPosition.NAME_COLUMN, command_name)
 	set_icon(ColumnPosition.NAME_COLUMN, command_icon)
