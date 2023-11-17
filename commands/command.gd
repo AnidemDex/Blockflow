@@ -112,6 +112,12 @@ var command_description:String :
 	set(value): return
 	get: return _get_description()
 
+## The color of this command's text
+## Used by the Comment command to fade the text out
+var command_text_color:Color :
+	set(value): return
+	get: return _get_color()
+
 ## [CommandBlock] item assigned by editor.
 ## [br]This reference is assigned by Block Editor.
 var editor_block:TreeItem
@@ -316,6 +322,9 @@ func _can_be_selected() -> bool:
 
 func _get_description() -> String:
 	return ""
+
+func _get_color() -> Color:
+	return Color()
 
 func _can_hold_commands() -> bool:
 	return false

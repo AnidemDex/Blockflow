@@ -20,5 +20,9 @@ func _get_hint() -> String:
 	return "# " + comment
 
 
+func _get_color() -> Color:
+	return Color(0.8,0.8,1,0.5)
+
+
 func _get_icon() -> Texture:
 	return load("res://addons/blockflow/icons/comment.svg")

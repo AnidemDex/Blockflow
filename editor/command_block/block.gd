@@ -26,6 +26,7 @@ var command_name:String = FALLBACK_NAME
 var command_icon:Texture = FALLBACK_ICON
 var command_hint:String = ""
 var command_hint_icon:Texture = null
+var command_text_color:Color = Color()
 
 func update() -> void:
 	command_name = command.command_name
@@ -34,6 +35,7 @@ func update() -> void:
 		command_icon = FALLBACK_ICON
 	command_hint = command.command_hint
 	command_hint_icon = command.command_hint_icon
+	command_text_color = command.command_text_color
 	
 	var hint_tooltip:String = "Bookmark:\n"+command.bookmark
 	var bookmark_icon:Texture = BOOKMARK_ICON
@@ -44,6 +46,10 @@ func update() -> void:
 	
 	for i in get_tree().columns:
 		set_icon_max_width(i, Blockflow.BLOCK_ICON_MIN_SIZE)
+		if command_text_color:
+			set_custom_color(i, command_text_color)
+		else:
+			clear_custom_color(i)
 	
 	set_text(ColumnPosition.NAME_COLUMN, command_name)
 	set_icon(ColumnPosition.NAME_COLUMN, command_icon)
