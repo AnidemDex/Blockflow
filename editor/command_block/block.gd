@@ -68,7 +68,7 @@ func update() -> void:
 	for i in get_tree().columns:
 		set_icon_max_width(i, Blockflow.BLOCK_ICON_MIN_SIZE)
 
-		if not command_background_color:
+		if command_background_color == Color():
 			clear_custom_bg_color(i)
 		else:
 			set_custom_bg_color(i, command_background_color, i != ColumnPosition.NAME_COLUMN)
