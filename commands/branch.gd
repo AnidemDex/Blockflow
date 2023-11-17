@@ -7,7 +7,7 @@ extends "res://addons/blockflow/commands/command.gd"
 		branch_name = value
 		emit_changed()
 
-@export var condition:String: = "true"
+@export var condition:String = "true":
 	set(value):
 		condition = value
 		emit_changed()
