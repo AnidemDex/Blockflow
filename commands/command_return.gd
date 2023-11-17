@@ -1,7 +1,8 @@
 @tool
 extends "res://addons/blockflow/commands/command.gd"
+## Return to the previous goto jump
 
-@export var behavior:Blockflow.CommandProcessorClass.ReturnValue\
+var behavior:Blockflow.CommandProcessorClass.ReturnValue\
  = Blockflow.CommandProcessorClass.ReturnValue.AFTER
 
 func _execution_steps() -> void:

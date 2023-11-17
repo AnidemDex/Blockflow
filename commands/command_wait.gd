@@ -1,11 +1,15 @@
 @tool
 extends "res://addons/blockflow/commands/command.gd"
+## Stop processing the timeline until a timeout or signal is received.
 
 enum Wait {
 	TIMEOUT,
 	SIGNAL,
 }
 
+
+## Waiting for Timeout means we wait for X amount of seconds.
+## Waiting for Signal means we wait indefinitely until the signal is received.
 @export var wait_for:Wait = Wait.TIMEOUT:
 	set(value):
 		wait_for = value
@@ -13,12 +17,15 @@ enum Wait {
 		notify_property_list_changed()
 	get: return wait_for
 
+## How long in seconds should we delay the command processor until next command.
 var wait_time:float:
 	set(value):
 		wait_time = value
 		emit_changed()
 	get: return wait_time
 
+## If this signal is received, resume processing.
+## Note that the target node must have this signal.
 var signal_name:String:
 	set(value):
 		signal_name = value

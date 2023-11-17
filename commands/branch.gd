@@ -1,13 +1,21 @@
 @tool
 extends "res://addons/blockflow/commands/command.gd"
+## A command that evaluates a condition and allows its children to be processed.
+## If the condition is false, the children are instead skipped.
 
-
+## Allows you to rename this branch in the editor
 @export var branch_name:StringName:
 	set(value):
 		branch_name = value
 		emit_changed()
 
-@export var condition:String = "true":
+## The condition to evaluate. If false, this command is skipped.
+## You can reference variables and even call functions, for example:[br]
+## [code]value == true[/code][br]
+## [code]not child.visible[/code][br]
+## [code]get_index() == 2[/code][br]
+## etc.
+@export_placeholder("true") var condition:String:
 	set(value):
 		condition = value
 		emit_changed()
@@ -19,6 +27,8 @@ var evaluate_next_branch:bool = true
 func _execution_steps() -> void: go_to_next_command()
 
 func _condition_is_true() -> bool:
+	if condition.is_empty():
+		return true
 	# Local variables. These can be added as context for condition evaluation.
 	var variables:Dictionary = {}
 	# must be a bool, but Utils.evaluate can return Variant according its input.
@@ -79,6 +89,8 @@ func _get_name() -> StringName:
 
 func _get_hint() -> String:
 	var hint_str = "if " + condition
+	if condition.is_empty():
+		hint_str = "if true"
 	if target != NodePath():
 		hint_str += " on " + str(target)
 	return hint_str
