@@ -1,12 +1,17 @@
 @tool
 extends "res://addons/blockflow/commands/command.gd"
+## A command to use to call a function on a node with or without arguments.
 
+## The method to call. You can [Select a Method] by picking an existing node,
+## or [Edit Method] to set it up manually.
 @export var method:String:
 	set(value):
 		method = value
 		emit_changed()
 	get:
 		return method
+
+## The arguments to pass to the method to call.
 @export var args:Array:
 	set(value):
 		args = value

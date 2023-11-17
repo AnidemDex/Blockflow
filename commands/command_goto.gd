@@ -1,8 +1,10 @@
 @tool
 extends "res://addons/blockflow/commands/command.gd"
+## Jump to a specific index in the command collection
 
 const _Utils = preload("res://addons/blockflow/core/utils.gd")
 
+## Whether to use a bookmark (true) or index (false) as the destination
 var use_bookmark:bool:
 	set(value):
 		use_bookmark = value
@@ -10,18 +12,21 @@ var use_bookmark:bool:
 		notify_property_list_changed()
 	get: return use_bookmark
 
+## The command index to use as destination
 var command_index:int:
 	set(value):
 		command_index = value
 		emit_changed()
 	get: return command_index
 
+## The command bookmark to use as destination
 var command_bookmark:String:
 	set(value):
 		command_bookmark = value
 		emit_changed()
 	get: return command_bookmark
 
+## If not null, which collection to jump to
 var target_collection:Collection:
 	set(value):
 		target_collection = value
@@ -36,6 +41,12 @@ var timeline:
 		emit_changed()
 	get: return timeline
 
+## The condition to evaluate. If false, this command is skipped.
+## You can reference variables and even call functions, for example:[br]
+## [code]value == true[/code][br]
+## [code]not child.visible[/code][br]
+## [code]get_index() == 2[/code][br]
+## etc.
 var condition:String:
 	set(value):
 		condition = value

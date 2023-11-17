@@ -1,30 +1,40 @@
 @tool
 extends "res://addons/blockflow/commands/command.gd"
+## A command to better interface with an animation player
 
+## Pass the name of the animation you want to play
 @export var animation:String = "":
 	set(value):
 		animation = value
 		emit_changed()
 	get:
 		return animation
+
+## How much to blend this animation with the previous animation
 @export_range(-1, 1) var custom_blend:float = -1:
 	set(value):
 		custom_blend = value
 		emit_changed()
 	get:
 		return custom_blend
+
+## The speed at which to play this animation
 @export_range(0.001, 100.0) var custom_speed:float = 1.0:
 	set(value):
 		custom_speed = value
 		emit_changed()
 	get:
 		return custom_speed
+
+## Play this animation for the end and reverse its speed, playing it backwards
 @export var play_backwards:bool = false:
 	set(value):
 		play_backwards = value
 		emit_changed()
 	get:
 		return play_backwards
+
+## Wait until this animation is finished before executing the next command
 @export var wait_until_finished:bool = false:
 	set(value):
 		wait_until_finished = value

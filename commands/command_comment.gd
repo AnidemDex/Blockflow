@@ -1,6 +1,8 @@
 @tool
 extends "res://addons/blockflow/commands/command.gd"
+## Comments can be used to make notes and also be used for [bookmark]s.
 
+## Can be used to make notes in the editor
 @export_multiline var comment:String:
 	set(value):
 		comment = value
