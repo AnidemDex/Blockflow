@@ -60,11 +60,13 @@ func insert(command, at_position:int) -> void:
 # can't use duplicate lmao
 ## Copy a [Command] in position [param to_position] of [member collection]
 func copy(command, to_position:int) -> void:
-	var duplicated = command.duplicate() # This may give errors due sharing an array
+	var duplicated = command.get_duplicated()
 	var idx = to_position if to_position > -1 else collection.size()
+	
 	collection.insert(idx, duplicated)
 	command.weak_owner = weakref(self)
 	_notify_changed()
+
 
 ## Moves a [Command] from its current [Command.index] to [param to_position]
 func move(command, to_position:int) -> void:
@@ -124,6 +126,14 @@ func get_last_command():
 ## Get [Command.index] of [param command] or -1 if the command is not in collection.
 func get_command_position(command) -> int:
 	return collection.find(command)
+
+func get_duplicated():
+	var _duplicate = duplicate(true)
+	var new_collection = []
+	for command in collection:
+		new_collection.append(command.get_duplicated())
+	_duplicate.collection = new_collection
+	return _duplicate
 
 ## Returns true if collection has [param value]
 func has(value) -> bool:

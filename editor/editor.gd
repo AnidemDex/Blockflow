@@ -228,7 +228,7 @@ func move_command(command:Blockflow.CommandClass, to_position:int, from_collecti
 		
 		undo_redo.commit_action()
 
-func duplicate_command(command:Blockflow.CommandClass, to_position:int) -> void:
+func duplicate_command(command:Blockflow.CommandClass, to_index:int) -> void:
 	if not _current_collection: return
 	if not command: return
 	var command_collection:Blockflow.CollectionClass
@@ -240,17 +240,18 @@ func duplicate_command(command:Blockflow.CommandClass, to_position:int) -> void:
 		push_error("!command_collection")
 		return
 	
-	var action_name:String = "Duplicate command '%s'" % [command.get_command_name()]
-	collection_displayer.reselect_index = to_position
+	var action_name:String = "Duplicate command '%s'" % [command.command_name]
+	collection_displayer.last_selected_command = command
+	
 	if Engine.is_editor_hint():
 		editor_undoredo.create_action(action_name)
-		editor_undoredo.add_do_method(command_collection, "copy", command, to_position)
+		editor_undoredo.add_do_method(command_collection, "copy", command, to_index)
 		editor_undoredo.add_undo_method(command_collection, "erase", command)
 		editor_undoredo.commit_action()
 	else:
 		undo_redo.create_action(action_name)
 		
-		undo_redo.add_do_method(command_collection.copy.bind(command, to_position))
+		undo_redo.add_do_method(command_collection.copy.bind(command, to_index))
 		undo_redo.add_undo_method(command_collection.erase.bind(command))
 		
 		undo_redo.commit_action()
@@ -442,7 +443,7 @@ func _collection_displayer_can_drop_data(at_position: Vector2, data) -> bool:
 		return false
 	
 	if ref_block == collection_displayer.root:
-		collection_displayer.drop_mode_flags = Tree.DROP_MODE_INBETWEEN | Tree.DROP_MODE_ON_ITEM
+		collection_displayer.drop_mode_flags = Tree.DROP_MODE_ON_ITEM
 		return true
 	
 	var ref_block_command:Blockflow.CommandClass
@@ -451,7 +452,7 @@ func _collection_displayer_can_drop_data(at_position: Vector2, data) -> bool:
 	
 		if ref_block_command.can_hold_commands:
 			if ref_block_command.can_hold(moved_command):
-				collection_displayer.drop_mode_flags = Tree.DROP_MODE_INBETWEEN | Tree.DROP_MODE_ON_ITEM
+				collection_displayer.drop_mode_flags = Tree.DROP_MODE_ON_ITEM
 				return true
 			else:
 				collection_displayer.drop_mode_flags = Tree.DROP_MODE_DISABLED
