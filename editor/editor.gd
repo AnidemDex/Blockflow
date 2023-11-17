@@ -442,7 +442,7 @@ func _collection_displayer_can_drop_data(at_position: Vector2, data) -> bool:
 		return false
 	
 	if ref_block == collection_displayer.root:
-		collection_displayer.drop_mode_flags = Tree.DROP_MODE_ON_ITEM
+		collection_displayer.drop_mode_flags = Tree.DROP_MODE_INBETWEEN | Tree.DROP_MODE_ON_ITEM
 		return true
 	
 	var ref_block_command:Blockflow.CommandClass
@@ -451,7 +451,7 @@ func _collection_displayer_can_drop_data(at_position: Vector2, data) -> bool:
 	
 		if ref_block_command.can_hold_commands:
 			if ref_block_command.can_hold(moved_command):
-				collection_displayer.drop_mode_flags = Tree.DROP_MODE_ON_ITEM
+				collection_displayer.drop_mode_flags = Tree.DROP_MODE_INBETWEEN | Tree.DROP_MODE_ON_ITEM
 				return true
 			else:
 				collection_displayer.drop_mode_flags = Tree.DROP_MODE_DISABLED
