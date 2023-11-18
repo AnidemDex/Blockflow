@@ -3,12 +3,6 @@ extends "res://addons/blockflow/commands/command.gd"
 ## A command that evaluates a condition and allows its children to be processed.
 ## If the condition is false, the children are instead skipped.
 
-## Allows you to rename this branch in the editor
-@export var branch_name:StringName:
-	set(value):
-		branch_name = value
-		emit_changed()
-
 ## The condition to evaluate. If false, this command is skipped.
 ## You can reference variables and even call functions, for example:[br]
 ## [code]value == true[/code][br]
@@ -18,6 +12,18 @@ extends "res://addons/blockflow/commands/command.gd"
 @export_placeholder("true") var condition:String:
 	set(value):
 		condition = value
+		emit_changed()
+
+## Allows you to rename this branch in the editor
+@export var branch_name:StringName:
+	set(value):
+		branch_name = value
+		emit_changed()
+
+## Allows you to change the icon of this branch
+@export var branch_icon:Texture:
+	set(value):
+		branch_icon = value
 		emit_changed()
 
 # Assume is deprecated. Helper variable.
@@ -79,7 +85,9 @@ func get_next_command_position() -> int:
 	return owner_sibling.position
 
 func _get_icon() -> Texture:
-	return load("res://addons/blockflow/icons/sub-branch.svg")
+	if not branch_icon:
+		return load("res://addons/blockflow/icons/sub-branch.svg")
+	return branch_icon
 
 func _get_name() -> StringName:
 	var name := branch_name
