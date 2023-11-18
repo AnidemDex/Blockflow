@@ -73,7 +73,7 @@ func get_target_command_index() -> int:
 	if use_bookmark:
 		var target_timeline:Blockflow.CommandCollectionClass = get_target_collection()
 		var target_command:Blockflow.CommandClass = target_timeline.get_command_by_bookmark(command_bookmark)
-		command_index = target_timeline.get_command_position(target_command)
+		command_index = target_command.position
 	return command_index
 
 
