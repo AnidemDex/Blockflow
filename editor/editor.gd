@@ -485,12 +485,10 @@ func _collection_displayer_drop_data(at_position: Vector2, data) -> void:
 			move_command(command, -1, null, _current_collection)
 
 		_DropSection.ABOVE_ITEM:
-			
-			var prev_c:Blockflow.CommandClass = ref_item_collection.get_command(ref_item.command.index - 1)
+			var prev_c:Blockflow.CommandClass = ref_item_collection.get_command(max(0, ref_item.command.index - 1))
 			if prev_c == command:
 				# No need to move
 				return
-			
 			var new_index:int = ref_item.command.index - int(ref_item.command.index >= command.index)
 			if ref_item_collection != command.get_command_owner():
 				new_index = ref_item.command.index
