@@ -241,18 +241,20 @@ func duplicate_command(command:Blockflow.CommandClass, to_index:int) -> void:
 		return
 	
 	var action_name:String = "Duplicate command '%s'" % [command.command_name]
+	var duplicated_command = command.get_duplicated()
 	collection_displayer.last_selected_command = command
+	var idx = to_index if to_index > -1 else command_collection.size()
 	
 	if Engine.is_editor_hint():
 		editor_undoredo.create_action(action_name)
-		editor_undoredo.add_do_method(command_collection, "copy", command, to_index)
-		editor_undoredo.add_undo_method(command_collection, "erase", command)
+		editor_undoredo.add_do_method(command_collection, "insert", duplicated_command, idx)
+		editor_undoredo.add_undo_method(command_collection, "erase", duplicated_command)
 		editor_undoredo.commit_action()
 	else:
 		undo_redo.create_action(action_name)
 		
-		undo_redo.add_do_method(command_collection.copy.bind(command, to_index))
-		undo_redo.add_undo_method(command_collection.erase.bind(command))
+		undo_redo.add_do_method(command_collection.insert.bind(duplicated_command, to_index))
+		undo_redo.add_undo_method(command_collection.erase.bind(duplicated_command))
 		
 		undo_redo.commit_action()
 
