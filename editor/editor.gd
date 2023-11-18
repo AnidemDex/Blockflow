@@ -504,6 +504,11 @@ func _collection_displayer_drop_data(at_position: Vector2, data) -> void:
 			
 			
 		_DropSection.BELOW_ITEM:
+			var ref_item_command = ref_item.get(&"command")
+			if ref_item_command.can_hold(command):
+				move_command(command, 0, null, ref_item.command)
+				return
+			
 			var next_c:Blockflow.CommandClass
 			
 			var new_index:int = ref_item.command.index + int(ref_item.command.index < command.index)
