@@ -54,7 +54,7 @@ static func get_object_data(object:Object) -> Dictionary:
 			data[&"bookmarks"] = {}
 			for bookmark in object._bookmarks.keys():
 				var command = object._bookmarks[bookmark]
-				data[&"bookmarks"][bookmark].append(command.get_instance_id())
+				data[&"bookmarks"][bookmark] = command.get_instance_id()
 			data[&"command_list"] = []
 			for command in object._command_list:
 				data[&"command_list"].append(get_object_data(command))
