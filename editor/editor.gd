@@ -197,7 +197,22 @@ func move_command(command:Blockflow.CommandClass, to_position:int, from_collecti
 		# It comes from nowhere, maybe we're adding instead of moving?
 		add_command(command, to_position, to_collection)
 		return
-	
+
+	if to_collection == command:
+		push_error("Can't move into self!")
+		return
+
+	var weak_owner = to_collection.weak_owner
+	if weak_owner:
+		weak_owner = weak_owner.get_ref()
+	while weak_owner:
+		if weak_owner is WeakRef:
+			weak_owner = weak_owner.get_ref()
+		if weak_owner == command:
+			push_error("Found self in parents, can't move into self!")
+			return
+		weak_owner = weak_owner.weak_owner
+
 	var from_position:int = from_collection.get_command_position(command)
 	var action_name:String = "Move command '%s'" % [command.command_name]
 	if Engine.is_editor_hint():
@@ -476,8 +491,10 @@ func _collection_displayer_drop_data(at_position: Vector2, data) -> void:
 	var command:Blockflow.CommandClass = data["resource"]
 	var ref_item:TreeItem = collection_displayer.get_item_at_position(at_position)
 	var ref_item_collection:Blockflow.CollectionClass
+	var ref_item_command:Blockflow.CommandClass
 	if ref_item and ref_item != collection_displayer.root:
 		ref_item_collection = ref_item.command.get_command_owner()
+		ref_item_command = ref_item.command
 	
 
 	match section:
@@ -485,12 +502,10 @@ func _collection_displayer_drop_data(at_position: Vector2, data) -> void:
 			move_command(command, -1, null, _current_collection)
 
 		_DropSection.ABOVE_ITEM:
-			
-			var prev_c:Blockflow.CommandClass = ref_item_collection.get_command(ref_item.command.index - 1)
+			var prev_c:Blockflow.CommandClass = ref_item_collection.get_command(max(0, ref_item.command.index - 1))
 			if prev_c == command:
 				# No need to move
 				return
-			
 			var new_index:int = ref_item.command.index - int(ref_item.command.index >= command.index)
 			if ref_item_collection != command.get_command_owner():
 				new_index = ref_item.command.index
@@ -506,6 +521,10 @@ func _collection_displayer_drop_data(at_position: Vector2, data) -> void:
 			
 			
 		_DropSection.BELOW_ITEM:
+			if ref_item_command.can_hold(command):
+				move_command(command, 0, null, ref_item.command)
+				return
+			
 			var next_c:Blockflow.CommandClass
 			
 			var new_index:int = ref_item.command.index + int(ref_item.command.index < command.index)
