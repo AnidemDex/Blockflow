@@ -36,13 +36,21 @@ Blockflow is a Godot plugin, it can be installed normally as [official Godot doc
 - Go to Project -> Project Settings -> Plugins and mark `Blockflow` checkbox.
 
 If everything works, you'll see `Blockflow` button at the top of Godot editor, next to 2D/3D/AssetLib buttons.
-![]()
+
+![](.multimedia/top_bar.png)
 
 #### Using git
 You can install this repository as a submodule from your project root folder:
 ```shell
 git submodule add https://github.com/AnidemDex/Blockflow  addons/blockflow
 ```
+
+#### From Godot's AssetLib
+> AssetLib submission is still pending, so it'll not appear for the moment.
+
+- Search for `Blockflow` on `AseetLib` screen in Godot editor.
+- Select the plugin.
+- Click on install.
 
 #### Updating
 
@@ -61,16 +69,15 @@ Blockflow consists on two main objects: `Collection` and Processor. Collections 
 
 First, create a new Scene and create a `CommandProcessor` node, that node will be our Processor node.
 
-![]()
+![](.multimedia/creating_manager.gif)
 
 Go to `Blockflow` screen and select `New Collection`. Save it with any name you like, for this example we'll name it `example_collection.tres`.
 
-![]()
-![]()
+![](.multimedia/creating_collection.gif)
 
 Add a command to it, any command. On this example, we'll use a single `Print` command. Is a command that will print the comment in console.
 
-![]()
+![](.multimedia/creating_command.gif)
 
 Experiment a little, add many commands as you like. You can see more information about commands on the [Command](#) readme.
 
@@ -78,11 +85,11 @@ Once you're done, select again your `CommandProcessor` node in scene, and set `I
 
 > Due to a [Godot bug](https://github.com/AnidemDex/Blockflow/issues/83) we are not able to edit CommandCollections that are created directly on the node.
 
-![]()
+![](.multimedia/assigning_collection.gif)
 
 Hit `Run Current Scene` button and see your message printed in console.
 
-![]()
+![](.multimedia/playing_scene.gif)
 
 Congratulations, that's the basic usage of Blockflow editor and processor. 
 
@@ -97,24 +104,35 @@ A visual tool for viewing and editing sequences of commands and each individual 
 
 See, edit and control commands in the CommandCollection. The commands will be executed in order, one by one.
 
-![]()
+![](.multimedia/block_editor.png)
 
 ### Command Class
 Where specific instructions are executed. Create and modify your own commands, making them do exactly what you want them to do anywhere in the game.
 
-![]()
+![](.multimedia/command_block.png)
+![](.multimedia/command_script.png)
 
 ### Command Processor
 A node which is only a unique purpose is to run your CommandCollection, executing the commands one by one, according your specifications.
 
 You don't need to worry about managing the Collection, only about when is the moment to go to the next command.
 
-![]()
+![](.multimedia/processor_node.png)
 
 ### Complete documentation
 Thanks to the new Godot 4 features, we can make use of the internal documentation generation of all the tools that this plugin exposes to you, so you can consult the documentation directly from the editor.
 
+![](.multimedia/documentation.gif)
+
+
+> We are still working on it. Sorry for the inconvenience 🙁
+
+Some extra documentation is also added on each folder when is relevant (specially tutorials)
+
 ### Example scenarios
+> We are still working on it. Sorry for the inconvenience 🙁
+
+
 We added some example scenes in particular cases that we found very good situations to use the plugin under `addons/examples` folder.
 
 ![]()
@@ -123,6 +141,7 @@ We added some example scenes in particular cases that we found very good situati
 This plugin is fully open source, feel free to dive into the code and adapt every aspect to it to your needs.
 
 If you find a bug, want a new feature or something is not properly explained, please [open a new issue](https://github.com/AnidemDex/Blockflow/issues/new).
+
 ## License
 
 See [LICENSE](/LICENSE).

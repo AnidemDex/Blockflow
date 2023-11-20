@@ -4,6 +4,7 @@ const DEFAULT_COMMAND_PATHS = [
 	"res://addons/blockflow/commands/command_call.gd",
 	"res://addons/blockflow/commands/command_animate.gd",
 	"res://addons/blockflow/commands/command_comment.gd",
+	"res://addons/blockflow/commands/command_print.gd",
 #	"res://addons/blockflow/commands/command_condition.gd",
 	"res://addons/blockflow/commands/branch.gd",
 	"res://addons/blockflow/commands/command_goto.gd",
