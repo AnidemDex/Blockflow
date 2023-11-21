@@ -1,7 +1,7 @@
 @tool
 extends HFlowContainer
 
-const FALLBACK_ICON = preload("res://icon.svg")
+const FALLBACK_ICON = preload("res://addons/blockflow/icons/false.svg")
 const Settings = preload("res://addons/blockflow/blockflow.gd")
 const CommandClass = preload("res://addons/blockflow/commands/command.gd")
 

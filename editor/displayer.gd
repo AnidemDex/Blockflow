@@ -7,7 +7,7 @@ const CollectionClass = preload("res://addons/blockflow/command_collection.gd")
 const CommandBlock = preload("res://addons/blockflow/editor/command_block/block.gd")
 const RootBlock = preload("res://addons/blockflow/editor/command_block/root.gd")
 
-const FALLBACK_ICON = preload("res://icon.svg")
+const FALLBACK_ICON = preload("res://addons/blockflow/icons/false.svg")
 const BOOKMARK_ICON = preload("res://addons/blockflow/icons/bookmark.svg")
 const STOP_ICON = preload("res://addons/blockflow/icons/stop.svg")
 const CONTINUE_ICON = preload("res://addons/blockflow/icons/play.svg")

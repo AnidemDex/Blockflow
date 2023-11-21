@@ -1,7 +1,7 @@
 @tool
 extends TreeItem
 
-const FALLBACK_ICON = preload("res://icon.svg")
+const FALLBACK_ICON = preload("res://addons/blockflow/icons/false.svg")
 const FALLBACK_NAME = "UNKNOW_COMMAND"
 const BOOKMARK_ICON = preload("res://addons/blockflow/icons/bookmark.svg")
 const STOP_ICON = preload("res://addons/blockflow/icons/stop.svg")
