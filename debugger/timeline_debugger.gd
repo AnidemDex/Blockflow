@@ -1,11 +1,13 @@
 extends Node
 
 const TimelineDisplayer = preload("res://addons/blockflow/editor/displayer.gd")
+## @deprecated
 const CommandManager = preload("res://addons/blockflow/command_manager.gd")
 
 ## Command manager node
 var cm_manager:CommandManager
-var timeline:Timeline
+## @deprecated
+var timeline
 
 # Suggestion:
 # in the future, you can export nodepaths in case the structure starts changing.
