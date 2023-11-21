@@ -168,14 +168,14 @@ func _get_property_list():
 			"type": TYPE_STRING,
 			"usage": PROPERTY_USAGE_DEFAULT if use_bookmark else 0,
 		},
-		{
-			"name": "timeline", # @deprecated
-			"type": TYPE_OBJECT,
-			"class_name": "Timeline",
-			"usage": PROPERTY_USAGE_DEFAULT|PROPERTY_USAGE_READ_ONLY,
-			"hint": PROPERTY_HINT_RESOURCE_TYPE,
-			"hint_string": "Timeline"
-		},
+#		{
+#			"name": "timeline", # @deprecated
+#			"type": TYPE_OBJECT,
+#			"class_name": "Timeline",
+#			"usage": PROPERTY_USAGE_DEFAULT|PROPERTY_USAGE_READ_ONLY,
+#			"hint": PROPERTY_HINT_RESOURCE_TYPE,
+#			"hint_string": "Timeline"
+#		},
 		{
 			"name": "target_collection",
 			"type": TYPE_OBJECT,

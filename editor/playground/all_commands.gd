@@ -1,6 +1,8 @@
 extends Node
 
-var timeline:Timeline = load("res://addons/blockflow/editor/playground/timeline_with_all_commands.tres")
+## @deprecated
+var timeline = load("res://addons/blockflow/editor/playground/timeline_with_all_commands.tres")
+
 @onready var cm = $CommandManager
 @onready var tm_debugger = $Window/TimelineDebugger
 

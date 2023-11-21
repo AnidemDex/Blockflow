@@ -1,5 +1,4 @@
 extends Node
-class_name CommandManager
 ##
 ## Manages the execution of timelines.
 ##
@@ -32,7 +31,7 @@ enum _HistoryData {TIMELINE, COMMAND_INDEX}
 enum _JumpHistoryData {HISTORY_INDEX, FROM, TO}
 
 ## Current timeline.
-@export var current_timeline:Timeline = null
+@export var current_timeline:Resource = null
 
 ## This is the node were commands will be applied to.
 ## This node is used if the command doesn't define an [member Command.target]
@@ -72,7 +71,7 @@ func _ready() -> void:
 ## [code]timeline[/code] was passed.
 ## You can optionally pass [code]from_command_index[/code] to define from
 ## where the timeline should start.
-func start_timeline(timeline:Timeline = null, from_command_index:int = 0) -> void:
+func start_timeline(timeline = null, from_command_index:int = 0) -> void:
 	current_command = null
 	current_command_idx = from_command_index
 	if timeline:
@@ -82,7 +81,7 @@ func start_timeline(timeline:Timeline = null, from_command_index:int = 0) -> voi
 
 ## Advances to a specific command in the [member]current_timeline[/member].
 ## If [code]timeline[/code] is a valid timeline, replaces the current timeline.
-func go_to_command(command_idx:int, timeline:Timeline=null) -> void:
+func go_to_command(command_idx:int, timeline=null) -> void:
 	# Check if there's a new timeline
 	if not(timeline == null or timeline == current_timeline):
 		current_timeline = timeline
@@ -132,7 +131,7 @@ func return_command(return_value:ReturnValue, return_timeline:bool = false):
 	assert(!_jump_history.is_empty())
 
 	var next_command_idx:int
-	var next_timeline:Timeline = current_timeline
+	var next_timeline = current_timeline
 	while next_timeline == current_timeline:
 		var jump_data:Array = _jump_history.pop_back()
 		var history_from:Array = jump_data[ _JumpHistoryData.FROM ]

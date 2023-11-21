@@ -32,6 +32,7 @@ const CollectionClass = preload("res://addons/blockflow/collection.gd")
 const CommandCollectionClass = preload("res://addons/blockflow/command_collection.gd")
 const CommandClass = preload("res://addons/blockflow/commands/command.gd")
 const CommandProcessorClass = preload("res://addons/blockflow/command_processor.gd")
+## @deprecated
 const TimelineClass = preload("res://addons/blockflow/timeline.gd")
 
 enum Toast {
