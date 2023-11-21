@@ -1,6 +1,5 @@
 @tool
 extends Resource
-class_name Timeline
 ##
 ## Base class for all Timelines
 ##
