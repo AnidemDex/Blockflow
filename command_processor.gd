@@ -284,10 +284,10 @@ func _execute_command(command:Blockflow.CommandClass) -> void:
 
 
 func _add_to_history() -> void:
-	assert(bool(current_collection != null))
+	assert(bool(main_collection != null))
 	var history_value = []
 	history_value.resize(_HistoryData.size())
-	history_value[_HistoryData.COLLECTION] = current_collection
+	history_value[_HistoryData.COLLECTION] = main_collection
 	history_value[_HistoryData.COMMAND_POSITION] = current_command_position
 	_history.append(history_value)
 
@@ -295,7 +295,7 @@ func _add_to_history() -> void:
 # Adds a history value to [_jump_history].
 # This function should NEVER be called manually.
 func _add_to_jump_history(target_position:int, target_collection:Blockflow.CollectionClass) -> void:
-	assert(bool(current_collection != null))
+	assert(bool(main_collection != null))
 	var jump_data := []
 	var history_from := []
 	var history_to := []
@@ -303,7 +303,7 @@ func _add_to_jump_history(target_position:int, target_collection:Blockflow.Colle
 	history_from.resize(_HistoryData.size())
 	history_to.resize(_HistoryData.size())
 	
-	history_from[_HistoryData.COLLECTION] = current_collection
+	history_from[_HistoryData.COLLECTION] = main_collection
 	history_from[_HistoryData.COMMAND_POSITION] = current_command_position
 	jump_data[_JumpHistoryData.FROM] = history_from
 	
