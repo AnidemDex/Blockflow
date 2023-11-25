@@ -23,7 +23,7 @@ func _get_hint() -> String:
 
 
 func _get_color() -> Color:
-	return Color(0.8,0.8,1,0.5)
+	return Color(0.5,0.5,0.7,1)
 
 
 func _get_icon() -> Texture:
