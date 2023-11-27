@@ -365,6 +365,12 @@ func _item_popup_id_pressed(id:int) -> void:
 			
 		_ItemPopup.REMOVE:
 			remove_command(command)
+		
+		_ItemPopup.COPY:
+			copy_command(command)
+		
+		_ItemPopup.PASTE:
+			add_command(command_clipboard.get_duplicated(), command_idx + 1, command.get_command_owner())
 
 
 func _get_file_dialog() -> ConfirmationDialog:
