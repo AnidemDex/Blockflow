@@ -654,7 +654,7 @@ func _init() -> void:
 	hb.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	vb.add_child(hb)
 	
-	var left_section := VBoxContainer.new()
+	var left_section := VSplitContainer.new()
 	hb.add_child(left_section)
 	
 	command_list = CommandList.new()
@@ -662,15 +662,19 @@ func _init() -> void:
 	command_list.command_button_list_pressed = _command_button_list_pressed
 	left_section.add_child(command_list)
 	
+	var recents := VBoxContainer.new()
+	recents.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	left_section.add_child(recents)
+	
 	var title := Label.new()
 	title.text = "Recent Collections"
-	left_section.add_child(title)
+	recents.add_child(title)
 	
 	history_node = ItemList.new()
 	history_node.name = "History"
 	history_node.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	history_node.item_selected.connect(_history_node_item_selected)
-	left_section.add_child(history_node)
+	recents.add_child(history_node)
 	
 	var pc = PanelContainer.new()
 	pc.size_flags_horizontal = Control.SIZE_EXPAND_FILL
