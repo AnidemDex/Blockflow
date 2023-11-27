@@ -10,6 +10,8 @@ enum _ItemPopup {
 	MOVE_DOWN, 
 	DUPLICATE,
 	REMOVE,
+	COPY,
+	PASTE
 	}
 
 enum _DropSection {
@@ -49,6 +51,14 @@ var history_node:ItemList
 var history:Dictionary = {}
 
 var edited_object:Object
+
+# https://github.com/godotengine/godot/blob/4.0-stable/editor/editor_inspector.cpp#L3977
+var command_clipboard:Blockflow.CommandClass:
+	get:
+		if Engine.has_meta("_blockflow_command_clipboard"):
+			return Engine.get_meta("_blockflow_command_clipboard", null)
+		return command_clipboard
+
 var _current_collection:Blockflow.CollectionClass
 
 var _item_popup:PopupMenu
@@ -301,6 +311,9 @@ func remove_command(command:Blockflow.CommandClass) -> void:
 		
 		undo_redo.commit_action()
 
+func copy_command(command:Blockflow.CommandClass) -> void:
+	command_clipboard = command
+	Engine.set_meta("_blockflow_command_clipboard", command)
 
 func show_help_panel():
 	_help_panel.show()
@@ -352,6 +365,12 @@ func _item_popup_id_pressed(id:int) -> void:
 			
 		_ItemPopup.REMOVE:
 			remove_command(command)
+		
+		_ItemPopup.COPY:
+			copy_command(command)
+		
+		_ItemPopup.PASTE:
+			add_command(command_clipboard.get_duplicated(), command_idx + 1, command.get_command_owner())
 
 
 func _get_file_dialog() -> ConfirmationDialog:
@@ -397,6 +416,14 @@ func _collection_displayer_item_mouse_selected(_position:Vector2, button_index:i
 		_item_popup.add_separator()
 		_item_popup.add_item("Duplicate", _ItemPopup.DUPLICATE)
 		_item_popup.add_item("Remove", _ItemPopup.REMOVE)
+		_item_popup.add_separator()
+		
+		_item_popup.add_item("Copy", _ItemPopup.COPY)
+		_item_popup.set_item_icon(_item_popup.get_item_index(_ItemPopup.COPY), get_theme_icon("ActionCopy", "EditorIcons"))
+		
+		_item_popup.add_item("Paste", _ItemPopup.PASTE)
+		_item_popup.set_item_icon(_item_popup.get_item_index(_ItemPopup.PASTE), get_theme_icon("ActionPaste", "EditorIcons"))
+		_item_popup.set_item_disabled(_item_popup.get_item_index(_ItemPopup.PASTE), command_clipboard == null)
 		
 		_item_popup.reset_size()
 		_item_popup.position = DisplayServer.mouse_get_position()
@@ -580,6 +607,10 @@ func _notification(what: int) -> void:
 			_help_panel_load_btn.icon = get_theme_icon("Object", "EditorIcons")
 			_help_panel_new_btn.icon = get_theme_icon("Load", "EditorIcons")
 			title_label.add_theme_stylebox_override("normal", get_theme_stylebox("ContextualToolbar", "EditorStyles"))
+		NOTIFICATION_PREDELETE:
+			# Clean clipboard
+			command_clipboard = null
+			Engine.set_meta("_blockflow_command_clipboard", null)
 
 
 func _init() -> void:
