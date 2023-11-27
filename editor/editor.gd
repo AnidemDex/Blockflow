@@ -607,6 +607,10 @@ func _notification(what: int) -> void:
 			_help_panel_load_btn.icon = get_theme_icon("Object", "EditorIcons")
 			_help_panel_new_btn.icon = get_theme_icon("Load", "EditorIcons")
 			title_label.add_theme_stylebox_override("normal", get_theme_stylebox("ContextualToolbar", "EditorStyles"))
+		NOTIFICATION_PREDELETE:
+			# Clean clipboard
+			command_clipboard = null
+			Engine.set_meta("_blockflow_command_clipboard", null)
 
 
 func _init() -> void:
