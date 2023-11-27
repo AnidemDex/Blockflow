@@ -1,6 +1,8 @@
 @tool
 extends EditorPlugin
 
+const Icon = preload("res://addons/blockflow/icon_flat.svg")
+
 const Settings = preload("res://addons/blockflow/blockflow.gd")
 const BlockEditor = preload("res://addons/blockflow/editor/editor.gd")
 const TimelineConverter = preload("res://addons/blockflow/timeline_converter.gd")
@@ -8,6 +10,7 @@ const InspectorTools = preload("res://addons/blockflow/editor/inspector/inspecto
 const CommandInspector = preload("res://addons/blockflow/editor/inspector/command_inspector.gd")
 const CommandCallInspector = preload("res://addons/blockflow/editor/inspector/call_inspector.gd")
 const BlockflowDebugger = preload("res://addons/blockflow/debugger/blockflow_debugger.gd")
+
 
 var block_editor:BlockEditor
 
@@ -94,7 +97,7 @@ func _get_plugin_name() -> String:
 # TODO:
 # Replace with custom icon
 func _get_plugin_icon():
-	return get_editor_interface().get_base_control().get_theme_icon("ThemeSelectAll", "EditorIcons")
+	return Icon
 
 func _define_toaster() -> void:
 	var dummy = Control.new()
