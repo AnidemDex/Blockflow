@@ -10,6 +10,8 @@ enum _ItemPopup {
 	MOVE_DOWN, 
 	DUPLICATE,
 	REMOVE,
+	COPY,
+	PASTE
 	}
 
 enum _DropSection {
