@@ -51,6 +51,14 @@ var history_node:ItemList
 var history:Dictionary = {}
 
 var edited_object:Object
+
+# https://github.com/godotengine/godot/blob/4.0-stable/editor/editor_inspector.cpp#L3977
+var command_clipboard:Blockflow.CommandClass:
+	get:
+		if Engine.has_meta("_blockflow_command_clipboard"):
+			return Engine.get_meta("_blockflow_command_clipboard", null)
+		return command_clipboard
+
 var _current_collection:Blockflow.CollectionClass
 
 var _item_popup:PopupMenu
@@ -303,6 +311,9 @@ func remove_command(command:Blockflow.CommandClass) -> void:
 		
 		undo_redo.commit_action()
 
+func copy_command(command:Blockflow.CommandClass) -> void:
+	command_clipboard = command
+	Engine.set_meta("_blockflow_command_clipboard", command)
 
 func show_help_panel():
 	_help_panel.show()
@@ -399,6 +410,14 @@ func _collection_displayer_item_mouse_selected(_position:Vector2, button_index:i
 		_item_popup.add_separator()
 		_item_popup.add_item("Duplicate", _ItemPopup.DUPLICATE)
 		_item_popup.add_item("Remove", _ItemPopup.REMOVE)
+		_item_popup.add_separator()
+		
+		_item_popup.add_item("Copy", _ItemPopup.COPY)
+		_item_popup.set_item_icon(_item_popup.get_item_index(_ItemPopup.COPY), get_theme_icon("ActionCopy", "EditorIcons"))
+		
+		_item_popup.add_item("Paste", _ItemPopup.PASTE)
+		_item_popup.set_item_icon(_item_popup.get_item_index(_ItemPopup.PASTE), get_theme_icon("ActionPaste", "EditorIcons"))
+		_item_popup.set_item_disabled(_item_popup.get_item_index(_ItemPopup.PASTE), command_clipboard == null)
 		
 		_item_popup.reset_size()
 		_item_popup.position = DisplayServer.mouse_get_position()
