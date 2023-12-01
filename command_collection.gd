@@ -11,7 +11,7 @@ var _command_list:Array = []
 
 ## Get command at [param position]. This takes in consideration all commands
 ## in internal collection ([member Command.position] instead of [member Command.index])
-func get_command(position:int) -> Blockflow.CommandClass:
+func get_command(position:int):
 	if position >= _command_list.size():
 		push_error("position >= _command_list.size()")
 		return null
