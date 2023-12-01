@@ -109,7 +109,7 @@ func clear() -> void:
 
 ## Get the command at [param position]. 
 ## [br]You can also use [method get] instead.
-func get_command(position:int):
+func get_command(position:int) -> Blockflow.CommandClass:
 	if position < collection.size():
 		return collection[position]
 	
