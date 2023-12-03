@@ -128,7 +128,7 @@ func get_command_position(command) -> int:
 	return collection.find(command)
 
 func get_duplicated():
-	var _duplicate = duplicate(true)
+	var _duplicate = duplicate()
 	var new_collection = []
 	for command in collection:
 		new_collection.append(command.get_duplicated())
