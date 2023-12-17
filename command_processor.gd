@@ -162,6 +162,7 @@ func go_to_command_in_collection(command_position:int, collection:Blockflow.Coll
 		current_collection_changed = true
 	
 	if current_collection != collection:
+		# Why is this a warning?
 		push_warning("current_collection != collection")
 	
 	if not main_collection:
@@ -215,15 +216,18 @@ func return_to_previous_jump(return_value:ReturnValue):
 	if return_value == ReturnValue.NO_RETURN:
 		stop()
 		return
-	
-	var jump_data:Array = _jump_history.pop_back()
-	var history_from:Array = jump_data[ _JumpHistoryData.FROM ]
-	
-	var next_command_position:int = history_from\
-	[ _HistoryData.COMMAND_POSITION ] + return_value
-	
-	var next_collection:Blockflow.CollectionClass =  history_from[ _HistoryData.COLLECTION ]
-	
+	var next_command_position:int
+	var next_collection:Blockflow.CollectionClass
+
+	while !_jump_history.is_empty():
+		if next_collection == main_collection:
+			continue
+		var jump_data:Array = _jump_history.pop_back()
+		var history_from:Array = jump_data[_JumpHistoryData.FROM]
+		next_command_position = history_from[_HistoryData.COMMAND_POSITION] + return_value
+		next_collection = history_from[_HistoryData.COLLECTION]
+		break
+
 	go_to_command_in_collection(next_command_position, next_collection)
 
 ## Stops behavior. Current command finished status will be ignored and current 
