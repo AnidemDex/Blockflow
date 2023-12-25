@@ -204,8 +204,9 @@ func go_to_previous_command() -> void:
 ## Jumps to a command, appending the call to jump history.
 func jump_to_command(command_position:int, on_collection:Blockflow.CollectionClass) -> void:
 	if not on_collection:
-		on_collection = current_collection
-	_add_to_jump_history(command_position, on_collection)
+		on_collection = main_collection
+	if on_collection != main_collection:
+		_add_to_jump_history(command_position, on_collection)
 	go_to_command_in_collection(command_position, on_collection)
 
 ## Returns to last [method jump_to_command] call according to [param return_value].
