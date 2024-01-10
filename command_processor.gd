@@ -70,10 +70,12 @@ const Blockflow = preload("res://addons/blockflow/blockflow.gd")
 ## when owner is ready automatically.
 @export var start_on_ready:bool = false
 
-## Main [CommandCollection] used.
+## Main [CommandCollection] used. This value is gathered from
+## [method Command.get_main_collection].
 var main_collection:Blockflow.CommandCollectionClass
 
-## Current [Collection] used.
+## Current [Collection] used. This value is gathered from
+## [method Command.get_command_owner]
 var current_collection:Blockflow.CollectionClass
 
 ## Current executed [Command].
@@ -283,7 +285,9 @@ func _execute_command(command:Blockflow.CommandClass) -> void:
 	
 	command.execution_steps.call()
 
-
+# Adds a history value to [_history]
+# This function should NEVER be called manually.
+# Usually called when user goes from one command to another.
 func _add_to_history() -> void:
 	assert(bool(main_collection != null))
 	var history_value = []
@@ -294,7 +298,8 @@ func _add_to_history() -> void:
 
 
 # Adds a history value to [_jump_history].
-# This function should NEVER be called manually.
+# This function should NEVER be called manually. 
+# Usually called when user step to a command that has a different main collection.
 func _add_to_jump_history(target_position:int, target_collection:Blockflow.CollectionClass) -> void:
 	assert(bool(main_collection != null))
 	var jump_data := []
