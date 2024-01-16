@@ -3,7 +3,7 @@ extends PanelContainer
 
 const Blockflow = preload("res://addons/blockflow/blockflow.gd")
 const CollectionDisplayer = preload("res://addons/blockflow/editor/displayer.gd")
-const CommandList = preload("res://addons/blockflow/command_list.gd")
+const CommandList = preload("res://addons/blockflow/editor/command_list.gd")
 
 enum _ItemPopup {
 	MOVE_UP, 
