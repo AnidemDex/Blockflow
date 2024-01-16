@@ -19,6 +19,21 @@ const PROJECT_SETTING_DEFAULT_COMMANDS =\
 const PROJECT_SETTING_CUSTOM_COMMANDS =\
 "blockflow/settings/commands/custom_commands"
 
+static func get_default_command_scripts() -> Array:
+	var commands := []
+	for command_path in DEFAULT_COMMAND_PATHS:
+		if not ResourceLoader.exists(command_path, "Script"):
+			push_warning("!ResourceLoader.exists(%s) == true, continuing"%command_path)
+			continue
+		
+		var command_script:Script = load(command_path) as Script
+		if not command_script:
+			push_warning("CommandList: Resource at '%s' is not an Script."%command_path)
+			continue
+		commands.append(command_script)
+		
+	return commands
+
 const PROJECT_SETTING_BLOCK_ICON_MIN_SIZE =\
 "blockflow/settings/editor/commands/icon_minimun_size"
 const BLOCK_ICON_MIN_SIZE = 32
