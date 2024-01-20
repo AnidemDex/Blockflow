@@ -389,10 +389,10 @@ func _get_file_dialog() -> ConfirmationDialog:
 	return _file_dialog
 
 
-func _command_button_list_pressed(command_script:Script) -> void:
+func _command_button_list_pressed(command:Blockflow.CommandClass) -> void:
 	var command_idx:int = -1
 	var tree_item:TreeItem = collection_displayer.get_selected()
-	var new_command:Blockflow.CommandClass = command_script.new()
+	var new_command:Blockflow.CommandClass = command.get_duplicated()
 	var in_collection:Blockflow.CollectionClass = _current_collection
 	if tree_item:
 		var selected:Blockflow.CommandClass = collection_displayer.get_selected().get_metadata(0) as Blockflow.CommandClass
@@ -681,7 +681,7 @@ func _init() -> void:
 	
 	command_list = CommandList.new()
 	command_list.name = "CommandList"
-	command_list.command_button_list_pressed = _command_button_list_pressed
+	command_list.command_button_pressed_callback = _command_button_list_pressed
 	left_section.add_child(command_list)
 	
 	var recents := VBoxContainer.new()

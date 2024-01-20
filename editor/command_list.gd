@@ -4,11 +4,13 @@ extends PanelContainer
 const FALLBACK_ICON = preload("res://addons/blockflow/icons/false.svg")
 const Settings = preload("res://addons/blockflow/blockflow.gd")
 const CommandClass = preload("res://addons/blockflow/commands/command.gd")
+const EditorConst = preload("res://addons/blockflow/editor/constants.gd")
 
 class Category extends VBoxContainer:
 	const InspectorTools = preload("res://addons/blockflow/editor/inspector/inspector_tools.gd")
 	var title:Button
 	var container:VBoxContainer
+	var command_button_pressed_callback:Callable
 	
 	var commands := []
 	
@@ -25,6 +27,11 @@ class Category extends VBoxContainer:
 			Callable(),
 			Callable()
 		)
+		
+		if command_button_pressed_callback.is_valid():
+			command_button.pressed.connect(
+				command_button_pressed_callback.bind(command)
+				)
 		
 		command_button.text = command.command_name
 		
@@ -77,7 +84,7 @@ class Category extends VBoxContainer:
 		container.size_flags_vertical = Control.SIZE_EXPAND_FILL
 		add_child(container)
 
-var command_button_list_pressed:Callable
+var command_button_pressed_callback:Callable
 var scroll_container:ScrollContainer
 var category_container:VBoxContainer
 var misc_category:Category
@@ -106,6 +113,7 @@ func add_category(category_name:StringName) -> void:
 	if category_name in categories: return
 	
 	var category = Category.new()
+	category.command_button_pressed_callback = command_button_pressed_callback
 	category.title.text = category_name
 	category.title.icon = get_theme_icon("Object", "EditorIcons")
 	categories[category_name] = category
