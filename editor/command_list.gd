@@ -70,6 +70,13 @@ class Category extends VBoxContainer:
 				title.add_theme_stylebox_override("hover", sb)
 				title.add_theme_icon_override("checked", get_theme_icon("GuiTreeArrowRight", "EditorIcons"))
 				title.add_theme_icon_override("unchecked", get_theme_icon("GuiTreeArrowDown", "EditorIcons"))
+				title.add_theme_icon_override("checked_disabled", get_theme_icon("GuiTreeArrowRight", "EditorIcons"))
+				title.add_theme_icon_override("unchecked_disabled", get_theme_icon("GuiTreeArrowDown", "EditorIcons"))
+			
+			9003:
+				propagate_call("set", ["disabled", true])
+			9004:
+				propagate_call("set", ["disabled", false])
 	
 	func _init() -> void:
 		title = CheckButton.new()
