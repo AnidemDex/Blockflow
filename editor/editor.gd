@@ -3,7 +3,9 @@ extends PanelContainer
 
 const Blockflow = preload("res://addons/blockflow/blockflow.gd")
 const CollectionDisplayer = preload("res://addons/blockflow/editor/displayer.gd")
-const CommandList = preload("res://addons/blockflow/command_list.gd")
+const CommandList = preload("res://addons/blockflow/editor/command_list.gd")
+
+const Constants = preload("res://addons/blockflow/editor/constants.gd")
 
 enum _ItemPopup {
 	MOVE_UP, 
@@ -75,6 +77,11 @@ var _file_menu:PopupMenu
 var _editor_file_dialog:EditorFileDialog
 var _file_dialog:FileDialog
 
+func disable() -> void:
+	propagate_notification(Constants.NOTIFICATION_EDITOR_DISABLED)
+
+func enable() -> void:
+	propagate_notification(Constants.NOTIFICATION_EDITOR_ENABLED)
 
 func close() -> void:
 	collection_displayer.build_tree(null)
@@ -87,6 +94,7 @@ func close() -> void:
 	title_label.text = ""
 	update_history()
 	show_help_panel()
+	disable()
 
 
 func edit(object:Object) -> void:
@@ -106,6 +114,7 @@ func edit_collection(collection:Blockflow.CollectionClass) -> void:
 		)
 		
 		show_help_panel()
+		disable()
 		return
 		
 	var load_function:Callable = collection_displayer.build_tree
@@ -125,6 +134,7 @@ func edit_collection(collection:Blockflow.CollectionClass) -> void:
 		
 	path_hint = _current_collection.resource_path
 	hide_help_panel()
+	enable()
 	_file_menu.set_item_disabled(_file_menu.get_item_index(ToolbarFileMenu.CLOSE_COLLECTION), false)
 	
 	history[path_hint.get_file()] = path_hint
@@ -379,10 +389,10 @@ func _get_file_dialog() -> ConfirmationDialog:
 	return _file_dialog
 
 
-func _command_button_list_pressed(command_script:Script) -> void:
+func _command_button_list_pressed(command:Blockflow.CommandClass) -> void:
 	var command_idx:int = -1
 	var tree_item:TreeItem = collection_displayer.get_selected()
-	var new_command:Blockflow.CommandClass = command_script.new()
+	var new_command:Blockflow.CommandClass = command.get_duplicated()
 	var in_collection:Blockflow.CollectionClass = _current_collection
 	if tree_item:
 		var selected:Blockflow.CommandClass = collection_displayer.get_selected().get_metadata(0) as Blockflow.CommandClass
@@ -607,6 +617,18 @@ func _notification(what: int) -> void:
 			_help_panel_load_btn.icon = get_theme_icon("Object", "EditorIcons")
 			_help_panel_new_btn.icon = get_theme_icon("Load", "EditorIcons")
 			title_label.add_theme_stylebox_override("normal", get_theme_stylebox("ContextualToolbar", "EditorStyles"))
+		
+		NOTIFICATION_POST_ENTER_TREE,NOTIFICATION_VISIBILITY_CHANGED:
+			if not visible: return
+			
+			if edited_object:
+				hide_help_panel()
+				enable()
+				return
+			
+			show_help_panel()
+			disable()
+		
 		NOTIFICATION_PREDELETE:
 			# Clean clipboard
 			command_clipboard = null
@@ -659,7 +681,7 @@ func _init() -> void:
 	
 	command_list = CommandList.new()
 	command_list.name = "CommandList"
-	command_list.command_button_list_pressed = _command_button_list_pressed
+	command_list.command_button_pressed_callback = _command_button_list_pressed
 	left_section.add_child(command_list)
 	
 	var recents := VBoxContainer.new()
@@ -720,8 +742,6 @@ func _init() -> void:
 	_help_panel_load_btn.text = "Load Collection"
 	_help_panel_load_btn.pressed.connect(_request_open)
 	hb.add_child(_help_panel_load_btn)
-	
-	show_help_panel()
 	
 	if Engine.is_editor_hint():
 # https://github.com/godotengine/godot/issues/73525#issuecomment-1606067249

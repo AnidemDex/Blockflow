@@ -19,6 +19,43 @@ const PROJECT_SETTING_DEFAULT_COMMANDS =\
 const PROJECT_SETTING_CUSTOM_COMMANDS =\
 "blockflow/settings/commands/custom_commands"
 
+static func get_default_command_scripts() -> Array:
+	var commands := []
+	for command_path in DEFAULT_COMMAND_PATHS:
+		if not ResourceLoader.exists(command_path, "Script"):
+			push_warning("!ResourceLoader.exists(%s) == true, continuing"%command_path)
+			continue
+		
+		var command_script:Script = load(command_path) as Script
+		if not command_script:
+			push_warning("CommandList: Resource at '%s' is not an Script."%command_path)
+			continue
+		commands.append(command_script)
+		
+	return commands
+
+# TODO: Custom commands made by the user that are not a script/resource file
+# and will live under a special folder.
+## Commands defined in 
+## ProjectSettings [constant PROJECT_SETTING_CUSTOM_COMMANDS]
+static func get_custom_commands() -> Array:
+	var commands := []
+	for command_path in ProjectSettings.get_setting(PROJECT_SETTING_CUSTOM_COMMANDS, []):
+		if not ResourceLoader.exists(command_path):
+			push_warning("!ResourceLoader.exists(%s) == true, continuing"%command_path)
+			continue
+		
+		# We can't guess the type, so let's load it as generic 
+		# and let the caller handle it.
+		var command:Resource = ResourceLoader.load(command_path)
+		if not command:
+			# HOW?
+			push_warning("CommandList: Resource at '%s' is not valid."%command_path)
+			continue
+		commands.append(command)
+		
+	return commands
+
 const PROJECT_SETTING_BLOCK_ICON_MIN_SIZE =\
 "blockflow/settings/editor/commands/icon_minimun_size"
 const BLOCK_ICON_MIN_SIZE = 32

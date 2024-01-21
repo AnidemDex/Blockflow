@@ -126,6 +126,12 @@ var command_text_color:Color :
 	set(value): return
 	get: return _get_color()
 
+## Command category where this command be grouped with
+## in editor.
+var command_category:StringName:
+	set(value): return
+	get: return _get_category()
+
 ## [CommandBlock] item assigned by editor.
 ## [br]This reference is assigned by Block Editor.
 var editor_block:TreeItem
@@ -333,6 +339,9 @@ func _get_description() -> String:
 
 func _get_color() -> Color:
 	return Color()
+
+func _get_category() -> StringName:
+	return &"Commands"
 
 func _can_hold_commands() -> bool:
 	return false
