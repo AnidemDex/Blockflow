@@ -107,6 +107,12 @@ func build_command_list() -> void:
 	
 	for command in Settings.get_default_command_scripts():
 		add_command(command)
+	
+	for command in Settings.get_custom_commands():
+		add_command(command)
+	
+	sort_categories()
+		
 
 
 func create_category_container() -> void:
@@ -115,6 +121,7 @@ func create_category_container() -> void:
 	category_container.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	category_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll_container.add_child(category_container)
+
 
 func add_category(category_name:StringName) -> void:
 	if category_name in categories: return
@@ -138,6 +145,19 @@ func add_command(command_obj:Object) -> void:
 		
 		category_node.add_command(command_obj)
 		return
+
+
+func sort_categories() -> void:
+	var c:Array = categories.keys()
+	c.erase(&"Commands")
+	c.sort()
+	for i in c.size():
+		var category:Node = categories[c[i]]
+		category_container.move_child(category, i)
+	
+	if &"Commands" in categories:
+		category_container.move_child(categories[&"Commands"], 0)
+
 
 func _notification(what: int) -> void:
 	match what:
