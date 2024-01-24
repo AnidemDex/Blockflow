@@ -136,6 +136,10 @@ var command_category:StringName:
 ## [br]This reference is assigned by Block Editor.
 var editor_block:TreeItem
 
+## Layout data used by editor. This data is saved in editor
+## and is not shared between projects.
+var editor_layout:Dictionary
+
 ## Target node that [member target] points to. This value is assigned by
 ## [member command_manager] before command execution if [member target] is a
 ## valid path, else node assigned in
