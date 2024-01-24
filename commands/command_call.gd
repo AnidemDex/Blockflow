@@ -33,7 +33,12 @@ func _get_name() -> StringName:
 
 
 func _get_hint() -> String:
-	var hint_str = method + "(" + str(args).trim_prefix("[").trim_suffix("]") + ")"
+	var properties = ""
+	for arg in args:
+		if arg is Resource:
+			arg = "<" + arg.resource_path + ">"
+		properties += str(arg) + ", "
+	var hint_str = method + "(" + properties.trim_suffix(", ") + ")"
 	if target != NodePath():
 		hint_str += " on " + str(target)
 	return hint_str
