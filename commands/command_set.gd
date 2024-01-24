@@ -82,6 +82,8 @@ func _get_hint() -> String:
 		hint += str(target)+"."
 	
 	var fake_value := str(value)
+	if value is Resource:
+		fake_value = "<" + value.resource_path + ">"
 	if fake_value.is_empty():
 		fake_value = "<Not Defined>"
 	var operator = "="
