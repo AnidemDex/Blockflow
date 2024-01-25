@@ -46,3 +46,7 @@ func _get_hint() -> String:
 
 func _get_icon() -> Texture:
 	return load("res://addons/blockflow/icons/function.svg")
+
+
+func _get_category() -> StringName:
+	return &"Manipulation"

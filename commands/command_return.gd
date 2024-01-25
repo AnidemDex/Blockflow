@@ -15,3 +15,7 @@ func _get_name() -> StringName:
 
 func _get_icon() -> Texture:
 	return load("res://addons/blockflow/icons/return.svg")
+
+
+func _get_category() -> StringName:
+	return &"Flow"
