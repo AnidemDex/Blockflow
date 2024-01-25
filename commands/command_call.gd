@@ -49,4 +49,4 @@ func _get_icon() -> Texture:
 
 
 func _get_category() -> StringName:
-	return &"Manipulation"
+	return &"Editing"

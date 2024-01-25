@@ -100,4 +100,4 @@ func _get_hint() -> String:
 
 
 func _get_category() -> StringName:
-	return &"Manipulation"
+	return &"Editing"
