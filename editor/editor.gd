@@ -27,6 +27,7 @@ enum ToolbarFileMenu {
 	NEW_COLLECTION,
 	OPEN_COLLECTION,
 	CLOSE_COLLECTION,
+	RECENT_COLLECTION,
 }
 
 var undo_redo:UndoRedo:
@@ -49,7 +50,6 @@ var title_label:Label
 var edit_callback:Callable
 var toast_callback:Callable
 
-var history_node:ItemList
 var history:Dictionary = {}
 
 var edited_object:Object
@@ -73,6 +73,7 @@ var _help_panel_label:Label
 
 var _toolbar:MenuBar
 var _file_menu:PopupMenu
+var _history_node:PopupMenu
 
 var _editor_file_dialog:EditorFileDialog
 var _file_dialog:FileDialog
@@ -333,14 +334,21 @@ func hide_help_panel():
 	_help_panel.hide()
 
 func update_history() -> void:
-	history_node.clear()
+	_history_node.clear()
+	if history.is_empty():
+		_history_node.add_item("No recent collections...")
+		_history_node.set_item_disabled(0, true)
+		return
+	
 	var keys := history.keys()
 	for i in keys.size():
 		var history_key:String = keys[i]
-		history_node.add_item(history_key)
-		history_node.set_item_tooltip(i, history[history_key])
+		_history_node.add_item(history_key)
+		_history_node.set_item_tooltip(i, history[history_key])
+		
 		if _current_collection and history[history_key] == _current_collection.resource_path:
-			history_node.select(i)
+			_history_node.set_item_text(i, history_key + " (Current)")
+			_history_node.set_item_disabled(i, true)
 
 func _request_open() -> void:
 	var __file_dialog := _get_file_dialog()
@@ -607,7 +615,7 @@ func _toolbar_file_menu_id_pressed(id:int) -> void:
 
 
 func _history_node_item_selected(index:int) -> void:
-	var res:Resource = load(history_node.get_item_tooltip(index))
+	var res:Resource = load(_history_node.get_item_tooltip(index))
 	if not res: return
 	edit(res)
 
@@ -660,6 +668,14 @@ func _init() -> void:
 	_file_menu.id_pressed.connect(_toolbar_file_menu_id_pressed)
 	_file_menu.add_item("New Collection...", ToolbarFileMenu.NEW_COLLECTION)
 	_file_menu.add_item("Open Collection...", ToolbarFileMenu.OPEN_COLLECTION)
+	
+	_history_node = PopupMenu.new()
+	_history_node.name = "HistoryNode"
+	_history_node.index_pressed.connect(_history_node_item_selected)
+	_file_menu.add_child(_history_node)
+	_file_menu.add_submenu_item("Open Recent", "HistoryNode", ToolbarFileMenu.RECENT_COLLECTION)
+	update_history()
+	
 	_file_menu.add_separator()
 	_file_menu.add_item("Close current collection", ToolbarFileMenu.CLOSE_COLLECTION)
 	_file_menu.set_item_disabled(_file_menu.get_item_index(ToolbarFileMenu.CLOSE_COLLECTION), true)
@@ -683,20 +699,6 @@ func _init() -> void:
 	command_list.name = "CommandList"
 	command_list.command_button_pressed_callback = _command_button_list_pressed
 	left_section.add_child(command_list)
-	
-	var recents := VBoxContainer.new()
-	recents.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	left_section.add_child(recents)
-	
-	var title := Label.new()
-	title.text = "Recent Collections"
-	recents.add_child(title)
-	
-	history_node = ItemList.new()
-	history_node.name = "History"
-	history_node.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	history_node.item_selected.connect(_history_node_item_selected)
-	recents.add_child(history_node)
 	
 	var pc = PanelContainer.new()
 	pc.size_flags_horizontal = Control.SIZE_EXPAND_FILL
