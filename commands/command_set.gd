@@ -104,4 +104,4 @@ func _get_property_list() -> Array:
 
 
 func _get_category() -> StringName:
-	return &"Editing"
+	return &"Engine"
