@@ -187,3 +187,7 @@ func _get_property_list():
 	]
 
 	return properties
+
+
+func _get_category() -> StringName:
+	return &"Flow"

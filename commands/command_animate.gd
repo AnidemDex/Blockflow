@@ -97,3 +97,7 @@ func _get_hint() -> String:
 	if target != NodePath():
 		hint_str += " on " + str(target)
 	return hint_str
+
+
+func _get_category() -> StringName:
+	return &"Engine"

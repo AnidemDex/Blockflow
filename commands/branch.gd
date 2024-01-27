@@ -104,3 +104,7 @@ func _get_hint() -> String:
 	return hint_str
 
 func _can_hold_commands() -> bool: return true
+
+
+func _get_category() -> StringName:
+	return &"Flow"

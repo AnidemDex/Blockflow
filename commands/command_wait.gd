@@ -89,3 +89,7 @@ func _get_property_list() -> Array:
 				"usage":PROPERTY_USAGE_DEFAULT,
 				})
 	return p
+
+
+func _get_category() -> StringName:
+	return &"Flow"

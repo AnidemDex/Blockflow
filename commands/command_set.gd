@@ -101,3 +101,7 @@ func _get_property_list() -> Array:
 		p.append({"name":"add_value", "type":TYPE_BOOL, "usage":PROPERTY_USAGE_DEFAULT})
 	
 	return p
+
+
+func _get_category() -> StringName:
+	return &"Engine"

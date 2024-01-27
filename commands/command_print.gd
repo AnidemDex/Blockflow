@@ -28,3 +28,7 @@ func _get_color() -> Color:
 
 func _get_icon() -> Texture:
 	return load("res://addons/blockflow/icons/console.svg")
+
+
+func _get_category() -> StringName:
+	return &"Debug"
