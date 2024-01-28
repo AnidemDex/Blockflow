@@ -105,6 +105,8 @@ func update() -> void:
 	set_text(ColumnPosition.INDEX_COLUMN, position_hint)
 	set_custom_color(ColumnPosition.INDEX_COLUMN, disabled_color)
 	set_text_alignment(ColumnPosition.INDEX_COLUMN, HORIZONTAL_ALIGNMENT_RIGHT)
+	
+	collapsed = command.editor_state.get("folded", false)
 
 
 func set_command(value:CommandClass) -> void:
