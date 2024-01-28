@@ -135,22 +135,30 @@ func edit_collection(collection:Blockflow.CollectionClass) -> void:
 		disable()
 		return
 		
-	var load_function:Callable = collection_displayer.build_tree
 	var path_hint:String = ""
 	if edited_object:
-		if edited_object.changed.is_connected(load_function):
-			edited_object.changed.disconnect(load_function)
+		if edited_object.changed.is_connected(_current_collection_modified):
+			edited_object.changed.disconnect(_current_collection_modified)
+		
+		for command in edited_object._command_list:
+			if command.collection_changed.is_connected(_current_collection_modified):
+				command.collection_changed.disconnect(_current_collection_modified)
+		
+		save_layout()
+		
 	
 	_current_collection = collection
 	edited_object = collection
 	
-	if not _current_collection.changed.is_connected(load_function):
-		_current_collection.changed.connect(
-			load_function.bind(_current_collection),
-			CONNECT_DEFERRED
-		)
+	if not _current_collection.changed.is_connected(_current_collection_modified):
+		_current_collection.changed.connect(_current_collection_modified)
+	
+	for command in _current_collection._command_list:
+		if not command.collection_changed.is_connected(_current_collection_modified):
+			command.collection_changed.connect(_current_collection_modified)
 		
 	path_hint = _current_collection.resource_path
+	restore_layout()
 	hide_help_panel()
 	enable()
 	_file_menu.set_item_disabled(_file_menu.get_item_index(ToolbarFileMenu.CLOSE_COLLECTION), false)
@@ -159,7 +167,8 @@ func edit_collection(collection:Blockflow.CollectionClass) -> void:
 	update_history()
 	
 	title_label.text = path_hint
-	load_function.call(_current_collection)
+#	Blockflow.generate_tree(edited_object)
+	collection_displayer.build_tree(_current_collection)
 
 func edit_timeline(timeline:Object) -> void:
 	timeline = timeline as Blockflow.TimelineClass
@@ -684,6 +693,22 @@ func _history_node_item_selected(index:int) -> void:
 	var res:Resource = load(_history_node.get_item_tooltip(index))
 	if not res: return
 	edit(res)
+
+
+func _current_collection_modified() -> void:
+	var data := Blockflow.generate_tree(_current_collection)
+	for command in data.command_list:
+		if not command.collection_changed.is_connected(_current_collection_modified):
+			command.collection_changed.connect(_current_collection_modified)
+		
+		command.editor_state = {
+			"folded": false
+		}
+		if is_instance_valid(command.editor_block):
+			command.editor_state["folded"] = command.editor_block.collapsed
+	
+	collection_displayer.build_tree(_current_collection)
+
 
 func _notification(what: int) -> void:
 	match what:
