@@ -1,6 +1,20 @@
 @tool
 extends PanelContainer
 
+class StateLayout:
+	var folded_commands:Array[int] = []
+	var last_selected_command_position:int = -1
+	
+	func to_dict() -> Dictionary:
+		return {
+			"folded_commands":folded_commands,
+			"last_selected_command_position":last_selected_command_position,
+		}
+	
+	func from_dict(val:Dictionary) -> void:
+		folded_commands = val.get("folded_commands", [])
+		last_selected_command_position = val.get("last_selected_command_position", -1)
+
 const Blockflow = preload("res://addons/blockflow/blockflow.gd")
 const CollectionDisplayer = preload("res://addons/blockflow/editor/displayer.gd")
 const CommandList = preload("res://addons/blockflow/editor/command_list.gd")
@@ -53,6 +67,8 @@ var toast_callback:Callable
 var history:Dictionary = {}
 
 var edited_object:Object
+
+var state:StateLayout
 
 # https://github.com/godotengine/godot/blob/4.0-stable/editor/editor_inspector.cpp#L3977
 var command_clipboard:Blockflow.CommandClass:
