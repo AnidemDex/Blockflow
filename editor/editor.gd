@@ -101,6 +101,7 @@ func enable() -> void:
 	propagate_notification(Constants.NOTIFICATION_EDITOR_ENABLED)
 
 func close() -> void:
+	save_layout()
 	collection_displayer.build_tree(null)
 	_file_menu.set_item_disabled(
 		_file_menu.get_item_index(ToolbarFileMenu.CLOSE_COLLECTION),
@@ -366,6 +367,54 @@ func update_history() -> void:
 			_history_node.set_item_text(i, history_key + " (Current)")
 			_history_node.set_item_disabled(i, true)
 
+
+func save_layout() -> void:
+	if not _current_collection: return
+	
+	var layout:ConfigFile = ConfigFile.new()
+	
+	var data := Blockflow.generate_tree(_current_collection)
+	
+	for command in data.command_list:
+		if command.editor_state.get("folded", false):
+			state.folded_commands.append(command.position)
+	
+	layout.set_value(_current_collection.resource_path, "state", state.to_dict())
+	
+	var error:Error = layout.save(Constants.DEFAULT_LAYOUT_FILE)
+	if error:
+		push_error(error)
+
+
+func restore_layout() -> void:
+	if not _current_collection: return
+	
+	var layout:ConfigFile = ConfigFile.new()
+	
+	var error:Error = layout.load(Constants.DEFAULT_LAYOUT_FILE)
+	state = StateLayout.new()
+	
+	if error == ERR_FILE_NOT_FOUND:
+		return
+	
+	if error:
+		push_error(error)
+		return
+	
+	if not layout.has_section(_current_collection.resource_path):
+		return
+	
+	state.from_dict(layout.get_value(_current_collection.resource_path, "state", {}))
+	
+	for pos in state.folded_commands:
+		var command = _current_collection.get_command(pos)
+		command.editor_state["folded"] = true
+	
+	if state.last_selected_command_position > -1:
+		var command = _current_collection.get_command(state.last_selected_command_position)
+		# FIXME: Selection should be by position, not by using the command directly
+	
+
 func _request_open() -> void:
 	var __file_dialog := _get_file_dialog()
 	__file_dialog.current_dir = ""
@@ -470,6 +519,7 @@ func _collection_displayer_item_selected() -> void:
 		return
 	
 	var selected_command = collection_displayer.get_selected().get_metadata(0)
+	state.last_selected_command_position = selected_command.position
 	edit_callback.bind(selected_command).call_deferred()
 
 
