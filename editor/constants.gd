@@ -6,3 +6,5 @@ enum {
 	NOTIFICATION_EDITOR_DISABLED = 9003,
 	NOTIFICATION_EDITOR_ENABLED = 9004,
 }
+
+const DEFAULT_LAYOUT_FILE = "res://.godot/editor/block_editor_cache.cfg"

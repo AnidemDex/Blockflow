@@ -99,6 +99,12 @@ func _get_plugin_name() -> String:
 func _get_plugin_icon():
 	return Icon
 
+func _save_external_data() -> void:
+	queue_save_layout()
+
+func _get_window_layout(configuration: ConfigFile) -> void:
+	block_editor.save_layout()
+
 func _define_toaster() -> void:
 	var dummy = Control.new()
 	dummy.name = "Dummy"
@@ -117,6 +123,7 @@ func _project_settings_changed() -> void:
 	block_editor.command_list.build_command_list()
 
 func _exit_tree():
+	queue_save_layout()
 	block_editor.queue_free()
 	
 	remove_resource_conversion_plugin(timeline_converter)

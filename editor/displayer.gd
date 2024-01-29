@@ -33,17 +33,12 @@ func build_tree(object:Object) -> void:
 
 func _reload() -> void:
 	clear()
-	for command in displayed_commands:
-		if command.collection_changed.is_connected(_reload):
-			command.collection_changed.disconnect(_reload)
 	
 	displayed_commands = []
 	
 	if not _current_collection:
 		last_selected_command = null
 		return
-	# Force generation of the tree
-	Blockflow.generate_tree(_current_collection)
 	
 	var min_width:int = 24 + Blockflow.BLOCK_ICON_MIN_SIZE
 	set_column_custom_minimum_width(CommandBlock.ColumnPosition.NAME_COLUMN, min_width*columns)
@@ -59,9 +54,6 @@ func _reload() -> void:
 	for command in _current_collection:
 		_add_command(command, root)
 	
-	for command in displayed_commands:
-		if not command.collection_changed.is_connected(_reload):
-			command.collection_changed.connect(_reload)
 	root.call_recursive("update")
 	if last_selected_command and is_instance_valid(last_selected_command.editor_block):
 		last_selected_command.editor_block.select(0)

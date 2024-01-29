@@ -1,6 +1,20 @@
 @tool
 extends PanelContainer
 
+class StateLayout:
+	var folded_commands:Array[int] = []
+	var last_selected_command_position:int = -1
+	
+	func to_dict() -> Dictionary:
+		return {
+			"folded_commands":folded_commands,
+			"last_selected_command_position":last_selected_command_position,
+		}
+	
+	func from_dict(val:Dictionary) -> void:
+		folded_commands = val.get("folded_commands", [])
+		last_selected_command_position = val.get("last_selected_command_position", -1)
+
 const Blockflow = preload("res://addons/blockflow/blockflow.gd")
 const CollectionDisplayer = preload("res://addons/blockflow/editor/displayer.gd")
 const CommandList = preload("res://addons/blockflow/editor/command_list.gd")
@@ -54,6 +68,8 @@ var history:Dictionary = {}
 
 var edited_object:Object
 
+var state:StateLayout
+
 # https://github.com/godotengine/godot/blob/4.0-stable/editor/editor_inspector.cpp#L3977
 var command_clipboard:Blockflow.CommandClass:
 	get:
@@ -85,6 +101,7 @@ func enable() -> void:
 	propagate_notification(Constants.NOTIFICATION_EDITOR_ENABLED)
 
 func close() -> void:
+	save_layout()
 	collection_displayer.build_tree(null)
 	_file_menu.set_item_disabled(
 		_file_menu.get_item_index(ToolbarFileMenu.CLOSE_COLLECTION),
@@ -118,22 +135,30 @@ func edit_collection(collection:Blockflow.CollectionClass) -> void:
 		disable()
 		return
 		
-	var load_function:Callable = collection_displayer.build_tree
 	var path_hint:String = ""
 	if edited_object:
-		if edited_object.changed.is_connected(load_function):
-			edited_object.changed.disconnect(load_function)
+		if edited_object.changed.is_connected(_current_collection_modified):
+			edited_object.changed.disconnect(_current_collection_modified)
+		
+		for command in edited_object._command_list:
+			if command.collection_changed.is_connected(_current_collection_modified):
+				command.collection_changed.disconnect(_current_collection_modified)
+		
+		save_layout()
+		
 	
 	_current_collection = collection
 	edited_object = collection
 	
-	if not _current_collection.changed.is_connected(load_function):
-		_current_collection.changed.connect(
-			load_function.bind(_current_collection),
-			CONNECT_DEFERRED
-		)
+	if not _current_collection.changed.is_connected(_current_collection_modified):
+		_current_collection.changed.connect(_current_collection_modified)
+	
+	for command in _current_collection._command_list:
+		if not command.collection_changed.is_connected(_current_collection_modified):
+			command.collection_changed.connect(_current_collection_modified)
 		
 	path_hint = _current_collection.resource_path
+	restore_layout()
 	hide_help_panel()
 	enable()
 	_file_menu.set_item_disabled(_file_menu.get_item_index(ToolbarFileMenu.CLOSE_COLLECTION), false)
@@ -142,7 +167,8 @@ func edit_collection(collection:Blockflow.CollectionClass) -> void:
 	update_history()
 	
 	title_label.text = path_hint
-	load_function.call(_current_collection)
+#	Blockflow.generate_tree(edited_object)
+	collection_displayer.build_tree(_current_collection)
 
 func edit_timeline(timeline:Object) -> void:
 	timeline = timeline as Blockflow.TimelineClass
@@ -350,6 +376,54 @@ func update_history() -> void:
 			_history_node.set_item_text(i, history_key + " (Current)")
 			_history_node.set_item_disabled(i, true)
 
+
+func save_layout() -> void:
+	if not _current_collection: return
+	
+	var layout:ConfigFile = ConfigFile.new()
+	
+	var data := Blockflow.generate_tree(_current_collection)
+	
+	for command in data.command_list:
+		if command.editor_state.get("folded", false):
+			state.folded_commands.append(command.position)
+	
+	layout.set_value(_current_collection.resource_path, "state", state.to_dict())
+	
+	var error:Error = layout.save(Constants.DEFAULT_LAYOUT_FILE)
+	if error:
+		push_error(error)
+
+
+func restore_layout() -> void:
+	if not _current_collection: return
+	
+	var layout:ConfigFile = ConfigFile.new()
+	
+	var error:Error = layout.load(Constants.DEFAULT_LAYOUT_FILE)
+	state = StateLayout.new()
+	
+	if error == ERR_FILE_NOT_FOUND:
+		return
+	
+	if error:
+		push_error(error)
+		return
+	
+	if not layout.has_section(_current_collection.resource_path):
+		return
+	
+	state.from_dict(layout.get_value(_current_collection.resource_path, "state", {}))
+	
+	for pos in state.folded_commands:
+		var command = _current_collection.get_command(pos)
+		command.editor_state["folded"] = true
+	
+	if state.last_selected_command_position > -1:
+		var command = _current_collection.get_command(state.last_selected_command_position)
+		# FIXME: Selection should be by position, not by using the command directly
+	
+
 func _request_open() -> void:
 	var __file_dialog := _get_file_dialog()
 	__file_dialog.current_dir = ""
@@ -454,6 +528,7 @@ func _collection_displayer_item_selected() -> void:
 		return
 	
 	var selected_command = collection_displayer.get_selected().get_metadata(0)
+	state.last_selected_command_position = selected_command.position
 	edit_callback.bind(selected_command).call_deferred()
 
 
@@ -618,6 +693,22 @@ func _history_node_item_selected(index:int) -> void:
 	var res:Resource = load(_history_node.get_item_tooltip(index))
 	if not res: return
 	edit(res)
+
+
+func _current_collection_modified() -> void:
+	var data := Blockflow.generate_tree(_current_collection)
+	for command in data.command_list:
+		if not command.collection_changed.is_connected(_current_collection_modified):
+			command.collection_changed.connect(_current_collection_modified)
+		
+		command.editor_state = {
+			"folded": false
+		}
+		if is_instance_valid(command.editor_block):
+			command.editor_state["folded"] = command.editor_block.collapsed
+	
+	collection_displayer.build_tree(_current_collection)
+
 
 func _notification(what: int) -> void:
 	match what:
