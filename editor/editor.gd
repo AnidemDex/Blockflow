@@ -507,6 +507,7 @@ func _collection_displayer_item_mouse_selected(_position:Vector2, button_index:i
 		_item_popup.set_item_disabled(1, !can_move_down)
 		_item_popup.add_separator()
 		_item_popup.add_item("Duplicate", _ItemPopup.DUPLICATE)
+		_item_popup.set_item_shortcut(_item_popup.get_item_index(_ItemPopup.DUPLICATE), Constants.SHORTCUT_DUPLICATE)
 		_item_popup.add_item("Remove", _ItemPopup.REMOVE)
 		_item_popup.add_separator()
 		
@@ -709,6 +710,28 @@ func _current_collection_modified() -> void:
 	
 	collection_displayer.build_tree(_current_collection)
 
+func _shortcut_input(event: InputEvent) -> void:
+	var focus_owner:Control = get_viewport().gui_get_focus_owner()
+	if not is_instance_valid(focus_owner):
+		return
+	
+	if not (collection_displayer.is_ancestor_of(focus_owner) or collection_displayer == focus_owner):
+		return
+	
+	if not is_instance_valid(collection_displayer.get_selected()):
+		return
+	
+	var command:Blockflow.CommandClass = collection_displayer.get_selected().get_metadata(0)
+	if not command:
+		return
+	
+	var command_idx:int = command.index
+	
+	if Constants.SHORTCUT_DUPLICATE.matches_event(event):
+		duplicate_command(command, command_idx + 1)
+		accept_event()
+		return
+		
 
 func _notification(what: int) -> void:
 	match what:
