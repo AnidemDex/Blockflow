@@ -2,7 +2,6 @@
 
 [sub_resource type="InputEventKey" id="InputEventKey_eio0l"]
 device = -1
-pressed = true
 keycode = 4194312
 
 [resource]
