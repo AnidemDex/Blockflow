@@ -514,10 +514,12 @@ func _collection_displayer_item_mouse_selected(_position:Vector2, button_index:i
 		
 		_item_popup.add_item("Copy", _ItemPopup.COPY)
 		_item_popup.set_item_icon(_item_popup.get_item_index(_ItemPopup.COPY), get_theme_icon("ActionCopy", "EditorIcons"))
+		_item_popup.set_item_shortcut(_item_popup.get_item_index(_ItemPopup.COPY), Constants.SHORTCUT_COPY)
 		
 		_item_popup.add_item("Paste", _ItemPopup.PASTE)
 		_item_popup.set_item_icon(_item_popup.get_item_index(_ItemPopup.PASTE), get_theme_icon("ActionPaste", "EditorIcons"))
 		_item_popup.set_item_disabled(_item_popup.get_item_index(_ItemPopup.PASTE), command_clipboard == null)
+		_item_popup.set_item_shortcut(_item_popup.get_item_index(_ItemPopup.PASTE), Constants.SHORTCUT_PASTE)
 		
 		_item_popup.reset_size()
 		_item_popup.position = DisplayServer.mouse_get_position()
