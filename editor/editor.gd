@@ -738,6 +738,10 @@ func _shortcut_input(event: InputEvent) -> void:
 		accept_event()
 		return
 	
+	if Constants.SHORTCUT_COPY.matches_event(event):
+		copy_command(command)
+	
+	
 	
 
 func _notification(what: int) -> void:
