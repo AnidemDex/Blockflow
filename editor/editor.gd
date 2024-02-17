@@ -741,6 +741,12 @@ func _shortcut_input(event: InputEvent) -> void:
 	if Constants.SHORTCUT_COPY.matches_event(event):
 		copy_command(command)
 	
+	if Constants.SHORTCUT_PASTE.matches_event(event):
+		if not command_clipboard:
+			return
+		
+		add_command(command_clipboard.get_duplicated(), command_idx + 1, command.get_command_owner())
+	
 	
 	
 
