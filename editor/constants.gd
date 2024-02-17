@@ -10,3 +10,4 @@ enum {
 const DEFAULT_LAYOUT_FILE = "res://.godot/editor/block_editor_cache.cfg"
 
 const SHORTCUT_DUPLICATE = preload("res://addons/blockflow/editor/shortcuts/duplicate.tres")
+const SHORTCUT_DELETE = preload("res://addons/blockflow/editor/shortcuts/delete.tres")

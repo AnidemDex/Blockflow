@@ -509,6 +509,7 @@ func _collection_displayer_item_mouse_selected(_position:Vector2, button_index:i
 		_item_popup.add_item("Duplicate", _ItemPopup.DUPLICATE)
 		_item_popup.set_item_shortcut(_item_popup.get_item_index(_ItemPopup.DUPLICATE), Constants.SHORTCUT_DUPLICATE)
 		_item_popup.add_item("Remove", _ItemPopup.REMOVE)
+		_item_popup.set_item_shortcut(_item_popup.get_item_index(_ItemPopup.REMOVE), Constants.SHORTCUT_DELETE)
 		_item_popup.add_separator()
 		
 		_item_popup.add_item("Copy", _ItemPopup.COPY)
@@ -731,7 +732,13 @@ func _shortcut_input(event: InputEvent) -> void:
 		duplicate_command(command, command_idx + 1)
 		accept_event()
 		return
-		
+	
+	if Constants.SHORTCUT_DELETE.matches_event(event):
+		remove_command(command)
+		accept_event()
+		return
+	
+	
 
 func _notification(what: int) -> void:
 	match what:
