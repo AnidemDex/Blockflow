@@ -206,7 +206,8 @@ func add_command(command:Blockflow.CommandClass, at_position:int = -1, to_collec
 	
 	
 	var action_name:String = "Add command '%s'" % [command.command_name]
-	
+	collection_displayer.last_selected_command = command
+	state.last_selected_command_position = at_position
 	if Engine.is_editor_hint():
 		editor_undoredo.create_action(action_name)
 		
@@ -262,6 +263,7 @@ func move_command(command:Blockflow.CommandClass, to_position:int, from_collecti
 
 	var from_position:int = from_collection.get_command_position(command)
 	var action_name:String = "Move command '%s'" % [command.command_name]
+	collection_displayer.last_selected_command = command
 	if Engine.is_editor_hint():
 		if from_collection == to_collection:
 			editor_undoredo.create_action(action_name, 0, from_collection)
@@ -304,9 +306,8 @@ func duplicate_command(command:Blockflow.CommandClass, to_index:int) -> void:
 	
 	var action_name:String = "Duplicate command '%s'" % [command.command_name]
 	var duplicated_command = command.get_duplicated()
-	collection_displayer.last_selected_command = command
+	collection_displayer.last_selected_command = duplicated_command
 	var idx = to_index if to_index > -1 else command_collection.size()
-	
 	if Engine.is_editor_hint():
 		editor_undoredo.create_action(action_name)
 		editor_undoredo.add_do_method(command_collection, "insert", duplicated_command, idx)
@@ -414,7 +415,7 @@ func restore_layout() -> void:
 		return
 	
 	state.from_dict(layout.get_value(_current_collection.resource_path, "state", {}))
-	
+
 	for pos in state.folded_commands:
 		var command = _current_collection.get_command(pos)
 		command.editor_state["folded"] = true
@@ -486,7 +487,7 @@ func _command_button_list_pressed(command:Blockflow.CommandClass) -> void:
 				command_idx = selected.index + 1
 				in_collection = selected.get_command_owner()
 			
-			collection_displayer.last_selected_command = new_command
+	collection_displayer.last_selected_command = new_command
 	add_command(new_command, command_idx, in_collection)
 
 

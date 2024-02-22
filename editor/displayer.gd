@@ -27,7 +27,6 @@ func build_tree(object:Object) -> void:
 		collection = object as CollectionClass
 	
 	_current_collection = collection
-	last_selected_command = null
 	_reload()
 
 
@@ -57,6 +56,7 @@ func _reload() -> void:
 	root.call_recursive("update")
 	if last_selected_command and is_instance_valid(last_selected_command.editor_block):
 		last_selected_command.editor_block.select(0)
+		ensure_cursor_is_visible()
 	else:
 		last_selected_command = null
 	
