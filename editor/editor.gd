@@ -414,7 +414,7 @@ func restore_layout() -> void:
 		return
 	
 	state.from_dict(layout.get_value(_current_collection.resource_path, "state", {}))
-	
+
 	for pos in state.folded_commands:
 		var command = _current_collection.get_command(pos)
 		command.editor_state["folded"] = true
@@ -502,8 +502,10 @@ func _collection_displayer_item_mouse_selected(_position:Vector2, button_index:i
 			can_move_down = c_pos < c_max_size - 1
 		_item_popup.clear()
 		_item_popup.add_item("Move up", _ItemPopup.MOVE_UP)
+		_item_popup.set_item_shortcut(_item_popup.get_item_index(_ItemPopup.MOVE_UP), Constants.SHORTCUT_MOVE_UP)
 		_item_popup.set_item_disabled(0, !can_move_up)
 		_item_popup.add_item("Move down", _ItemPopup.MOVE_DOWN)
+		_item_popup.set_item_shortcut(_item_popup.get_item_index(_ItemPopup.MOVE_DOWN), Constants.SHORTCUT_MOVE_DOWN)
 		_item_popup.set_item_disabled(1, !can_move_down)
 		_item_popup.add_separator()
 		_item_popup.add_item("Duplicate", _ItemPopup.DUPLICATE)
@@ -730,6 +732,16 @@ func _shortcut_input(event: InputEvent) -> void:
 	
 	var command_idx:int = command.index
 	
+	if Constants.SHORTCUT_MOVE_UP.matches_event(event):
+		move_command(command, max(0, command_idx - 1))
+		accept_event()
+		return
+
+	if Constants.SHORTCUT_MOVE_DOWN.matches_event(event):
+		move_command(command, command_idx + 1)
+		accept_event()
+		return
+
 	if Constants.SHORTCUT_DUPLICATE.matches_event(event):
 		duplicate_command(command, command_idx + 1)
 		accept_event()
