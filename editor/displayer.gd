@@ -42,6 +42,7 @@ func _reload() -> void:
 	
 	var min_width:int = 24 + Blockflow.BLOCK_ICON_MIN_SIZE
 	set_column_custom_minimum_width(CommandBlock.ColumnPosition.NAME_COLUMN, min_width*columns)
+	set_column_custom_minimum_width(CommandBlock.ColumnPosition.INDEX_COLUMN, 42)
 	
 	var r:TreeItem = create_item()
 	r.set_script(RootBlock)
