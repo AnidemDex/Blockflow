@@ -65,8 +65,9 @@ func update() -> void:
 		hint_tooltip = ""
 		bookmark_icon = null
 	
+	var icon_min_size:int = get_tree().get_theme_constant("icon_min_size", "BlockEditor")
 	for i in get_tree().columns:
-		set_icon_max_width(i, Blockflow.BLOCK_ICON_MIN_SIZE)
+		set_icon_max_width(i, icon_min_size)
 
 		if command_background_color == Color():
 			clear_custom_bg_color(i)

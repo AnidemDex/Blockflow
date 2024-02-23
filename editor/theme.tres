@@ -4,6 +4,6 @@
 [ext_resource type="Texture2D" uid="uid://bjpgrlbxe2frx" path="res://addons/blockflow/icons/plugin_icon_flat.svg" id="2_bbrvm"]
 
 [resource]
-BlockEditor/constants/icon_min_size = 0
+BlockEditor/constants/icon_min_size = 32
 PluginIcons/icons/plugin_icon = ExtResource("1_jlt6l")
 PluginIcons/icons/plugin_icon_flat = ExtResource("2_bbrvm")

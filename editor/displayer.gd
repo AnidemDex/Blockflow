@@ -39,7 +39,7 @@ func _reload() -> void:
 		last_selected_command = null
 		return
 	
-	var min_width:int = 24 + Blockflow.BLOCK_ICON_MIN_SIZE
+	var min_width:int = 24 + get_theme_constant("icon_min_size", "BlockEditor")
 	set_column_custom_minimum_width(CommandBlock.ColumnPosition.NAME_COLUMN, min_width*columns)
 	set_column_custom_minimum_width(CommandBlock.ColumnPosition.INDEX_COLUMN, 42)
 	

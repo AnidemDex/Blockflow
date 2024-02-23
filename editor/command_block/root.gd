@@ -26,9 +26,10 @@ func update() -> void:
 	if timeline_name.is_empty():
 		timeline_name = collection.resource_path.get_file()
 	
+	var icon_min_size:int = get_tree().get_theme_constant("icon_min_size", "BlockEditor")
 	for i in get_tree().columns:
 		set_expand_right(i, false)
-		set_icon_max_width(i, Blockflow.BLOCK_ICON_MIN_SIZE)
+		set_icon_max_width(i, icon_min_size)
 	
 	set_text(ColumnPosition.HINT_COLUMN, timeline_name)
 	set_text_alignment(ColumnPosition.HINT_COLUMN, HORIZONTAL_ALIGNMENT_CENTER)
@@ -42,4 +43,4 @@ func set_command(_value) -> void:
 
 func _init():
 	disable_folding = true
-	custom_minimum_height = Blockflow.BLOCK_ICON_MIN_SIZE
+	custom_minimum_height = 32
