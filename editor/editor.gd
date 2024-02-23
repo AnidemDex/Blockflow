@@ -793,6 +793,7 @@ func _init() -> void:
 	name = "CollectionEditor"
 	size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	size_flags_vertical = Control.SIZE_EXPAND_FILL
+	theme = load(Constants.DEFAULT_THEME_PATH) as Theme
 	
 	var vb = VBoxContainer.new()
 	vb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
