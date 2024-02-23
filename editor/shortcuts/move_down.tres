@@ -1,0 +1,8 @@
+[gd_resource type="Shortcut" load_steps=2 format=3 uid="uid://c11cicu4ltqia"]
+
+[sub_resource type="InputEventKey" id="InputEventKey_wyhbg"]
+alt_pressed = true
+keycode = 4194322
+
+[resource]
+events = [SubResource("InputEventKey_wyhbg")]

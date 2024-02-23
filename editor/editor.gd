@@ -414,7 +414,7 @@ func restore_layout() -> void:
 		return
 	
 	state.from_dict(layout.get_value(_current_collection.resource_path, "state", {}))
-	
+
 	for pos in state.folded_commands:
 		var command = _current_collection.get_command(pos)
 		command.editor_state["folded"] = true
@@ -502,20 +502,26 @@ func _collection_displayer_item_mouse_selected(_position:Vector2, button_index:i
 			can_move_down = c_pos < c_max_size - 1
 		_item_popup.clear()
 		_item_popup.add_item("Move up", _ItemPopup.MOVE_UP)
+		_item_popup.set_item_shortcut(_item_popup.get_item_index(_ItemPopup.MOVE_UP), Constants.SHORTCUT_MOVE_UP)
 		_item_popup.set_item_disabled(0, !can_move_up)
 		_item_popup.add_item("Move down", _ItemPopup.MOVE_DOWN)
+		_item_popup.set_item_shortcut(_item_popup.get_item_index(_ItemPopup.MOVE_DOWN), Constants.SHORTCUT_MOVE_DOWN)
 		_item_popup.set_item_disabled(1, !can_move_down)
 		_item_popup.add_separator()
 		_item_popup.add_item("Duplicate", _ItemPopup.DUPLICATE)
+		_item_popup.set_item_shortcut(_item_popup.get_item_index(_ItemPopup.DUPLICATE), Constants.SHORTCUT_DUPLICATE)
 		_item_popup.add_item("Remove", _ItemPopup.REMOVE)
+		_item_popup.set_item_shortcut(_item_popup.get_item_index(_ItemPopup.REMOVE), Constants.SHORTCUT_DELETE)
 		_item_popup.add_separator()
 		
 		_item_popup.add_item("Copy", _ItemPopup.COPY)
 		_item_popup.set_item_icon(_item_popup.get_item_index(_ItemPopup.COPY), get_theme_icon("ActionCopy", "EditorIcons"))
+		_item_popup.set_item_shortcut(_item_popup.get_item_index(_ItemPopup.COPY), Constants.SHORTCUT_COPY)
 		
 		_item_popup.add_item("Paste", _ItemPopup.PASTE)
 		_item_popup.set_item_icon(_item_popup.get_item_index(_ItemPopup.PASTE), get_theme_icon("ActionPaste", "EditorIcons"))
 		_item_popup.set_item_disabled(_item_popup.get_item_index(_ItemPopup.PASTE), command_clipboard == null)
+		_item_popup.set_item_shortcut(_item_popup.get_item_index(_ItemPopup.PASTE), Constants.SHORTCUT_PASTE)
 		
 		_item_popup.reset_size()
 		_item_popup.position = DisplayServer.mouse_get_position()
@@ -709,6 +715,54 @@ func _current_collection_modified() -> void:
 	
 	collection_displayer.build_tree(_current_collection)
 
+func _shortcut_input(event: InputEvent) -> void:
+	var focus_owner:Control = get_viewport().gui_get_focus_owner()
+	if not is_instance_valid(focus_owner):
+		return
+	
+	if not (collection_displayer.is_ancestor_of(focus_owner) or collection_displayer == focus_owner):
+		return
+	
+	if not is_instance_valid(collection_displayer.get_selected()):
+		return
+	
+	var command:Blockflow.CommandClass = collection_displayer.get_selected().get_metadata(0)
+	if not command:
+		return
+	
+	var command_idx:int = command.index
+	
+	if Constants.SHORTCUT_MOVE_UP.matches_event(event):
+		move_command(command, max(0, command_idx - 1))
+		accept_event()
+		return
+
+	if Constants.SHORTCUT_MOVE_DOWN.matches_event(event):
+		move_command(command, command_idx + 1)
+		accept_event()
+		return
+
+	if Constants.SHORTCUT_DUPLICATE.matches_event(event):
+		duplicate_command(command, command_idx + 1)
+		accept_event()
+		return
+	
+	if Constants.SHORTCUT_DELETE.matches_event(event):
+		remove_command(command)
+		accept_event()
+		return
+	
+	if Constants.SHORTCUT_COPY.matches_event(event):
+		copy_command(command)
+	
+	if Constants.SHORTCUT_PASTE.matches_event(event):
+		if not command_clipboard:
+			return
+		
+		add_command(command_clipboard.get_duplicated(), command_idx + 1, command.get_command_owner())
+	
+	
+	
 
 func _notification(what: int) -> void:
 	match what:
