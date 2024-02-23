@@ -2,17 +2,19 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bjpgrlbxe2frx"
-path="res://.godot/imported/icon_flat.svg-a999f6e9b2c1dd0514f58b1c703b9c31.ctex"
+uid="uid://cldg1emv8w4g4"
+path="res://.godot/imported/plugin_icon.svg-ec16cde1dc1c9a421de06d4015f22553.ctex"
 metadata={
+"editor_dark_theme": true,
+"editor_scale": 0.75,
 "has_editor_variant": true,
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://addons/blockflow/icon_flat.svg"
-dest_files=["res://.godot/imported/icon_flat.svg-a999f6e9b2c1dd0514f58b1c703b9c31.ctex"]
+source_file="res://addons/blockflow/icons/plugin_icon.svg"
+dest_files=["res://.godot/imported/plugin_icon.svg-ec16cde1dc1c9a421de06d4015f22553.ctex"]
 
 [params]
 
