@@ -1,15 +1,16 @@
 @tool
 extends EditorPlugin
 
-const Icon = preload("res://addons/blockflow/icon_flat.svg")
-
-const Settings = preload("res://addons/blockflow/blockflow.gd")
+const Blockflow = preload("res://addons/blockflow/blockflow.gd")
 const BlockEditor = preload("res://addons/blockflow/editor/editor.gd")
 const TimelineConverter = preload("res://addons/blockflow/timeline_converter.gd")
 const InspectorTools = preload("res://addons/blockflow/editor/inspector/inspector_tools.gd")
 const CommandInspector = preload("res://addons/blockflow/editor/inspector/command_inspector.gd")
 const CommandCallInspector = preload("res://addons/blockflow/editor/inspector/call_inspector.gd")
 const BlockflowDebugger = preload("res://addons/blockflow/debugger/blockflow_debugger.gd")
+
+const Constants = preload("res://addons/blockflow/core/constants.gd")
+const EditorConstants = preload("res://addons/blockflow/editor/constants.gd")
 
 
 var block_editor:BlockEditor
@@ -29,6 +30,8 @@ var editor_toaster:Node
 
 var debugger:BlockflowDebugger
 
+var theme:Theme = load(EditorConstants.DEFAULT_THEME_PATH) as Theme
+
 func toast(message:String, severity:int = 0, tooltip:String = ""):
 	if not is_inside_tree():
 		return
@@ -38,15 +41,17 @@ func toast(message:String, severity:int = 0, tooltip:String = ""):
 	editor_toaster.call("_popup_str", message, severity, tooltip)
 
 func _enable_plugin() -> void:
-	if not ProjectSettings.has_setting(Settings.PROJECT_SETTING_CUSTOM_COMMANDS):
-		ProjectSettings.set_setting(Settings.PROJECT_SETTING_CUSTOM_COMMANDS, [])
+	if not ProjectSettings.has_setting(Constants.PROJECT_SETTING_CUSTOM_COMMANDS):
+		ProjectSettings.set_setting(Constants.PROJECT_SETTING_CUSTOM_COMMANDS, [])
 	var setting_info:Dictionary = {
-		"name": Settings.PROJECT_SETTING_CUSTOM_COMMANDS,
+		"name": Constants.PROJECT_SETTING_CUSTOM_COMMANDS,
 		"type": TYPE_PACKED_STRING_ARRAY,
 		"hint": PROPERTY_HINT_FILE,
 		"hint_string": "*.gd"
 	}
 	ProjectSettings.add_property_info(setting_info)
+	
+	
 	ProjectSettings.save()
 
 func _enter_tree():
@@ -68,8 +73,8 @@ func _enter_tree():
 func _handles(object: Object) -> bool:
 	var condition:bool = false
 	condition =\
-	(object is Settings.CollectionClass) or \
-	(object is Settings.TimelineClass)
+	(object is Blockflow.CollectionClass) or \
+	(object is Blockflow.TimelineClass)
 	
 	last_handled_object = object
 	
@@ -94,10 +99,8 @@ func _has_main_screen() -> bool:
 func _get_plugin_name() -> String:
 	return "Blockflow"
 
-# TODO:
-# Replace with custom icon
 func _get_plugin_icon():
-	return Icon
+	return theme.get_icon("plugin_icon_flat", "PluginIcons")
 
 func _save_external_data() -> void:
 	queue_save_layout()
