@@ -1,0 +1,9 @@
+[gd_resource type="Theme" load_steps=3 format=3 uid="uid://bqoxlvagvusb0"]
+
+[ext_resource type="Texture2D" uid="uid://cldg1emv8w4g4" path="res://addons/blockflow/icons/plugin_icon.svg" id="1_jlt6l"]
+[ext_resource type="Texture2D" uid="uid://bjpgrlbxe2frx" path="res://addons/blockflow/icons/plugin_icon_flat.svg" id="2_bbrvm"]
+
+[resource]
+BlockEditor/constants/icon_min_size = 0
+PluginIcons/icons/plugin_icon = ExtResource("1_jlt6l")
+PluginIcons/icons/plugin_icon_flat = ExtResource("2_bbrvm")
