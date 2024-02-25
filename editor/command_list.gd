@@ -7,7 +7,8 @@ const CommandClass = preload("res://addons/blockflow/commands/command.gd")
 const EditorConst = preload("res://addons/blockflow/editor/constants.gd")
 
 class Category extends VBoxContainer:
-	const InspectorTools = preload("res://addons/blockflow/editor/inspector/inspector_tools.gd")
+	var EditorTheme:Theme = load(EditorConst.DEFAULT_THEME_PATH) as Theme
+	
 	var title:Button
 	var container:VBoxContainer
 	var command_button_pressed_callback:Callable
@@ -72,6 +73,18 @@ class Category extends VBoxContainer:
 				title.add_theme_icon_override("unchecked", get_theme_icon("GuiTreeArrowDown", "EditorIcons"))
 				title.add_theme_icon_override("checked_disabled", get_theme_icon("GuiTreeArrowRight", "EditorIcons"))
 				title.add_theme_icon_override("unchecked_disabled", get_theme_icon("GuiTreeArrowDown", "EditorIcons"))
+				
+				var category_icon:Texture
+				var theme_name:String = title.text
+				# Verifying this per theme change may impact performance?
+				var is_category_theme_defined:bool = EditorTheme.get_icon_list("Category").has(theme_name)
+				
+				category_icon = get_theme_icon(theme_name, "Category")
+				
+				if not is_category_theme_defined:
+					category_icon = get_theme_icon("Object", "EditorIcons")
+				
+				title.icon = category_icon
 			
 			9003:
 				propagate_call("set", ["disabled", true])
@@ -83,6 +96,7 @@ class Category extends VBoxContainer:
 		title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		title.text = "Category"
 		title.alignment = HORIZONTAL_ALIGNMENT_CENTER
+		title.expand_icon = true
 		title.toggled.connect(_toggle)
 		add_child(title)
 		
@@ -127,6 +141,7 @@ func add_category(category_name:StringName) -> void:
 	if category_name in categories: return
 	
 	var category = Category.new()
+	category.name = category_name
 	category.command_button_pressed_callback = command_button_pressed_callback
 	category.title.text = category_name
 	category.title.icon = get_theme_icon("Object", "EditorIcons")
