@@ -1,27 +1,10 @@
 ## Modifying values here requires a plugin reload after save.
 
-const DEFAULT_COMMAND_PATHS = [
-	"res://addons/blockflow/commands/command_call.gd",
-	"res://addons/blockflow/commands/command_animate.gd",
-	"res://addons/blockflow/commands/command_comment.gd",
-	"res://addons/blockflow/commands/command_print.gd",
-#	"res://addons/blockflow/commands/command_condition.gd",
-	"res://addons/blockflow/commands/branch.gd",
-	"res://addons/blockflow/commands/command_goto.gd",
-	"res://addons/blockflow/commands/command_return.gd",
-	"res://addons/blockflow/commands/command_set.gd",
-	"res://addons/blockflow/commands/command_wait.gd",
-	"res://addons/blockflow/commands/command_end.gd",
-	]
-
-const PROJECT_SETTING_DEFAULT_COMMANDS =\
-"blockflow/settings/commands/default_commands"
-const PROJECT_SETTING_CUSTOM_COMMANDS =\
-"blockflow/settings/commands/custom_commands"
+const PluginConstants = preload("res://addons/blockflow/core/constants.gd")
 
 static func get_default_command_scripts() -> Array:
 	var commands := []
-	for command_path in DEFAULT_COMMAND_PATHS:
+	for command_path in PluginConstants.DEFAULT_COMMAND_PATHS:
 		if not ResourceLoader.exists(command_path, "Script"):
 			push_warning("!ResourceLoader.exists(%s) == true, continuing"%command_path)
 			continue
@@ -40,7 +23,7 @@ static func get_default_command_scripts() -> Array:
 ## ProjectSettings [constant PROJECT_SETTING_CUSTOM_COMMANDS]
 static func get_custom_commands() -> Array:
 	var commands := []
-	for command_path in ProjectSettings.get_setting(PROJECT_SETTING_CUSTOM_COMMANDS, []):
+	for command_path in ProjectSettings.get_setting(PluginConstants.PROJECT_SETTING_CUSTOM_COMMANDS, []):
 		if not ResourceLoader.exists(command_path):
 			push_warning("!ResourceLoader.exists(%s) == true, continuing"%command_path)
 			continue
@@ -55,10 +38,6 @@ static func get_custom_commands() -> Array:
 		commands.append(command)
 		
 	return commands
-
-const PROJECT_SETTING_BLOCK_ICON_MIN_SIZE =\
-"blockflow/settings/editor/commands/icon_minimun_size"
-const BLOCK_ICON_MIN_SIZE = 32
 
 const Debugger = preload("res://addons/blockflow/debugger/debugger_messages.gd")
 

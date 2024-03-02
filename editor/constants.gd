@@ -7,7 +7,11 @@ enum {
 	NOTIFICATION_EDITOR_ENABLED = 9004,
 }
 
-const DEFAULT_LAYOUT_FILE = "res://.godot/editor/block_editor_cache.cfg"
+const DEFAULT_LAYOUT_FILE =\
+&"res://.godot/editor/block_editor_cache.cfg"
+
+const DEFAULT_THEME_PATH =\
+&"res://addons/blockflow/editor/theme.tres"
 
 const SHORTCUT_MOVE_UP = preload("res://addons/blockflow/editor/shortcuts/move_up.tres")
 const SHORTCUT_MOVE_DOWN = preload("res://addons/blockflow/editor/shortcuts/move_down.tres")

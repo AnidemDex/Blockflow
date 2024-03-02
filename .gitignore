@@ -1,3 +1,1 @@
-# ignore icons folder. Icons must be added manually
-# This is due editor always modify .import files
-icons/*.import
+# I can't find a way to ignore further modifications to .import files
