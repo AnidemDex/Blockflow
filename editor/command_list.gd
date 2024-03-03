@@ -116,6 +116,7 @@ var categories:Dictionary = {}
 func build_command_list() -> void:
 	if is_instance_valid(category_container):
 		category_container.queue_free()
+		category_container = null
 	categories.clear()
 	create_category_container()
 	
