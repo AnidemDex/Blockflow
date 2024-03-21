@@ -166,3 +166,7 @@ func _init() -> void:
 	project_settings_changed.connect(_project_settings_changed)
 	
 	debugger = BlockflowDebugger.new()
+	
+	# Add the plugin to the list when we're created as soon as possible.
+	# Existing doesn't mean that plugin is ready, be careful with that.
+	Engine.set_meta(Constants.PLUGIN_NAME, self)
