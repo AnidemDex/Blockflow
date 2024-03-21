@@ -174,6 +174,25 @@ func sort_categories() -> void:
 	if &"Commands" in categories:
 		category_container.move_child(categories[&"Commands"], 0)
 
+func _can_drop_data(at_position: Vector2, data) -> bool:
+	if typeof(data) != TYPE_DICTIONARY: return false
+	
+	if data.get(&"type", &"") != &"files": return false
+	
+	var files:Array = data.get(&"files", [])
+	if files.is_empty(): return false
+	
+	var interface:EditorInterface = Engine.get_meta("EditorInterface", null)
+	# There's no interface? Maybe we're not in editor?
+	if not interface: return false
+	
+	var filesystem:EditorFileSystem = interface.get_resource_filesystem()
+	for file in files:
+		print(filesystem.get_file_type(file))
+		
+		
+	
+	return true
 
 func _notification(what: int) -> void:
 	match what:
