@@ -97,7 +97,7 @@ func _has_main_screen() -> bool:
 
 
 func _get_plugin_name() -> String:
-	return "Blockflow"
+	return Constants.NAME
 
 func _get_plugin_icon():
 	return theme.get_icon("plugin_icon_flat", "PluginIcons")
