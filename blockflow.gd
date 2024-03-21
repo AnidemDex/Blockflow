@@ -1,6 +1,22 @@
-## Modifying values here requires a plugin reload after save.
+## Blockflow plugin-wide constants.
+# Modifying values here requires a plugin reload after save.
 
 const PluginConstants = preload("res://addons/blockflow/core/constants.gd")
+
+## Blockflow debugger constants messages
+const Debugger = preload("res://addons/blockflow/debugger/debugger_messages.gd")
+## Blockflow util scripts. Utility functions that didn't have place here.
+const Utils = preload("res://addons/blockflow/core/utils.gd")
+
+# Made to ensure that classes are loaded before class_name populates editor
+## [Collection] class.
+const CollectionClass = preload("res://addons/blockflow/collection.gd")
+## [CommandCollection] class.
+const CommandCollectionClass = preload("res://addons/blockflow/command_collection.gd")
+## [Command] class.
+const CommandClass = preload("res://addons/blockflow/commands/command.gd")
+## [CommandProcessor] class.
+const CommandProcessorClass = preload("res://addons/blockflow/command_processor.gd")
 
 static func get_default_command_scripts() -> Array:
 	var commands := []
@@ -39,15 +55,16 @@ static func get_custom_commands() -> Array:
 		
 	return commands
 
-const Debugger = preload("res://addons/blockflow/debugger/debugger_messages.gd")
+static func get_plugin() -> Node:
+	if not Engine.has_meta(PluginConstants.PLUGIN_NAME):
+		return null
+	
+	return Engine.get_meta(PluginConstants.PLUGIN_NAME)
 
-const Utils = preload("res://addons/blockflow/core/utils.gd")
+static func get_editor_interface() -> EditorInterface:
+	return null
 
-# Made to ensure that classes are loaded before class_name populates editor
-const CollectionClass = preload("res://addons/blockflow/collection.gd")
-const CommandCollectionClass = preload("res://addons/blockflow/command_collection.gd")
-const CommandClass = preload("res://addons/blockflow/commands/command.gd")
-const CommandProcessorClass = preload("res://addons/blockflow/command_processor.gd")
+# TODO: Remove
 ## @deprecated
 const TimelineClass = preload("res://addons/blockflow/timeline.gd")
 
