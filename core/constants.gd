@@ -1,3 +1,7 @@
+## Plugin constants
+
+const NAME = &"Blockflow"
+const PLUGIN_NAME = &"BlockflowPlugin"
 
 const COMMAND_FOLDER = &"res://addons/blockflow/commands"
 

@@ -97,7 +97,7 @@ func _has_main_screen() -> bool:
 
 
 func _get_plugin_name() -> String:
-	return "Blockflow"
+	return Constants.NAME
 
 func _get_plugin_icon():
 	return theme.get_icon("plugin_icon_flat", "PluginIcons")
@@ -166,3 +166,7 @@ func _init() -> void:
 	project_settings_changed.connect(_project_settings_changed)
 	
 	debugger = BlockflowDebugger.new()
+	
+	# Add the plugin to the list when we're created as soon as possible.
+	# Existing doesn't mean that plugin is ready, be careful with that.
+	Engine.set_meta(Constants.PLUGIN_NAME, self)
