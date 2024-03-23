@@ -1,27 +1,27 @@
 @tool
 extends EditorDebuggerPlugin
 
-const DConst = preload("res://addons/blockflow/debugger/debugger_constants.gd")
+const Constants = preload("res://addons/blockflow/debugger/constants.gd")
 const DebuggerTab = preload("res://addons/blockflow/debugger/debugger_tab.gd")
 
 var editor_plugin:EditorPlugin
 var debugger_tab := DebuggerTab.new()
 
 func _has_capture(capture: String) -> bool:
-	return capture == DConst.DEBUGGER_PREFIX
+	return capture == Constants.DEBUGGER_PREFIX
 
 func _capture(message: String, data: Array, session_id: int) -> bool:
 	match message:
-		DConst.DEBUGGER_REGISTER_PROCESSOR:
+		Constants.DEBUGGER_REGISTER_PROCESSOR:
 			debugger_tab.register_processor(data[0])
 			return true
-		DConst.DEBUGGER_UNREGISTER_PROCESSOR:
+		Constants.DEBUGGER_UNREGISTER_PROCESSOR:
 			debugger_tab.unregister_processor(data[0])
 			return true
-		DConst.DEBUGGER_PROCESSOR_PROCESSING_COLLECTION:
+		Constants.DEBUGGER_PROCESSOR_PROCESSING_COLLECTION:
 			debugger_tab.processor_processing_collection(data[0], data[1])
 			return true
-		DConst.DEBUGGER_PROCESSOR_PROCESSING_COMMAND:
+		Constants.DEBUGGER_PROCESSOR_PROCESSING_COMMAND:
 			debugger_tab.processor_processing_command(data[0], data[1])
 			return true
 	
