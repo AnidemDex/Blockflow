@@ -32,6 +32,8 @@ var debugger:BlockflowDebugger
 
 var theme:Theme = load(EditorConstants.DEFAULT_THEME_PATH) as Theme
 
+var command_record:Blockflow.CommandRecord
+
 func toast(message:String, severity:int = 0, tooltip:String = ""):
 	if not is_inside_tree():
 		return
@@ -170,3 +172,6 @@ func _init() -> void:
 	# Add the plugin to the list when we're created as soon as possible.
 	# Existing doesn't mean that plugin is ready, be careful with that.
 	Engine.set_meta(Constants.PLUGIN_NAME, self)
+	
+	command_record = Blockflow.CommandRecord.new()
+	
