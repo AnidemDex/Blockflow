@@ -174,9 +174,35 @@ func unregister(command_data:Variant) -> void:
 	_updating = false
 
 
-func _project_settings_changed() -> void:
-	# TODO: Update list
-	pass
+func reload_from_project_settings() -> void:
+	if _updating:
+		return
+	
+	if not ProjectSettings.has_setting(Constants.PROJECT_SETTING_CUSTOM_COMMANDS):
+		ProjectSettings.set_setting(Constants.PROJECT_SETTING_CUSTOM_COMMANDS, PackedStringArray())
+		var setting_info:Dictionary = {
+			"name": Constants.PROJECT_SETTING_CUSTOM_COMMANDS,
+			"type": TYPE_PACKED_STRING_ARRAY,
+			"hint": PROPERTY_HINT_FILE, # TODO: Find a way to show a file selector
+			"hint_string": "*.gd"
+		}
+		ProjectSettings.add_property_info(setting_info)
+		ProjectSettings.save()
+	
+	var new_paths:PackedStringArray = ProjectSettings.get_setting(Constants.PROJECT_SETTING_CUSTOM_COMMANDS, [])
+	
+	if PackedStringArray(_paths.keys()) == new_paths:
+		# Same paths, probably, no need to update anything.
+		return
+	
+	_commands.clear()
+	_scripts.clear()
+	_paths.clear()
+	
+	for path in new_paths:
+		_updating = true
+		register(path, false, false)
+		_updating = false
 
 
 func _register_default_commands() -> void:
@@ -189,7 +215,10 @@ func _init() -> void:
 		push_error("A CommandRecord already exist!")
 		return
 	
+	_updating = true
 	_register_default_commands()
+	reload_from_project_settings()
+	_updating = false
 	
 	# Let's not contribute to reference counter, shall we?
 	Engine.set_meta("CommandRecord", weakref(self))
