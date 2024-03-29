@@ -5,6 +5,7 @@ const FALLBACK_ICON = preload("res://addons/blockflow/icons/false.svg")
 const Settings = preload("res://addons/blockflow/blockflow.gd")
 const CommandClass = preload("res://addons/blockflow/commands/command.gd")
 const EditorConst = preload("res://addons/blockflow/editor/constants.gd")
+const CommandRecord = preload("res://addons/blockflow/core/command_record.gd")
 
 class Category extends VBoxContainer:
 	const InspectorTools = preload("res://addons/blockflow/editor/inspector/inspector_tools.gd")
@@ -165,6 +166,11 @@ func _notification(what: int) -> void:
 		NOTIFICATION_ENTER_TREE, NOTIFICATION_THEME_CHANGED:
 			# TODO: Add a background stylebox
 			return
+		
+		NOTIFICATION_READY:
+			var command_record:CommandRecord = CommandRecord.get_record()
+			command_record.command_list_changed.connect(build_command_list)
+			build_command_list()
 
 func _init() -> void:
 	size_flags_vertical = Control.SIZE_EXPAND_FILL
