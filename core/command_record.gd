@@ -199,6 +199,8 @@ func reload_from_project_settings() -> void:
 	_scripts.clear()
 	_paths.clear()
 	
+	_register_default_commands()
+	
 	for path in new_paths:
 		_updating = true
 		register(path, false, false)
@@ -207,7 +209,9 @@ func reload_from_project_settings() -> void:
 
 func _register_default_commands() -> void:
 	for command_path in Constants.DEFAULT_COMMAND_PATHS:
+		_updating = true
 		register(command_path, false, false)
+		_updating = false
 
 
 func _init() -> void:
@@ -216,7 +220,6 @@ func _init() -> void:
 		return
 	
 	_updating = true
-	_register_default_commands()
 	reload_from_project_settings()
 	_updating = false
 	
