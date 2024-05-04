@@ -36,7 +36,7 @@ static func get_record() -> Object:
 
 ## Add a command to record.
 ## [param command_data] can be [Script], [Command] or a path.
-func register(command_data:Variant, as_template:bool = true, update_project_settings:bool = true) -> void:
+func register(command_data:Variant, update_project_settings:bool = true) -> void:
 	var command:CommandClass
 	var command_path:String
 	var command_script:Script
@@ -53,13 +53,11 @@ func register(command_data:Variant, as_template:bool = true, update_project_sett
 			# There's already a command registered at that path.
 			return
 		
-		as_template = false
 		command_data = load(command_path)
 	
 	if command_data is Script:
 		command_script = command_data
 		command_path = command_data.resource_path
-		as_template = false
 		command_data = command_script.new()
 		
 	if command_data is CommandClass:
@@ -86,27 +84,6 @@ func register(command_data:Variant, as_template:bool = true, update_project_sett
 	
 	if not command in _scripts[command_script]:
 		_scripts[command_script].append(command)
-	
-	# Validate and register its path
-	if as_template:
-		var command_name := command.command_name
-		var template_name := command_name + "_template"
-		var template_path := Constants.TEMPLATE_FOLDER+"/"+template_name+".tres"
-		command = command.get_duplicated()
-		command.resource_path = template_path
-		
-		if not DirAccess.dir_exists_absolute(Constants.TEMPLATE_FOLDER):
-			var error := DirAccess.make_dir_absolute(Constants.TEMPLATE_FOLDER)
-			if error:
-				push_error("CommandRecord: '%s' while creating template folder" % error_string(error))
-		
-		var error := ResourceSaver.save(
-			command, template_path,
-			ResourceSaver.FLAG_CHANGE_PATH
-			)
-		if error:
-			push_error("CommandRecord: '%s' while saving command template" % error_string(error))
-			return
 	
 	if command_path.is_empty():
 		command_path = command.resource_path
@@ -203,14 +180,14 @@ func reload_from_project_settings() -> void:
 	
 	for path in new_paths:
 		_updating = true
-		register(path, false, false)
+		register(path, false)
 		_updating = false
 
 
 func _register_default_commands() -> void:
 	for command_path in Constants.DEFAULT_COMMAND_PATHS:
 		_updating = true
-		register(command_path, false, false)
+		register(command_path, false)
 		_updating = false
 
 
