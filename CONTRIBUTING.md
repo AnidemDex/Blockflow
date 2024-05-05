@@ -3,7 +3,7 @@
 > _First off, many, many, many thanks for consider contributing to this plugin! I like to make things, but getting a hand on it is much better.
 > I really appreciate that you are reading this file_
 
-**Abstract:** _Report issues if no one have faced that issue before, else comment the opened issue; request stuff if you find it situable and goes in the same way as this project goal; open pull request for opened issues of to improve/fix stuff that follows the same goal as this project and, please, document what you do, in the code or in the commit._
+**Abstract:** _Report issues if no one have faced that issue before, else comment the opened issue; request stuff if you find it suitable and goes in the same way as this project goal; open pull request for opened issues of to improve/fix stuff that follows the same goal as this project and, please, document what you do, in the code or in the commit._
 
 ---
 
