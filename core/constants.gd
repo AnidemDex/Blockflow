@@ -4,6 +4,7 @@ const NAME = &"Blockflow"
 const PLUGIN_NAME = &"BlockflowPlugin"
 
 const COMMAND_FOLDER = &"res://addons/blockflow/commands"
+const TEMPLATE_FOLDER = &"res://command_templates"
 
 const DEFAULT_COMMAND_PATHS = [
 	"res://addons/blockflow/commands/command_call.gd",

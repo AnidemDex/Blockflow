@@ -32,6 +32,8 @@ var debugger:BlockflowDebugger
 
 var theme:Theme = load(EditorConstants.DEFAULT_THEME_PATH) as Theme
 
+var command_record:Blockflow.CommandRecord
+
 func toast(message:String, severity:int = 0, tooltip:String = ""):
 	if not is_inside_tree():
 		return
@@ -39,20 +41,6 @@ func toast(message:String, severity:int = 0, tooltip:String = ""):
 		return
 	
 	editor_toaster.call("_popup_str", message, severity, tooltip)
-
-func _enable_plugin() -> void:
-	if not ProjectSettings.has_setting(Constants.PROJECT_SETTING_CUSTOM_COMMANDS):
-		ProjectSettings.set_setting(Constants.PROJECT_SETTING_CUSTOM_COMMANDS, [])
-	var setting_info:Dictionary = {
-		"name": Constants.PROJECT_SETTING_CUSTOM_COMMANDS,
-		"type": TYPE_PACKED_STRING_ARRAY,
-		"hint": PROPERTY_HINT_FILE,
-		"hint_string": "*.gd"
-	}
-	ProjectSettings.add_property_info(setting_info)
-	
-	
-	ProjectSettings.save()
 
 func _enter_tree():
 	_define_toaster()
@@ -122,9 +110,6 @@ func _define_toaster() -> void:
 	remove_control_from_bottom_panel(dummy)
 	dummy.queue_free()
 
-func _project_settings_changed() -> void:
-	block_editor.command_list.build_command_list()
-
 func _exit_tree():
 	queue_save_layout()
 	block_editor.queue_free()
@@ -163,10 +148,11 @@ func _init() -> void:
 	command_call_inspector = CommandCallInspector.new()
 	command_call_inspector.editor_plugin = self
 	
-	project_settings_changed.connect(_project_settings_changed)
-	
 	debugger = BlockflowDebugger.new()
 	
 	# Add the plugin to the list when we're created as soon as possible.
 	# Existing doesn't mean that plugin is ready, be careful with that.
 	Engine.set_meta(Constants.PLUGIN_NAME, self)
+	
+	command_record = Blockflow.CommandRecord.new()
+	project_settings_changed.connect(command_record.reload_from_project_settings)

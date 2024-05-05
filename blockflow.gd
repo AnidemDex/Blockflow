@@ -7,6 +7,8 @@ const PluginConstants = preload("res://addons/blockflow/core/constants.gd")
 const Debugger = preload("res://addons/blockflow/debugger/debugger_messages.gd")
 ## Blockflow util scripts. Utility functions that didn't have place here.
 const Utils = preload("res://addons/blockflow/core/utils.gd")
+## Blockflow CommandRecord class. Used to manage registered commands in editor.
+const CommandRecord = preload("res://addons/blockflow/core/command_record.gd")
 
 # Made to ensure that classes are loaded before class_name populates editor
 ## [Collection] class.
