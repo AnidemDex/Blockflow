@@ -18,6 +18,7 @@ class StateLayout:
 const Blockflow = preload("res://addons/blockflow/blockflow.gd")
 const CollectionDisplayer = preload("res://addons/blockflow/editor/displayer.gd")
 const CommandList = preload("res://addons/blockflow/editor/command_list.gd")
+const TemplateGenerator = preload("res://addons/blockflow/editor/template_generator.gd")
 
 const Constants = preload("res://addons/blockflow/editor/constants.gd")
 
@@ -27,7 +28,8 @@ enum _ItemPopup {
 	DUPLICATE,
 	REMOVE,
 	COPY,
-	PASTE
+	PASTE,
+	CREATE_TEMPLATE,
 	}
 
 enum _DropSection {
@@ -60,6 +62,7 @@ var editor_undoredo:EditorUndoRedoManager
 var collection_displayer:CollectionDisplayer
 var command_list:CommandList
 var title_label:Label
+var template_generator:TemplateGenerator
 
 var edit_callback:Callable
 var toast_callback:Callable
@@ -464,6 +467,9 @@ func _item_popup_id_pressed(id:int) -> void:
 		
 		_ItemPopup.PASTE:
 			add_command(command_clipboard.get_duplicated(), command_idx + 1, command.get_command_owner())
+		
+		_ItemPopup.CREATE_TEMPLATE:
+			template_generator.create_from(command)
 
 
 func _get_file_dialog() -> ConfirmationDialog:
@@ -502,6 +508,7 @@ func _collection_displayer_item_mouse_selected(_position:Vector2, button_index:i
 			can_move_up = c_pos != 0
 			can_move_down = c_pos < c_max_size - 1
 		_item_popup.clear()
+		
 		_item_popup.add_item("Move up", _ItemPopup.MOVE_UP)
 		_item_popup.set_item_shortcut(_item_popup.get_item_index(_ItemPopup.MOVE_UP), Constants.SHORTCUT_MOVE_UP)
 		_item_popup.set_item_disabled(0, !can_move_up)
@@ -513,6 +520,7 @@ func _collection_displayer_item_mouse_selected(_position:Vector2, button_index:i
 		_item_popup.set_item_shortcut(_item_popup.get_item_index(_ItemPopup.DUPLICATE), Constants.SHORTCUT_DUPLICATE)
 		_item_popup.add_item("Remove", _ItemPopup.REMOVE)
 		_item_popup.set_item_shortcut(_item_popup.get_item_index(_ItemPopup.REMOVE), Constants.SHORTCUT_DELETE)
+		
 		_item_popup.add_separator()
 		
 		_item_popup.add_item("Copy", _ItemPopup.COPY)
@@ -523,6 +531,10 @@ func _collection_displayer_item_mouse_selected(_position:Vector2, button_index:i
 		_item_popup.set_item_icon(_item_popup.get_item_index(_ItemPopup.PASTE), get_theme_icon("ActionPaste", "EditorIcons"))
 		_item_popup.set_item_disabled(_item_popup.get_item_index(_ItemPopup.PASTE), command_clipboard == null)
 		_item_popup.set_item_shortcut(_item_popup.get_item_index(_ItemPopup.PASTE), Constants.SHORTCUT_PASTE)
+		
+		_item_popup.add_separator()
+		
+		_item_popup.add_item("Create Template...", _ItemPopup.CREATE_TEMPLATE)
 		
 		_item_popup.reset_size()
 		_item_popup.position = DisplayServer.mouse_get_position()
@@ -892,6 +904,9 @@ func _init() -> void:
 	_help_panel_load_btn.pressed.connect(_request_open)
 	hb.add_child(_help_panel_load_btn)
 	
+	template_generator = TemplateGenerator.new()
+	add_child(template_generator)
+	
 	if Engine.is_editor_hint():
 # https://github.com/godotengine/godot/issues/73525#issuecomment-1606067249
 		_editor_file_dialog = (EditorFileDialog as Variant).new()
@@ -901,5 +916,5 @@ func _init() -> void:
 		_file_dialog = FileDialog.new()
 		_file_dialog.file_selected.connect(_editor_file_dialog_file_selected)
 		add_child(_file_dialog)
-
 	
+	Engine.set_meta("Blockflow_main_editor", self)
