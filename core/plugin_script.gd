@@ -150,9 +150,9 @@ func _init() -> void:
 	
 	debugger = BlockflowDebugger.new()
 	
+	command_record = Blockflow.CommandRecord.get_record()
+	project_settings_changed.connect(command_record.reload_from_project_settings)
+	
 	# Add the plugin to the list when we're created as soon as possible.
 	# Existing doesn't mean that plugin is ready, be careful with that.
 	Engine.set_meta(Constants.PLUGIN_NAME, self)
-	
-	command_record = Blockflow.CommandRecord.new()
-	project_settings_changed.connect(command_record.reload_from_project_settings)

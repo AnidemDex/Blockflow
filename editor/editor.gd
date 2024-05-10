@@ -63,6 +63,7 @@ var collection_displayer:CollectionDisplayer
 var command_list:CommandList
 var title_label:Label
 var template_generator:TemplateGenerator
+var command_record:Blockflow.CommandRecord
 
 var edit_callback:Callable
 var toast_callback:Callable
@@ -916,5 +917,7 @@ func _init() -> void:
 		_file_dialog = FileDialog.new()
 		_file_dialog.file_selected.connect(_editor_file_dialog_file_selected)
 		add_child(_file_dialog)
+	
+	command_record = Blockflow.CommandRecord.new()
 	
 	Engine.set_meta("Blockflow_main_editor", self)
