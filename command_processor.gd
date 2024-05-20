@@ -96,6 +96,11 @@ var _history:Array = []
 # ]
 var _jump_history:Array = []
 
+var _custom_vars_object: Dictionary = {
+	variables = [],
+	signals = [],
+}
+
 ## Starts the command behavior. This method must be called to start CommandManager process.
 ## CommandManager will use [member initial_collection] if no 
 ## [param collection] is passed.
@@ -127,6 +132,7 @@ func go_to_command(command_position:int) -> void:
 	var command:Blockflow.CommandClass = main_collection.get_command(command_position)
 	
 	if command == null:
+		
 		assert( false, str(self)+"::go_to_command: current_command == null")
 		return
 	

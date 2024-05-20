@@ -1,77 +1,127 @@
-[gd_resource type="Resource" script_class="Timeline" load_steps=18 format=3 uid="uid://c8rne7t6cyp17"]
+[gd_resource type="Resource" script_class="CommandCollection" load_steps=22 format=3 uid="uid://c8rne7t6cyp17"]
 
-[ext_resource type="Script" path="res://addons/blockflow/timeline.gd" id="1_6amrv"]
 [ext_resource type="Script" path="res://addons/blockflow/commands/command_call.gd" id="1_jn36c"]
 [ext_resource type="Script" path="res://addons/blockflow/commands/command_wait.gd" id="2_e3wgq"]
 [ext_resource type="Script" path="res://addons/blockflow/commands/command_animate.gd" id="3_agxog"]
 [ext_resource type="Script" path="res://addons/blockflow/commands/command_comment.gd" id="4_fgax2"]
 [ext_resource type="Script" path="res://addons/blockflow/commands/command_condition.gd" id="5_43nff"]
+[ext_resource type="Script" path="res://addons/blockflow/commands/branch_true.gd" id="5_t5vtd"]
+[ext_resource type="Script" path="res://addons/blockflow/commands/branch_false.gd" id="6_1wgxc"]
 [ext_resource type="Script" path="res://addons/blockflow/commands/command_goto.gd" id="6_wc7f4"]
 [ext_resource type="Script" path="res://addons/blockflow/commands/command_set.gd" id="7_yvv16"]
 [ext_resource type="Script" path="res://addons/blockflow/commands/command_return.gd" id="8_btxak"]
+[ext_resource type="Script" path="res://addons/blockflow/command_collection.gd" id="11_471aw"]
 
 [sub_resource type="Resource" id="Resource_qh8qm"]
 resource_local_to_scene = true
 script = ExtResource("1_jn36c")
 method = ""
 args = []
-label = ""
+bookmark = &""
 continue_at_end = false
+background_color = 0
 target = NodePath("")
+collection = []
 
 [sub_resource type="Resource" id="Resource_cpssr"]
 resource_local_to_scene = true
 script = ExtResource("2_e3wgq")
+wait_for = 0
 wait_time = 0.0
-label = ""
+bookmark = &""
 continue_at_end = false
+background_color = 0
 target = NodePath("")
+collection = []
 
 [sub_resource type="Resource" id="Resource_o8whn"]
 resource_local_to_scene = true
 script = ExtResource("3_agxog")
-label = ""
+animation = ""
+custom_blend = -1.0
+custom_speed = 1.0
+play_backwards = false
+wait_until_finished = false
+bookmark = &""
 continue_at_end = false
+background_color = 0
 target = NodePath("")
+collection = []
 
 [sub_resource type="Resource" id="Resource_ihjdx"]
 resource_local_to_scene = true
 script = ExtResource("4_fgax2")
 comment = ""
-label = ""
+bookmark = &""
 continue_at_end = false
+background_color = 0
 target = NodePath("")
+collection = []
+
+[sub_resource type="Resource" id="Resource_pxesr"]
+script = ExtResource("5_t5vtd")
+condition = ""
+branch_name = &"is True"
+bookmark = &""
+continue_at_end = true
+background_color = 0
+target = NodePath("")
+collection = []
+
+[sub_resource type="Resource" id="Resource_c2413"]
+script = ExtResource("6_1wgxc")
+condition = ""
+branch_name = &"is False"
+bookmark = &""
+continue_at_end = true
+background_color = 0
+target = NodePath("")
+collection = []
 
 [sub_resource type="Resource" id="Resource_8sk71"]
 resource_local_to_scene = true
 script = ExtResource("5_43nff")
-label = ""
+condition = ""
+generate_default_branches = false
+bookmark = &""
 continue_at_end = false
+background_color = 0
 target = NodePath("")
+collection = [SubResource("Resource_pxesr"), SubResource("Resource_c2413")]
 
 [sub_resource type="Resource" id="Resource_jxlyc"]
 resource_local_to_scene = true
 script = ExtResource("7_yvv16")
 property = ""
-label = ""
+value_type = 0
+value = null
+bookmark = &""
 continue_at_end = false
+background_color = 0
 target = NodePath("")
+collection = []
 
 [sub_resource type="Resource" id="Resource_rjgee"]
 resource_local_to_scene = true
 script = ExtResource("6_wc7f4")
-command_label = ""
-label = ""
+condition = ""
+use_bookmark = false
+command_index = 0
+bookmark = &""
 continue_at_end = false
+background_color = 0
 target = NodePath("")
+collection = []
 
 [sub_resource type="Resource" id="Resource_m8nm3"]
 resource_local_to_scene = true
 script = ExtResource("8_btxak")
-label = ""
+bookmark = &""
 continue_at_end = false
+background_color = 0
 target = NodePath("")
+collection = []
 
 [resource]
-script = ExtResource("1_6amrv")
-commands = Array[Resource("res://addons/blockflow/commands/command.gd")]([SubResource("Resource_qh8qm"), SubResource("Resource_cpssr"), SubResource("Resource_o8whn"), SubResource("Resource_ihjdx"), SubResource("Resource_8sk71"), SubResource("Resource_jxlyc"), SubResource("Resource_rjgee"), SubResource("Resource_m8nm3")])
+script = ExtResource("11_471aw")
+collection = [SubResource("Resource_qh8qm"), SubResource("Resource_cpssr"), SubResource("Resource_o8whn"), SubResource("Resource_ihjdx"), SubResource("Resource_8sk71"), SubResource("Resource_jxlyc"), SubResource("Resource_rjgee"), SubResource("Resource_m8nm3")]

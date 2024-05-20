@@ -1,7 +1,6 @@
 @tool
 extends "res://addons/blockflow/collection.gd"
 class_name CommandCollection
-
 ##
 ## This resource only keeps an ordered reference of all commands registered on it.
 ##
@@ -13,6 +12,8 @@ var _command_list:Array = []
 ## in internal collection ([member Command.position] instead of [member Command.index])
 func get_command(position:int):
 	if position >= _command_list.size():
+		print(_command_list.size())
+		print(position)
 		push_error("position >= _command_list.size()")
 		return null
 	return _command_list[position]

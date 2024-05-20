@@ -5,7 +5,7 @@ class_name Command
 ## Base class for all commands.
 ##
 ## Every command relies on this class. 
-## If you want to do your own command, you should [code]extend[/code] from this class.
+## If you want to make your own command, you should [code]extend[/code] from this class.
 ##
 
 ## Emmited when the command starts its execution.
@@ -209,6 +209,7 @@ var can_be_selected:bool :
 	set(value): return
 	get: return _can_be_selected()
 
+
 ## Returns the assigned [CommandCollection]. See [member Collection.weak_collection]
 ## for possible values.
 func get_main_collection() -> Blockflow.CommandCollectionClass:
@@ -392,3 +393,28 @@ func _notification(what: int) -> void:
 						branch.collection = command.collection
 						collection.remove_at(command_index)
 						collection.insert(command_index, branch)
+## Runs a string as a GDScript. Note that the scene tree is unavailable using this function.
+func _run_as_gdscript(expression: String):
+	var scriptToRun = GDScript.new()
+	scriptToRun.source_code = "func _init():" + expression
+	scriptToRun.reload()
+	var returnValue = scriptToRun.new()
+	pass
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	

@@ -9,10 +9,24 @@ extends "res://addons/blockflow/commands/command.gd"
 		emit_changed()
 	get:
 		return comment
+@export var print_gdscript_variable: bool:
+	set(value):
+		print_gdscript_variable = value
+		emit_changed()
+	get:
+		return print_gdscript_variable
 
+func _print_gdscript_variable(variable):
+	if target_node.get(variable) != null: print(target_node.get(variable))
+	elif target_node.get_meta(variable) != null: print(target_node.get_meta(variable))
+	else: print("Invalid variable.")
+	
 func _execution_steps() -> void:
 	command_started.emit()
-	print(comment)
+	if !print_gdscript_variable:
+		print(comment)
+	else:
+		_print_gdscript_variable(comment)
 	command_finished.emit()
 
 func _get_name() -> StringName: return &"Print"
