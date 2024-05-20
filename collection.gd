@@ -37,10 +37,7 @@ var collection:Array = []:
 
 var is_updating_data:bool
 
-var collection_data: Dictionary = {
-	variables = [],
-	signals = [],
-}
+
 
 ## Adds a [Command] to [member collection]
 func add(command) -> void:
