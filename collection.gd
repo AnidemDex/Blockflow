@@ -188,7 +188,8 @@ func _add_variable(varname, vartype, varvalue, target_node: Node):
 		return
 	target_node.set_meta(varname, varvalue)
 
-## Removes a variable from the target node. NOTE: This is currently [b]unused[/b] and has the side effect of preventing [codeblock]_add_variable[/codeblock] from working if the variable was originally part of the node
+## Removes a variable from the target node. NOTE: This is currently [b]unused[/b]
+## This function has the side effect of preventing [code]_add_variable[/code] from setting the original if the variable was originally part of the node.
 func _remove_variable(varname):
 	if target_node.get(varname) != null:
 		target_node.set(varname, null)
