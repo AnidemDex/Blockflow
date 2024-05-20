@@ -40,7 +40,6 @@ var is_updating_data:bool
 var collection_data: Dictionary = {
 	variables = [],
 	signals = [],
-	functions = [],
 }
 
 ## Adds a [Command] to [member collection]
@@ -182,28 +181,19 @@ func _notification(what: int) -> void:
 			command.weak_owner = weakref(self)
 			command.index = command_index
 			command.weak_collection = weak_collection
-
+## Changes a variable of the target node.
 func _add_variable(varname, vartype, varvalue, target_node: Node):
 	if target_node.get(varname) != null:
 		target_node.set(varname, varvalue)
 		return
-	var same_name_as_another_var: bool
-	for variable in collection_data.variables:
-		if variable.find_key(varname) != null:
-			print("bro")
-			same_name_as_another_var = true
-			variable.value = varvalue
-			return
-	collection_data.variables.append({
-		name = varname,
-		type = vartype,
-		value = varvalue,
-		})
 	target_node.set_meta(varname, varvalue)
-	return
-# TODO: This is not needed yet
+
+## Removes a variable from the target node. NOTE: This is currently [b]unused[/b] and has the side effect of preventing [codeblock]_add_variable[/codeblock] from working if the variable was originally part of the node
 func _remove_variable(varname):
-	pass
+	if target_node.get(varname) != null:
+		target_node.set(varname, null)
+		return
+	target_node.set_meta(varname, )
 # TODO: This is not needed yet
 func _add_signal(signalname: String, signalconnections, target_node):
 	pass
