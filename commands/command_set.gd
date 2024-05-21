@@ -24,7 +24,7 @@ var add_value:bool = false:
 		emit_changed()
 	get: return add_value
 
-## If [code]true[/code], the [param value] will be [b]multiolied[/b] instead of [b]set[/b].[br]
+## If [code]true[/code], the [param value] will be [b]multiplied[/b] instead of [b]set[/b].[br]
 ## This value is mutually exclusive with [code]add_value[/code] and [code]divide_value[/code]
 var multiply_value:bool = false:
 	set(value):
