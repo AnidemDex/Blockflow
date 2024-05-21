@@ -37,12 +37,10 @@ var collection:Array = []:
 
 var is_updating_data:bool
 
-
-
 ## Adds a [Command] to [member collection]
 func add(command) -> void:
 	if has(command):
-		push_error("Trying to add an command to the collection, but the command is already added")
+		push_error("Trying to add a command to the collection, but the command is already added.")
 		return
 	collection.append(command)
 	command.weak_owner = weakref(self)
@@ -51,7 +49,7 @@ func add(command) -> void:
 ## Insert [Command] [param command] at [param position] in [member collection]
 func insert(command, at_position:int) -> void:
 	if has(command):
-		push_error("Trying to add an command to the collection, but the command already exist")
+		push_error("Trying to add a command to the collection, but the command already exists.")
 		return
 	
 	var idx = at_position if at_position > -1 else collection.size()
@@ -178,36 +176,7 @@ func _notification(what: int) -> void:
 			command.weak_owner = weakref(self)
 			command.index = command_index
 			command.weak_collection = weak_collection
-## Changes a variable of the target node.
-func _add_variable(varname, vartype, varvalue, target_node: Node):
-	if target_node.get(varname) != null:
-		target_node.set(varname, varvalue)
-		return
-	target_node.set_meta(varname, varvalue)
 
-## Removes a variable from the target node. NOTE: This is currently [b]unused[/b]
-## This function has the side effect of preventing [code]_add_variable[/code] from setting the original if the variable was originally part of the node.
-func _remove_variable(varname):
-	if target_node.get(varname) != null:
-		target_node.set(varname, null)
-		return
-	target_node.set_meta(varname, )
-# TODO: This is not needed yet
-func _add_signal(signalname: String, signalconnections, target_node):
-	pass
-	
-# TODO: This is not needed yet, and I don't know how to implement it :shrug:
-func _remove_signal(signalname):
-	pass
-
-# TODO: This is not needed yet
-func _add_function(funcname, funcargs, funcblocks,):
-	pass
-
-# TODO: This is not needed yet
-func _remove_function(funcname,):
-	pass
-	
 func _get_property_list() -> Array:
 	var p:Array = []
 	p.append({"name":"collection", "type":TYPE_ARRAY, "usage":PROPERTY_USAGE_NO_EDITOR|PROPERTY_USAGE_SCRIPT_VARIABLE|PROPERTY_USAGE_ALWAYS_DUPLICATE})
@@ -234,5 +203,4 @@ func _iter_next(_d) -> bool:
 	return _should_continue()
 	
 func _iter_get(_d):
-	return _get_iterator_ref()[__itr_cnt]
-
+	return _get_iterator_ref()[__itr_cnt]	

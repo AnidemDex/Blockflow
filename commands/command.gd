@@ -393,28 +393,33 @@ func _notification(what: int) -> void:
 						branch.collection = command.collection
 						collection.remove_at(command_index)
 						collection.insert(command_index, branch)
-## Runs a string as a GDScript. Note that the scene tree is unavailable using this function.
-func _run_as_gdscript(expression: String):
-	var scriptToRun = GDScript.new()
-	scriptToRun.source_code = "func _init():" + expression
-	scriptToRun.reload()
-	var returnValue = scriptToRun.new()
+
+## Changes a variable of the target node.
+func _add_variable(varname: String, vartype, varvalue, target_node: Node):
+	if varname in target_node:
+		target_node.set(varname, varvalue)
+		return
+	target_node.set_meta(varname, varvalue)
+
+## Removes a variable from the target node. NOTE: This is currently [b]unused[/b]
+## This function has the side effect of preventing [code]_add_variable[/code] from setting the original if the variable was originally part of the node.
+func _remove_variable(varname):
+	if target_node.is_instance_valid(varname) != null:
+		target_node.set(varname, null)
+		return
+	target_node.set_meta(varname, null)
+# TODO: This is not needed yet
+func _add_signal(signalname: String, signalconnections, target_node):
 	pass
 	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
+# TODO: This is not needed yet, and I don't know how to implement it :shrug:
+func _remove_signal(signalname):
+	pass
+
+# TODO: This is not needed yet
+func _add_function(funcname, funcargs, funcblocks,):
+	pass
+
+# TODO: This is not needed yet
+func _remove_function(funcname,):
+	pass

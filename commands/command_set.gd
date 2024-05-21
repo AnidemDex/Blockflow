@@ -66,9 +66,15 @@ var value:
 
 func _execution_steps() -> void:
 	command_started.emit()
-	
-	if add_value:
-		var original_value = target_node.get(property)
+	if add_value: 
+		var original_value
+		if target_node.get(property):
+			original_value = target_node.get(property)
+		elif target_node.get_meta(property):
+			original_value = target_node.get_meta(property)
+		else:
+			push_error("Cannot operate on a non-defined variable!")
+			return
 		var original_type = typeof(original_value)
 		if not (original_type in Operables) or value_type != original_type:
 			push_error("Can't operate a number to a non operable property")
@@ -76,7 +82,14 @@ func _execution_steps() -> void:
 			var new_value = original_value + value
 			_add_variable(property, value_type, new_value, target_node)
 	elif multiply_value:
-		var original_value = target_node.get(property)
+		var original_value
+		if target_node.get(property):
+			original_value = target_node.get(property)
+		elif target_node.get_meta(property):
+			original_value = target_node.get_meta(property)
+		else:
+			push_error("Cannot operate on a non-defined variable!")
+			return
 		var original_type = typeof(original_value)
 		if not (original_type in Operables) or value_type != original_type:
 			push_error("Can't operate a number to a non operable property")
@@ -84,7 +97,14 @@ func _execution_steps() -> void:
 			var new_value = original_value * value
 			_add_variable(property, value_type, new_value, target_node)
 	elif divide_value:
-		var original_value = target_node.get(property)
+		var original_value
+		if target_node.get(property):
+			original_value = target_node.get(property)
+		elif target_node.get_meta(property):
+			original_value = target_node.get_meta(property)
+		else:
+			push_error("Cannot operate on a non-defined variable!")
+			return
 		var original_type = typeof(original_value)
 		if not (original_type in Operables) or value_type != original_type:
 			push_error("Can't operate a number to a non operable property")

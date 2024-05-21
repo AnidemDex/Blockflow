@@ -19,7 +19,7 @@ extends "res://addons/blockflow/commands/command.gd"
 func _print_gdscript_variable(variable):
 	if target_node.get(variable) != null: print(target_node.get(variable))
 	elif target_node.get_meta(variable) != null: print(target_node.get_meta(variable))
-	else: print("Invalid variable.")
+	else: print(null)
 	
 func _execution_steps() -> void:
 	command_started.emit()
