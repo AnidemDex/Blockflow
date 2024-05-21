@@ -33,7 +33,7 @@ static func get_object_data(object:Object) -> Dictionary:
 		data[&"path"] = object.get_path()
 		data[&"name"] = object.name
 		if is_instance_of(object, ProcessorClass):
-			data[&"initial_collection"] = get_object_data(object.initial_collection)
+			data[&"main_collection"] = get_object_data(object.main_collection)
 			data[&"current_collection"] = get_object_data(object.current_collection)
 			data[&"current_command"] = get_object_data(object.current_command)
 		return data
