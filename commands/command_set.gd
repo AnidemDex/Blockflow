@@ -12,40 +12,12 @@ const Operables = [
 	TYPE_ARRAY, 29, 30, 31, 32, 33, 34, 35, 36, 37
 ]
 
-## If [code]true[/code], the [param value] will be [b]added[/b] instead of [b]set[/b].[br]
-## To [b]subtract[/b], use a negative value like [param value] of -1
-## This value is mutually exclusive with [code]multiply_value[/code] and [code]divide_value[/code]
-var add_value:bool = false:
-	set(value):
-		if multiply_value and value or divide_value and value:
-			print("You cannot add, multiply, or divide at the same time.")
-			return
-		add_value = value
+## Will perform the selected operation on the target value.
+@export_enum("Set", "Add", "Subtract", "Multiply", "Divide", "Power of", "X root of") var operation: int = 0:
+	set(val):
+		operation = val
 		emit_changed()
-	get: return add_value
-
-## If [code]true[/code], the [param value] will be [b]multiplied[/b] instead of [b]set[/b].[br]
-## This value is mutually exclusive with [code]add_value[/code] and [code]divide_value[/code]
-var multiply_value:bool = false:
-	set(value):
-		if add_value and value or divide_value and value:
-			print("You cannot add, multiply, or divide at the same time.")
-			return
-		multiply_value = value
-		emit_changed()
-	get: return multiply_value
-
-## If [code]true[/code], the [param value] will be [b]divided[/b] instead of [b]set[/b].[br]
-## This value is mutually exclusive with [code]add_value[/code] and [code]multiply_value[/code]
-var divide_value:bool = false:
-	set(value):
-		if add_value and value or multiply_value and value:
-			print("You cannot add, multiply, or divide at the same time.")
-			return
-		divide_value = value
-		emit_changed()
-	get: return divide_value
-
+	get: return operation
 ## The path towards the [param property] from [param target] (such as [member name] etc.)
 @export var property:String:
 	set(value):
@@ -58,7 +30,6 @@ var divide_value:bool = false:
 	set = set_value_type
 
 ## What value to set the [param property] to.[br]
-## If [param value_type] is in [param Operables], [param add_value] can be used.
 var value:
 	set(_val):
 		value = _val
@@ -66,54 +37,30 @@ var value:
 
 func _execution_steps() -> void:
 	command_started.emit()
-	if add_value: 
-		var original_value
-		if target_node.get(property):
-			original_value = target_node.get(property)
-		elif target_node.get_meta(property):
-			original_value = target_node.get_meta(property)
-		else:
-			push_error("Cannot operate on a non-defined variable!")
-			return
-		var original_type = typeof(original_value)
-		if not (original_type in Operables) or value_type != original_type:
-			push_error("Can't operate a number to a non operable property")
-		else:
-			var new_value = original_value + value
-			_add_variable(property, value_type, new_value, target_node)
-	elif multiply_value:
-		var original_value
-		if target_node.get(property):
-			original_value = target_node.get(property)
-		elif target_node.get_meta(property):
-			original_value = target_node.get_meta(property)
-		else:
-			push_error("Cannot operate on a non-defined variable!")
-			return
-		var original_type = typeof(original_value)
-		if not (original_type in Operables) or value_type != original_type:
-			push_error("Can't operate a number to a non operable property")
-		else:
-			var new_value = original_value * value
-			_add_variable(property, value_type, new_value, target_node)
-	elif divide_value:
-		var original_value
-		if target_node.get(property):
-			original_value = target_node.get(property)
-		elif target_node.get_meta(property):
-			original_value = target_node.get_meta(property)
-		else:
-			push_error("Cannot operate on a non-defined variable!")
-			return
-		var original_type = typeof(original_value)
-		if not (original_type in Operables) or value_type != original_type:
-			push_error("Can't operate a number to a non operable property")
-		else:
-			var new_value = original_value / value
-			_add_variable(property, value_type, new_value, target_node)
-	else:
+	if operation == 0:
 		_add_variable(property, value_type, value, target_node)
-		pass
+	if operation != 0: 
+		var original_value
+		if target_node.get(property) != null:
+			original_value = target_node.get(property)
+		elif target_node.get_meta(property) != null:
+			original_value = target_node.get_meta(property)
+		else:
+			push_error("Cannot operate on a non-defined variable!")
+			return
+		var original_type = typeof(original_value)
+		if not (original_type in Operables) or value_type != original_type:
+			push_error("Can't operate a number to a non operable property")
+		else:
+			var new_value
+			match operation:
+				1: new_value = original_value + value
+				2: new_value = original_value - value
+				3: new_value = original_value * value
+				4: new_value = original_value / value
+				5: new_value = pow(original_value, value)
+				6: new_value = pow(original_value, 1/value)
+			_add_variable(property, value_type, new_value, target_node)
 	go_to_next_command()
 
 func set_value_type(type:Variant.Type) -> void:
@@ -148,24 +95,33 @@ func _get_hint() -> String:
 	if fake_value.is_empty():
 		fake_value = "<Not Defined>"
 	var operator = "="
-	if add_value:
-		operator = "+="
-	elif multiply_value:
-		operator = "*="
-	elif divide_value:
-		operator = "/="
-	hint += property + " " + operator + " " + str(fake_value)
+	match operation:
+		1: operator = "+="
+		2: operator = "-="
+		3: operator = "*="
+		4: operator = "/="
+	if operation != 5 and operation != 6: 
+		hint += property + " " + operator + " " + str(fake_value)
+	elif operation == 5: 
+		hint += property + " = " + property + " to the power of " + str(fake_value)
+	elif operation == 6 and value == 1:
+		hint += property + " = " + property +  " (The first root of a value is the same as that value)"
+	elif operation == 6 and value == 2:
+		hint += property + " = " + "square root of " + property
+	elif operation == 6 and value == 3:
+		hint += property + " = " + "cube root of " + property
+	elif operation == 6 and  str(value)[str(value).length() - 2] != "1" and str(value)[str(value).length() - 1] == "2": 
+		hint += property + " = " + str(fake_value) + "nd root of " + property
+	elif operation == 6 and str(value)[str(value).length() - 2] != "1" and str(value)[str(value).length() - 1] == "3":
+		hint += property + " = " + str(fake_value) + "rd root of " + property
+	elif operation == 6:
+		hint += property + " = " + str(fake_value) + "th root of " + property
 	return hint
 
 func _get_property_list() -> Array:
 	var p := []
 	
 	p.append({"name":"value", "type":value_type, "usage":PROPERTY_USAGE_DEFAULT})
-	
-	if value_type in Operables:
-		p.append({"name":"add_value", "type":TYPE_BOOL, "usage":PROPERTY_USAGE_DEFAULT})
-		p.append({"name":"multiply_value", "type":TYPE_BOOL, "usage":PROPERTY_USAGE_DEFAULT})
-		p.append({"name":"divide_value", "type":TYPE_BOOL, "usage":PROPERTY_USAGE_DEFAULT})
 	
 	return p
 

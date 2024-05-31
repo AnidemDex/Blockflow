@@ -400,7 +400,6 @@ func _add_variable(varname: String, vartype, varvalue, target_node: Node):
 		target_node.set(varname, varvalue)
 		return
 	target_node.set_meta(varname, varvalue)
-
 ## Removes a variable from the target node. NOTE: This is currently [b]unused[/b]
 ## This function has the side effect of preventing [code]_add_variable[/code] from setting the original if the variable was originally part of the node.
 func _remove_variable(varname):
