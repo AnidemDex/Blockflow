@@ -1,7 +1,7 @@
 @tool
 extends "res://addons/blockflow/collection.gd"
 class_name CommandCollection
-	
+
 ##
 ## This resource only keeps an ordered reference of all commands registered on it.
 ##

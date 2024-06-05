@@ -1,7 +1,6 @@
-[gd_scene load_steps=4 format=3 uid="uid://bkcxryh7m1wri"]
+[gd_scene load_steps=3 format=3 uid="uid://bkcxryh7m1wri"]
 
 [ext_resource type="Script" path="res://addons/blockflow/editor/playground/editor_playground.gd" id="2_afult"]
-[ext_resource type="Theme" uid="uid://bqoxlvagvusb0" path="res://addons/blockflow/editor/theme.tres" id="2_o0krv"]
 [ext_resource type="Script" path="res://addons/blockflow/editor/editor.gd" id="2_rvx6h"]
 
 [node name="EditorPlayground" type="VBoxContainer"]
@@ -27,7 +26,6 @@ text = "Undo"
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-theme = ExtResource("2_o0krv")
 script = ExtResource("2_rvx6h")
 
 [connection signal="pressed" from="Toolbar/Do" to="." method="_on_do_pressed"]
