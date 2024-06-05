@@ -5,7 +5,7 @@ class_name Command
 ## Base class for all commands.
 ##
 ## Every command relies on this class. 
-## If you want to do your own command, you should [code]extend[/code] from this class.
+## If you want to make your own command, you should [code]extend[/code] from this class.
 ##
 
 ## Emmited when the command starts its execution.
