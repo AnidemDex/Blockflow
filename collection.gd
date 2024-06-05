@@ -40,7 +40,7 @@ var is_updating_data:bool
 ## Adds a [Command] to [member collection]
 func add(command) -> void:
 	if has(command):
-		push_error("Trying to add an command to the collection, but the command is already added")
+		push_error("Trying to add a command to the collection, but the command is already added.")
 		return
 	collection.append(command)
 	command.weak_owner = weakref(self)
@@ -49,7 +49,7 @@ func add(command) -> void:
 ## Insert [Command] [param command] at [param position] in [member collection]
 func insert(command, at_position:int) -> void:
 	if has(command):
-		push_error("Trying to add an command to the collection, but the command already exist")
+		push_error("Trying to add a command to the collection, but the command already exists.")
 		return
 	
 	var idx = at_position if at_position > -1 else collection.size()
