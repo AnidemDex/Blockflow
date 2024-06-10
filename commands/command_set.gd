@@ -1,6 +1,7 @@
 @tool
 extends "res://addons/blockflow/commands/command.gd"
 
+## @deprecated
 ## TYPE_INT,[br]TYPE_FLOAT,[br]TYPE_VECTOR2,[br]TYPE_VECTOR2I,[br]TYPE_VECTOR3,[br]TYPE_VECTOR3I,[br]TYPE_VECTOR4,[br]TYPE_VECTOR4I,[br]TYPE_COLOR,[br]TYPE_STRING,[br]TYPE_STRING_NAME,[br]TYPE_ARRAY,[br]29,[br]30,[br]31,[br]32,[br]33,[br]34,[br]35,[br]36,[br]37
 const PlusOperables = [
 	TYPE_INT, TYPE_FLOAT,
@@ -12,14 +13,22 @@ const PlusOperables = [
 	TYPE_ARRAY, 29, 30, 31, 32, 33, 34, 35, 36, 37
 ]
 
-## If [code]true[/code], the [param value] will be [b]added[/b] instead of [b]set[/b].[br]
-## To [b]subtract[/b], use a negative value like [param value] of -1
-var add_value:bool = false:
-	set(value):
-		add_value = value
-		emit_changed()
-	get: return add_value
+const Operables = [
+	TYPE_INT, TYPE_FLOAT,
+	TYPE_VECTOR2, TYPE_VECTOR2I,
+	TYPE_VECTOR3, TYPE_VECTOR3I,
+	TYPE_VECTOR4, TYPE_VECTOR4I,
+	TYPE_COLOR,
+	TYPE_STRING, TYPE_STRING_NAME,
+	TYPE_ARRAY, 29, 30, 31, 32, 33, 34, 35, 36, 37
+]
 
+## Will perform the selected operation on the target value.
+@export_enum("Set", "Add", "Subtract", "Multiply", "Divide", "Power of", "X root of") var operation: int = 0:
+	set(val):
+		operation = val
+		emit_changed()
+	get: return operation
 ## The path towards the [param property] from [param target] (such as [member name] etc.)
 @export var property:String:
 	set(value):
@@ -32,7 +41,6 @@ var add_value:bool = false:
 	set = set_value_type
 
 ## What value to set the [param property] to.[br]
-## If [param value_type] is in [param PlusOperables], [param add_value] can be used.
 var value:
 	set(_val):
 		value = _val
@@ -40,18 +48,30 @@ var value:
 
 func _execution_steps() -> void:
 	command_started.emit()
-	
-	if add_value:
-		var original_value = target_node.get(property)
-		var original_type = typeof(original_value)
-		if not (original_type in PlusOperables) or value_type != original_type:
-			push_error("Can't add a value to a non operable property")
+	if operation == 0:
+		_add_variable(property, value_type, value, target_node)
+	if operation != 0: 
+		var original_value
+		if target_node.get(property) != null:
+			original_value = target_node.get(property)
+		elif target_node.get_meta(property) != null:
+			original_value = target_node.get_meta(property)
 		else:
-			var new_value = original_value + value
-			target_node.set(property, new_value)
-	else:
-		target_node.set(property, value)
-	
+			push_error("Cannot operate on a non-defined variable!")
+			return
+		var original_type = typeof(original_value)
+		if not (original_type in Operables) or value_type != original_type:
+			push_error("Can't operate a number to a non operable property")
+		else:
+			var new_value
+			match operation:
+				1: new_value = original_value + value
+				2: new_value = original_value - value
+				3: new_value = original_value * value
+				4: new_value = original_value / value
+				5: new_value = pow(original_value, value)
+				6: new_value = pow(original_value, 1/value)
+			_add_variable(property, value_type, new_value, target_node)
 	go_to_next_command()
 
 func set_value_type(type:Variant.Type) -> void:
@@ -80,25 +100,39 @@ func _get_hint() -> String:
 	
 	if not target.is_empty():
 		hint += str(target)+"."
-	
 	var fake_value := str(value)
 	if value is Resource:
 		fake_value = "<" + value.resource_path + ">"
 	if fake_value.is_empty():
 		fake_value = "<Not Defined>"
 	var operator = "="
-	if add_value:
-		operator = "+="
-	hint += property + " " + operator + " " + str(fake_value)
+	match operation:
+		1: operator = "+="
+		2: operator = "-="
+		3: operator = "*="
+		4: operator = "/="
+	if operation != 5 and operation != 6: 
+		hint += property + " " + operator + " " + str(fake_value)
+	elif operation == 5: 
+		hint += property + " = " + property + " to the power of " + str(fake_value)
+	elif operation == 6 and value == 1:
+		hint += property + " = " + property +  " (The first root of a value is the same as that value)"
+	elif operation == 6 and value == 2:
+		hint += property + " = " + "square root of " + property
+	elif operation == 6 and value == 3:
+		hint += property + " = " + "cube root of " + property
+	elif operation == 6 and  str(value)[str(value).length() - 2] != "1" and str(value)[str(value).length() - 1] == "2": 
+		hint += property + " = " + str(fake_value) + "nd root of " + property
+	elif operation == 6 and str(value)[str(value).length() - 2] != "1" and str(value)[str(value).length() - 1] == "3":
+		hint += property + " = " + str(fake_value) + "rd root of " + property
+	elif operation == 6:
+		hint += property + " = " + str(fake_value) + "th root of " + property
 	return hint
 
 func _get_property_list() -> Array:
 	var p := []
 	
 	p.append({"name":"value", "type":value_type, "usage":PROPERTY_USAGE_DEFAULT})
-	
-	if value_type in PlusOperables:
-		p.append({"name":"add_value", "type":TYPE_BOOL, "usage":PROPERTY_USAGE_DEFAULT})
 	
 	return p
 

@@ -177,7 +177,6 @@ func _notification(what: int) -> void:
 			command.index = command_index
 			command.weak_collection = weak_collection
 
-
 func _get_property_list() -> Array:
 	var p:Array = []
 	p.append({"name":"collection", "type":TYPE_ARRAY, "usage":PROPERTY_USAGE_NO_EDITOR|PROPERTY_USAGE_SCRIPT_VARIABLE|PROPERTY_USAGE_ALWAYS_DUPLICATE})
@@ -204,4 +203,4 @@ func _iter_next(_d) -> bool:
 	return _should_continue()
 	
 func _iter_get(_d):
-	return _get_iterator_ref()[__itr_cnt]
+	return _get_iterator_ref()[__itr_cnt]	
