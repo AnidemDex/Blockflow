@@ -19,6 +19,28 @@ static func evaluate(input:String, global:Object=null, locals:Dictionary={}, _sh
 		
 	return _evaluated_value
 
+## Uses regex to turn a string with [code]//[variables]//[/code] and [code]//{expressions}//[/code] into a standard string to be used in any string input
+static func turn_expression_string_to_string(input: String, target_node: Node):
+	var regex_find_variables = RegEx.new()
+	var regex_find_expressions = RegEx.new()
+	regex_find_variables.compile("//\\[.*\\]//")
+	regex_find_expressions.compile("//\\{.*\\}//")
+	var variables_in_string = regex_find_variables.search_all(input)
+	var expressions_in_string = regex_find_expressions.search_all(input)
+	for _match in variables_in_string:
+		var var_to_get = _match.strings[0].substr(3, _match.strings[0].length() - 6)
+		var to_replace
+		if target_node.get(var_to_get): to_replace = target_node.get(var_to_get)
+		elif target_node.get_meta(var_to_get): to_replace = target_node.get_meta(var_to_get)
+		else: to_replace = null
+		input = input.replace(_match.strings[0], str(to_replace))
+	for _match in expressions_in_string:
+		var expression_to_run = _match.strings[0].substr(3, _match.strings[0].length() - 6)
+		var to_replace = evaluate(expression_to_run, target_node)
+		input = input.replace(_match.strings[0], str(to_replace))
+	return input
+		
+
 static func get_object_data(object:Object) -> Dictionary:
 	const CollectionClass = preload("res://addons/blockflow/collection.gd")
 	const ProcessorClass = preload("res://addons/blockflow/command_processor.gd")
