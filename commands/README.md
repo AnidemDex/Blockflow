@@ -28,14 +28,17 @@ Command itself can tell which path should processor take:
 ```mermaid
 sequenceDiagram
   Actor Processor
+  autonumber
   Participant CommandA as Command[1]
   Participant CommandB as Command[2]
   Participant CommandC as Command[3]
 
   Processor ->>+ CommandA: execution_steps.call()
   CommandA -->>- Processor: go_to_command(3)
+  activate Processor
   Note over CommandB: This command is skipped
   Processor ->>+ CommandC: execution_steps.call()
+  deactivate Processor
   CommandC -->>- Processor: command_finished
 ```
 
