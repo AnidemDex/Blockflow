@@ -73,3 +73,6 @@ Take a look at this [GIT Style guide](https://github.com/agis-/git-style-guide) 
 
 > **Author note:**
 > This contribution guideline is based on many other open source projects. We show it as a _guideline_ and not as a _strict rule_ to follow.
+
+# Project structure
+Please refer to [overview](OVERVIEW.md) file to know the project structure in detail.
