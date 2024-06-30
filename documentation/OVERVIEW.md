@@ -7,9 +7,28 @@ This means that they are created when someone requested further information abou
 
 This is made this way to ensure that time invested in documentation applies to a real user "use case" and not the creator of the plugin thoughts. (Yeah, I'm looking at you, future Dex).
 -->
-# Plugin flow
 
-## Editor runtime
+- [Plugin flow](#plugin-flow)
+	- [Editor runtime](#editor-runtime)
+	- [In-game runtime](#in-game-runtime)
+	- [Processor runtime](#processor-runtime)
+- [Folder structure](#folder-structure)
+	- [`blockflow` folder](#blockflow-folder)
+	- [`/commands`](#commands)
+	- [`/core`](#core)
+	- [`/debugger`](#debugger)
+	- [`/documentation`](#documentation)
+	- [`/editor`](#editor)
+		- [`/command_block`](#command_block)
+		- [`/inspector`](#inspector)
+		- [`/playground`](#playground)
+		- [`/shortcuts`](#shortcuts)
+	- [`/icons`](#icons)
+	- [`/script_templates`](#script_templates)
+
+## Plugin flow
+
+### Editor runtime
 
 1. `Blockflow` plugin is activated by the user:
 	- Godot engine creates `core/plugin_script.gd` (`Blockflow` plugin) instance.
@@ -25,10 +44,10 @@ This is made this way to ensure that time invested in documentation applies to a
 	- If is drop in `CollectionDisplayer`, the data is handled by`BlockEditor` and the command is added/moved to the dropped position.
 6. Right-click on any `CommandBlock` will display a menu with some manipulation options that can be applied to the block.
 
-## In-game runtime
+### In-game runtime
 Editor is not meant to be used _in-game_, but many parts of it can be used/replicated in game.
 
-## Processor runtime
+### Processor runtime
 > Processor core functions are not designed to work in editor. Data manipulation in this node, however, is. Many aspects of the processor in editor time are modified by many `EditorInspector` plugins, added by `Blockflow` plugin.
 
 `CommandProcessor` takes a single `CommandCollection` at time.
@@ -37,57 +56,57 @@ When you play a scene with `CommandProcessor` nodes (and `start_on_ready` is ena
 
 Command flow is determined by the processor, the next/previous steps can be determined by the current executed command.
 
-# Folder structure
+## Folder structure
 
 Plugin's folder structure. We aim to group related files by folder, but when we can't find a place for it at its creation moment, we put the file one level higher until
 
-## `blockflow` folder 
+### `blockflow` folder 
 This is the main project folder. It includes general documentation files (like [`README`](README.md)).
 
-## `/commands`
+### `/commands`
 Contains all command templates bundled with the plugin. 
 
 Not all of these commands are registered (exposed) in CommandRecord.
 
-## `/core`
+### `/core`
 Plugin core files. The plugin aims to work isolated as possible, but most (if not all) scripts tends to rely on these files.
 
 You can find the plugin script here.
 
-## `/debugger`
+### `/debugger`
 Plugin debugger.
 
 Debugger UI and debugger scripts that are added under Godot's `debugger` tab to debug in-game processors.
 
-## `/documentation`
+### `/documentation`
 
 Documentation files. This folder includes this file.
 
 Even if each script has their own documentation to describe what is their purpose, some extra information can be found in their `README` files and in this folder.
 
-## `/editor`
+### `/editor`
 Editor folder.
 
 All Blockflow UI related files lives here, from the main screen to each individual block script.
 
-### `/command_block`
+#### `/command_block`
 Scripts that defines the structure of the basic command block that is seen in editor through `CommandDisplayer`.
 
-### `/inspector`
+#### `/inspector`
 Inspector scripts that defines custom modifications to different classes that are used in this plugin at `EditorInspector`.
 
-### `/playground`
+#### `/playground`
 Test (playground) scenes to try Blockflow features and debug them in game. 
 
 Some features can't be used in game runtime since they're locked to the editor runtime, so we test those in these playground scenes.
 
-### `/shortcuts`
+#### `/shortcuts`
 Shortcuts used in the editor, created as `Shortcut` resources to be able to modify and reuse.
 
-## `/icons`
+### `/icons`
 Plugin icons. All icons are here, in SVG Format, with a specific color and size selection.
 
-## `/script_templates`
+### `/script_templates`
 Script templates that are going to be copied to `res://` when plugin loads for the first time.
 
 These templates should appear when you create a new script of `Command` type.
