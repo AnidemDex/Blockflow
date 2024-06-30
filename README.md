@@ -127,7 +127,7 @@ Thanks to the new Godot 4 features, we can make use of the internal documentatio
 
 > We are still working on it. Sorry for the inconvenience 🙁
 
-Some extra documentation is also added on each folder when is relevant (specially tutorials)
+Some extra documentation is also added on each folder when is relevant (specially tutorials). See [OVERVIEW](documentation/OVERVIEW.md) file for more information.
 
 ### Example scenarios
 > We are still working on it. Sorry for the inconvenience 🙁
@@ -141,6 +141,8 @@ We added some example scenes in particular cases that we found very good situati
 This plugin is fully open source, feel free to dive into the code and adapt every aspect to it to your needs.
 
 If you find a bug, want a new feature or something is not properly explained, please [open a new issue](https://github.com/AnidemDex/Blockflow/issues/new).
+
+You can join us on the discord server https://discord.gg/6HEwxHCTaK to discuss about features and bugs or send me a direct message on X/Twitter `@anidemdex` too.
 
 ## License
 
