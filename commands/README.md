@@ -21,8 +21,7 @@ sequenceDiagram
   Processor->>+Command: execution_steps.call()
   Note over Processor, Command: Default execution
   Note right of Command: Defined function is called
-  Destroy Processor
-  Command --x- Processor: command_finished
+  Command -->>- Processor: command_finished
 ```
 Command itself can tell which path should processor take:
 ```mermaid
