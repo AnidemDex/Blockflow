@@ -1,1 +1,10 @@
-# I can't find a way to ignore further modifications to .import files
+# Now I've found a way to ignore imported files :D
+# But not in the .gitignore, sadly :(
+
+# Use the next code to ignore the imported files from your
+# git status:
+#
+# git update-index --skip-worktree *.import
+#
+# It may not work as is, and you probably will need to replace
+# `*.import` with each imported file path. But hey, it works!

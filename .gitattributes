@@ -16,6 +16,7 @@
 /.gitbook.yaml      export-ignore
 .images/            export-ignore
 docs/               export-ignore
+documentation/      export-ignore
 
 *.png filter=lfs diff=lfs merge=lfs -text
 *.jpg filter=lfs diff=lfs merge=lfs -text
