@@ -33,14 +33,6 @@ var target_collection:Collection:
 		emit_changed()
 	get: return target_collection
 
-## @deprecated
-var timeline:
-	set(value):
-		push_warning("timeline is deprecated and will be removed in future versions")
-		timeline = value
-		emit_changed()
-	get: return timeline
-
 ## The condition to evaluate. If false, this command is skipped.
 ## You can reference variables and even call functions, for example:[br]
 ## [code]value == true[/code][br]
@@ -54,12 +46,9 @@ var condition:String:
 	get:
 		return condition
 
-## Helper function to get the defined [timeline]
+## Helper function to get the defined [member target_collection]
 func get_target_collection() -> Blockflow.CommandCollectionClass:
 	var target_c:Blockflow.CommandCollectionClass = target_collection
-	# Workaroung while we try to remove @deprecate d timeline
-	if (not target_c) and timeline != null:
-		target_c = timeline.get_collection_equivalent()
 	
 	var current_collection = command_manager.main_collection
 	if not target_c:
@@ -71,8 +60,8 @@ func get_target_collection() -> Blockflow.CommandCollectionClass:
 ## and [command_bookmark]
 func get_target_command_index() -> int:
 	if use_bookmark:
-		var target_timeline:Blockflow.CommandCollectionClass = get_target_collection()
-		var target_command:Blockflow.CommandClass = target_timeline.get_command_by_bookmark(command_bookmark)
+		var target_collection:Blockflow.CommandCollectionClass = get_target_collection()
+		var target_command:Blockflow.CommandClass = target_collection.get_command_by_bookmark(command_bookmark)
 		command_index = target_command.position
 	return command_index
 
@@ -168,14 +157,6 @@ func _get_property_list():
 			"type": TYPE_STRING,
 			"usage": PROPERTY_USAGE_DEFAULT if use_bookmark else 0,
 		},
-#		{
-#			"name": "timeline", # @deprecated
-#			"type": TYPE_OBJECT,
-#			"class_name": "Timeline",
-#			"usage": PROPERTY_USAGE_DEFAULT|PROPERTY_USAGE_READ_ONLY,
-#			"hint": PROPERTY_HINT_RESOURCE_TYPE,
-#			"hint_string": "Timeline"
-#		},
 		{
 			"name": "target_collection",
 			"type": TYPE_OBJECT,

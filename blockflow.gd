@@ -18,7 +18,7 @@ const CommandCollectionClass = preload("res://addons/blockflow/command_collectio
 ## [Command] class.
 const CommandClass = preload("res://addons/blockflow/commands/command.gd")
 ## [CommandProcessor] class.
-const CommandProcessorClass = preload("res://addons/blockflow/command_processor.gd")
+const CommandProcessorClass = preload("res://addons/blockflow/processors/command_processor.gd")
 
 static func get_default_command_scripts() -> Array:
 	var commands := []
@@ -65,10 +65,6 @@ static func get_plugin() -> Node:
 
 static func get_editor_interface() -> EditorInterface:
 	return null
-
-# TODO: Remove
-## @deprecated
-const TimelineClass = preload("res://addons/blockflow/timeline.gd")
 
 enum Toast {
 	SEVERITY_INFO,

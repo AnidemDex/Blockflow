@@ -3,7 +3,6 @@ extends EditorPlugin
 
 const Blockflow = preload("res://addons/blockflow/blockflow.gd")
 const BlockEditor = preload("res://addons/blockflow/editor/editor.gd")
-const TimelineConverter = preload("res://addons/blockflow/timeline_converter.gd")
 const InspectorTools = preload("res://addons/blockflow/editor/inspector/inspector_tools.gd")
 const CommandInspector = preload("res://addons/blockflow/editor/inspector/command_inspector.gd")
 const CommandCallInspector = preload("res://addons/blockflow/editor/inspector/call_inspector.gd")
@@ -18,7 +17,6 @@ var block_editor:BlockEditor
 var last_edited_object:Object
 var last_handled_object:Object
 
-var timeline_converter:TimelineConverter
 
 var node_selector:InspectorTools.NodeSelector
 var method_selector:InspectorTools.MethodSelector
@@ -51,7 +49,6 @@ func _enter_tree():
 	get_editor_interface().get_base_control().add_child(method_selector)
 	_make_visible(false)
 	
-	add_resource_conversion_plugin(timeline_converter)
 	add_inspector_plugin(command_inspector)
 	add_inspector_plugin(command_call_inspector)
 	
@@ -61,8 +58,7 @@ func _enter_tree():
 func _handles(object: Object) -> bool:
 	var condition:bool = false
 	condition =\
-	(object is Blockflow.CollectionClass) or \
-	(object is Blockflow.TimelineClass)
+	(object is Blockflow.CollectionClass)
 	
 	last_handled_object = object
 	
@@ -114,8 +110,6 @@ func _exit_tree():
 	queue_save_layout()
 	block_editor.queue_free()
 	
-	remove_resource_conversion_plugin(timeline_converter)
-	timeline_converter = null
 	
 	remove_inspector_plugin(command_inspector)
 	remove_inspector_plugin(command_call_inspector)
@@ -131,7 +125,6 @@ func _init() -> void:
 	block_editor.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	block_editor.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	
-	timeline_converter = TimelineConverter.new()
 	command_inspector = CommandInspector.new()
 	
 	node_selector = InspectorTools.NodeSelector.new()
