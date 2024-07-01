@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="CommandCollection" load_steps=4 format=3 uid="uid://dtfomflgabsgq"]
+
+[ext_resource type="Script" path="res://addons/blockflow/command_collection.gd" id="1_muj4w"]
+[ext_resource type="Script" path="res://addons/blockflow/commands/command_print.gd" id="1_opa7l"]
+
+[sub_resource type="Resource" id="Resource_1oxdn"]
+script = ExtResource("1_opa7l")
+comment = "Hey there!"
+bookmark = &""
+continue_at_end = true
+background_color = 0
+target = NodePath("")
+collection = []
+
+[resource]
+resource_name = "example_collection.tres"
+script = ExtResource("1_muj4w")
+collection = [SubResource("Resource_1oxdn")]
