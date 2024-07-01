@@ -4,6 +4,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres loosely to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased 
+### Added
+- More documentation about project structure and usage.
+### Changed
+- `Set` command behavior. Now includes more operations and hints to be done in the command - [#153](https://github.com/AnidemDex/Blockflow/pull/153).
+### Deprecated
+- `Set.PlusOperables` constant. Now `Operables` is used instead.
 ## \[[1.1](https://github.com/AnidemDex/Blockflow/releases/tag/1.1)] 2024-06-02
 ### Added
 - Copy and paste command functionality - [#105](https://github.com/AnidemDex/Blockflow/pull/105).
