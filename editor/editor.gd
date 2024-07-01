@@ -120,9 +120,6 @@ func close() -> void:
 
 
 func edit(object:Object) -> void:
-	if object is Blockflow.TimelineClass:
-		edit_timeline(object as Blockflow.TimelineClass)
-		return
 	if object is Blockflow.CommandCollectionClass:
 		edit_collection(object as Blockflow.CommandCollectionClass)
 
@@ -173,33 +170,6 @@ func edit_collection(collection:Blockflow.CollectionClass) -> void:
 	title_label.text = path_hint
 #	Blockflow.generate_tree(edited_object)
 	collection_displayer.build_tree(_current_collection)
-
-func edit_timeline(timeline:Object) -> void:
-	timeline = timeline as Blockflow.TimelineClass
-	if not timeline:
-		return
-	
-	var collection:Blockflow.CommandCollectionClass
-	
-	collection = timeline.get_collection_equivalent()
-	
-	var err := ResourceSaver.save(collection, timeline.resource_path, ResourceSaver.FLAG_CHANGE_PATH|ResourceSaver.FLAG_REPLACE_SUBRESOURCE_PATHS)
-	if err != OK:
-		var err_msg := "An error occurred while creating a collection from timeline: %s(%s)" % [error_string(err), err]
-		push_error(err_msg)
-		toast_callback.call("Failed to create a new collection!",Blockflow.Toast.SEVERITY_ERROR,err_msg)
-		close()
-		return
-	
-	collection.take_over_path(timeline.resource_path)
-	
-	toast_callback.call(
-		"Timeline class is deprecated.",
-		Blockflow.Toast.SEVERITY_WARNING,
-		"Timeline class is deprecated and will be removed in the future. We created an equivalent at the same path for you"
-	)
-	
-	edit_callback.bind(collection).call_deferred()
 
 
 func add_command(command:Blockflow.CommandClass, at_position:int = -1, to_collection:Blockflow.CollectionClass = null) -> void:
@@ -690,7 +660,7 @@ func _editor_file_dialog_file_selected(path:String) -> void:
 		collection = load(path)
 	
 	var resource:Resource = load(path)
-	var condition:bool = resource is Blockflow.CommandCollectionClass or resource is Blockflow.TimelineClass
+	var condition:bool = resource is Blockflow.CommandCollectionClass
 	if not resource or not condition:
 		push_error("CollectionEditor: '%s' is not a valid Collection" % path)
 		return

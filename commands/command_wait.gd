@@ -1,6 +1,6 @@
 @tool
 extends "res://addons/blockflow/commands/command.gd"
-## Stop processing the timeline until a timeout or signal is received.
+## Stop processing the collection until a timeout or signal is received.
 
 enum Wait {
 	TIMEOUT,

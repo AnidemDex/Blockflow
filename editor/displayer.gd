@@ -21,10 +21,7 @@ var displayed_commands:Array = []
 
 func build_tree(object:Object) -> void:
 	var collection:CollectionClass
-	if object is Blockflow.TimelineClass:
-		collection = object.get_collection_equivalent()
-	else:
-		collection = object as CollectionClass
+	collection = object as CollectionClass
 	
 	_current_collection = collection
 	_reload()

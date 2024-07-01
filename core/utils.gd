@@ -43,7 +43,7 @@ static func turn_expression_string_to_string(input: String, target_node: Node):
 
 static func get_object_data(object:Object) -> Dictionary:
 	const CollectionClass = preload("res://addons/blockflow/collection.gd")
-	const ProcessorClass = preload("res://addons/blockflow/command_processor.gd")
+	const ProcessorClass = preload("res://addons/blockflow/processors/command_processor.gd")
 	const CommandClass = preload("res://addons/blockflow/commands/command.gd")
 	const CCollectionClass = preload("res://addons/blockflow/command_collection.gd")
 	

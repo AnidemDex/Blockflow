@@ -22,7 +22,7 @@ var command_icon:Texture = FALLBACK_ICON
 var command_hint:String = ""
 var command_hint_icon:Texture = null
 
-## Command visual representation for TimelineDisplayer
+## Command visual representation for CollectionDisplayer
 
 func update() -> void:
 	var hint_tooltip:String = "Bookmark:\n"+command.bookmark
