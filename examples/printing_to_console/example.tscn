@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://xswo5msa1axf"]
+
+[ext_resource type="Script" path="res://addons/blockflow/processors/command_processor.gd" id="1_kkprd"]
+
+[node name="CommandProcessor" type="Node"]
+script = ExtResource("1_kkprd")
