@@ -394,6 +394,54 @@ func _notification(what: int) -> void:
 						collection.remove_at(command_index)
 						collection.insert(command_index, branch)
 
+func _get(property: StringName):
+	match property:
+		"advanced/name":
+			return ""
+		"debug/position":
+			return position
+		"debug/index":
+			return index
+		"debug/owner":
+			return get_command_owner()
+		"debug/main_collection":
+			return get_main_collection()
+		_:
+			return
+
+func _get_property_list() -> Array[Dictionary]:
+	var p:Array[Dictionary] = []
+	p.append(
+		{
+			"name":"advanced/name",
+			"type":TYPE_STRING,
+			"usage":PROPERTY_USAGE_EDITOR|PROPERTY_USAGE_READ_ONLY,
+			"hint":PROPERTY_HINT_PLACEHOLDER_TEXT,
+			"hint_string":command_name,
+		})
+	if OS.is_stdout_verbose():
+		p.append({
+				"name":"debug/position",
+				"type":TYPE_INT,
+				"usage":PROPERTY_USAGE_EDITOR|PROPERTY_USAGE_READ_ONLY,
+		})
+		p.append({
+			"name":"debug/index",
+			"type":TYPE_INT,
+			"usage":PROPERTY_USAGE_EDITOR|PROPERTY_USAGE_READ_ONLY
+		})
+		p.append({
+			"name":"debug/owner",
+			"type":TYPE_OBJECT,
+			"usage":PROPERTY_USAGE_EDITOR|PROPERTY_USAGE_READ_ONLY,
+		})
+		p.append({
+			"name":"debug/main_collection",
+			"type":TYPE_OBJECT,
+			"usage":PROPERTY_USAGE_EDITOR|PROPERTY_USAGE_READ_ONLY,
+		})
+	return p
+
 ## Changes a variable of the target node.
 func _add_variable(varname: String, vartype, varvalue, target_node: Node):
 	if varname in target_node:
