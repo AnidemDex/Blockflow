@@ -151,6 +151,10 @@ func size() -> int:
 func is_empty() -> bool:
 	return collection.is_empty()
 
+## Forces an update to contained data.
+func update() -> void:
+	_notify_changed()
+
 func _notify_changed() -> void: 
 	notification(NOTIFICATION_UPDATE_STRUCTURE)
 	Blockflow.generate_tree(self)
