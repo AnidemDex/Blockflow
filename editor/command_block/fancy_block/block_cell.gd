@@ -21,3 +21,5 @@ func _notification(what):
 
 func _init() -> void:
 	name = "BlockCell"
+	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	theme_type_variation = "BlockCell"
