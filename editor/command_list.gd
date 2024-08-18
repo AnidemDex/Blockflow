@@ -168,10 +168,11 @@ func _notification(what: int) -> void:
 			return
 		
 		NOTIFICATION_READY:
-			var command_record:CommandRecord = CommandRecord.get_record()
+			var command_record:CommandRecord = CommandRecord.new().get_record()
 			command_record.command_list_changed.connect(build_command_list)
 			build_command_list()
 
+var editor:Node
 func _init() -> void:
 	size_flags_vertical = Control.SIZE_EXPAND_FILL
 	custom_minimum_size = Vector2(128, 64)

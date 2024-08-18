@@ -32,6 +32,7 @@ var _updating:bool = false
 static func get_record() -> Object:
 	if not Engine.has_meta("CommandRecord"): 
 		return null
+	
 	return (Engine.get_meta("CommandRecord", null) as WeakRef).get_ref()
 
 ## Add a command to record.
@@ -193,7 +194,6 @@ func _register_default_commands() -> void:
 
 func _init() -> void:
 	if is_instance_valid(get_record()):
-		push_error("A CommandRecord already exist!")
 		return
 	
 	_updating = true

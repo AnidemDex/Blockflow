@@ -67,7 +67,6 @@ func edit(object:Object) -> void:
 	
 	if object is CommandClass:
 		edited_object = object
-		left_section_hide()
 		_edit_command()
 		return
 	
