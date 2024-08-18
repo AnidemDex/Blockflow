@@ -134,7 +134,7 @@ var command_category:StringName:
 
 ## [CommandBlock] item assigned by editor.
 ## [br]This reference is assigned by Block Editor.
-var editor_block:TreeItem
+var editor_block:Object
 
 ## Layout data used by editor. This data is saved in editor
 ## and is not shared between projects.
