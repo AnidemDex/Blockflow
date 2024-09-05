@@ -23,3 +23,4 @@ func _init() -> void:
 	name = "BlockCell"
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	theme_type_variation = "BlockCell"
+	show_behind_parent = true
