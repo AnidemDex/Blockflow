@@ -162,6 +162,12 @@ func _get_rect_width() -> int:
 func _update_block() -> void:
 	name_node.text = command.command_name
 	icon_node.texture = command.command_icon
+	
+	if not command.block_name.is_empty():
+		name_node.text = command.block_name
+	
+	if command.block_icon:
+		icon_node.texture = command.block_icon
 
 
 func _show_item_popup(popup:PopupMenu) -> void:
