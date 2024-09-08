@@ -36,6 +36,18 @@ class BlockButton extends BaseButton:
 	func _init():
 		toggle_mode = true
 
+# https://github.com/godotengine/godot/blob/4.0.2-stable/editor/editor_themes.cpp#L60-L160
+const _ColorConversionMap = [
+	[Color(), Color()],
+	[Color("#ff4545"), Color("#ff2929")], # RED
+	[Color("#ffe345"), Color("#ffe337")], # YELLOW
+	[Color("#80ff45"), Color("#74ff34")], # GREEN
+	[Color("#45ffa2"), Color("#2cff98")], # AQUA
+	[Color("#45d7ff"), Color("#22ccff")], # BLUE
+	[Color("#8045ff"), Color("#702aff")], # PURPLE
+	[Color("#ff4596"), Color("#ff2781")], # PINK
+]
+
 var debug:bool = false:
 	set(value):
 		debug = value
@@ -45,7 +57,7 @@ var debug:bool = false:
 var indent_level:int:
 	set(value):
 		indent_level = value
-		_button.custom_minimum_size.x = 16 * indent_level
+		_button.custom_minimum_size.x = _get_indent_size() * indent_level + _get_rect_width()
 		queue_sort()
 
 var command:CommandClass = null:
@@ -106,19 +118,51 @@ func get_drop_section(at_position:Vector2) -> EditorConstants.DropSection:
 
 
 func set_command(value:CommandClass) -> void:
-	if not value:
+	if command == value:
+		return
+	
+	if command:
+		if command.changed.is_connected(_update_block):
+			command.changed.disconnect(_update_block)
+		if command.changed.is_connected(queue_redraw):
+			command.changed.disconnect(queue_redraw)
+	
+	command = value
+	
+	if not command:
 		name_node.text = "[Unknow]"
 		icon_node.texture = get_theme_icon("Unknow", "BlockflowIcons")
 		name = "BlockNode"
 		return
 	
-	command = value
-	
-	name_node.text = command.command_name
-	icon_node.texture = command.command_icon
+	if not command.changed.is_connected(_update_block):
+		command.changed.connect(_update_block)
+	if not command.changed.is_connected(queue_redraw):
+		command.changed.connect(queue_redraw)
 	
 	if command.get_command_owner() is CommandClass:
 		indent_level += 1
+	
+	_update_block()
+	queue_redraw()
+
+func _get_indent_size() -> int:
+	var s:int = get_theme_constant(&"indent_size")
+	if s < 1:
+		s = 16
+	return s
+
+func _get_rect_width() -> int:
+	var w:int = get_theme_constant(&"rect_width")
+	if w < 1:
+		w = 4
+	return w
+
+
+func _update_block() -> void:
+	name_node.text = command.command_name
+	icon_node.texture = command.command_icon
+
 
 func _show_item_popup(popup:PopupMenu) -> void:
 	if not popup: return
@@ -306,7 +350,12 @@ func _gui_input(event:InputEvent) -> void:
 func _notification(what):
 	match what:
 		NOTIFICATION_SORT_CHILDREN:
-			fit_child_in_rect(_button, Rect2(0, 0, size.x, size.y))
+			var rect:= Rect2i(
+				_get_indent_size()*indent_level + _get_rect_width(), 0,
+				size.x - (_get_indent_size() * indent_level) - _get_rect_width(), size.y
+			)
+			fit_child_in_rect(_button, rect)
+		
 		NOTIFICATION_CHILD_ORDER_CHANGED:
 			notify_property_list_changed()
 			update_configuration_warnings()
@@ -314,6 +363,41 @@ func _notification(what):
 		NOTIFICATION_DRAW:
 			if _sb_section:
 				draw_style_box(_sb_section, Rect2(Vector2(), size))
+			
+			var color = Color()
+			
+			if command:
+				color = get_theme_color("property_color", "Editor")
+				
+				if command.block_color > 0 and command.block_color < 8:
+					var is_dark_theme:bool = true
+					# https://github.com/godotengine/godot/blob/835808ed8fa992c961d6989f0a0c48ed2abd69bd/editor/themes/editor_theme_manager.cpp#L2777
+					if Engine.is_editor_hint():
+						var editor_settings = EditorInterface.get_editor_settings()
+						var icon_font_color_setting:int =\
+						editor_settings.get("interface/theme/icon_and_font_color")
+						
+						if icon_font_color_setting == 0: # is on auto mode:
+							var base_color:Color = editor_settings.get("interface/theme/base_color")
+							is_dark_theme = base_color.get_luminance() < 0.5
+						else:
+							is_dark_theme = icon_font_color_setting == 2
+					color = _ColorConversionMap[command.block_color][int(is_dark_theme)]
+				elif command.block_color >= 8:
+					color = command.block_custom_color
+			
+			var rect := Rect2i(
+					_get_indent_size()*indent_level, 0,
+					_get_rect_width(), size.y
+				)
+			draw_rect(rect, color)
+			
+			if _button.button_pressed:
+				rect = Rect2i(
+					_get_indent_size() * indent_level, 0,
+					size.x - (_get_indent_size() * indent_level) - _get_rect_width(), size.y
+				)
+				draw_rect(rect,Color(color, 0.2), true)
 			
 			if keep_selected:
 				draw_style_box(get_theme_stylebox("selected", "Tree"), Rect2(Vector2(), size))
@@ -331,6 +415,8 @@ func _notification(what):
 			_sb_section = null
 			queue_redraw()
 
+func _button_toggled(_toggled_on:bool) -> void:
+	queue_redraw()
 
 func _get_configuration_warnings() -> PackedStringArray:
 	var warnings := PackedStringArray()
@@ -391,6 +477,8 @@ func _init():
 	_button = BlockButton.new()
 	_button.mouse_filter = Control.MOUSE_FILTER_PASS
 	_button.focus_mode = Control.FOCUS_ALL
+	_button.show_behind_parent = true
+	_button.toggled.connect(_button_toggled)
 	
 	var icon_cell := BlockCell.new()
 	icon_cell.name = &"IconCell"
