@@ -1,6 +1,8 @@
 @tool
 extends PanelContainer
 
+signal command_selected(resource)
+
 const Constants = preload("res://addons/blockflow/editor/constants.gd")
 
 const CommandList = preload("res://addons/blockflow/editor/command_list.gd")
@@ -391,6 +393,7 @@ func _displayer_command_selected(command:CommandClass) -> void:
 	
 	_current_command = command
 	last_selected_command = command
+	command_selected.emit(last_selected_command)
 
 func _displayer_display_finished() -> void:
 	if not last_selected_command:
@@ -500,6 +503,7 @@ func _init() -> void:
 	size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	size_flags_vertical = Control.SIZE_EXPAND_FILL
 	theme = load(Constants.DEFAULT_THEME_PATH) as Theme
+	theme_type_variation = "BlockEditor"
 	
 	command_popup = PopupMenu.new()
 	command_popup.name = "ItemPopup"
