@@ -48,16 +48,8 @@ const Branch = preload("res://addons/blockflow/commands/branch.gd")
 		notify_property_list_changed()
 	get: return target
 
-## Execution steps that will be called to execute the command behaviour.
-## By default, it uses [method _execution_steps], you can override
-## that method to define your own steps.
-var execution_steps:Callable = _execution_steps
-
-## [CommandProcessor] node that is executing this command.
-## This value is assigned by its current command manager and
-## should not be assigned manually.
-var command_manager:Node
-
+#region COMMAND DATA
+@export_group("Command Data")
 ## The command name. Use [method _get_name] to define the name.
 ##[br]Command name is used by editor, it'll displayed in item the first column
 ## next to command icon.
@@ -67,7 +59,7 @@ var command_manager:Node
 ## func _get_name() -> StringName:
 ##     return &"Example Command"
 ## [/codeblock]
-var command_name:StringName :
+@export var command_name:StringName :
 	set(value): return
 	get: return _get_name()
 
@@ -78,9 +70,19 @@ var command_name:StringName :
 ## func _get_icon() -> Texture:
 ##     return load("res://icon.svg")
 ## [/codeblock]
-var command_icon:Texture :
+@export var command_icon:Texture :
 	set(value): return
 	get: return _get_icon()
+
+## Command description is used by editor and will be show as tooltip hint.
+## [br]Use [method _get_description] to define the description.
+## [codeblock]
+## func _get_description() -> String:
+##     return "This is an example command"
+## [/codeblock]
+@export_multiline var command_description:String :
+	set(value): return
+	get: return _get_description()
 
 ## Command hint. Use [method _get_hint] to define the command hint.
 ## [br]It will be displayed on command item middle column, 
@@ -135,16 +137,6 @@ var command_hint_icon:Texture :
 	set(value): return
 	get: return _get_hint_icon()
 
-## Command description is used by editor and will be show as tooltip hint.
-## [br]Use [method _get_description] to define the description.
-## [codeblock]
-## func _get_description() -> String:
-##     return "This is an example command"
-## [/codeblock]
-var command_description:String :
-	set(value): return
-	get: return _get_description()
-
 ## The color of this command's text
 ## Used by the Comment command to fade the text out
 ## @deprecated
@@ -152,11 +144,57 @@ var command_text_color:Color :
 	set(value): return
 	get: return _get_color()
 
-## Command category where this command be grouped with
-## in editor.
-var command_category:StringName:
-	set(value): return
-	get: return _get_category()
+@export_group(&"Block", &"block_")
+## Used as [member command_name] alias. Defined value will replace
+## the text displayed in the block representation.
+@export var block_name:String:
+	set(value):
+		if block_name == value:
+			return
+		block_name = value
+		emit_changed()
+
+## Color used to tint the vertical bar and background of the
+## block representation.[br]
+## Possible values are:[br]
+## [color=red]- Red [/color][br]
+## [color=yellow]- Yellow[/color][br]
+## [color=green]- Green[/color][br]
+## [color=aqua]- Aqua[/color][br]
+## [color=blue]- Blue[/color][br]
+## [color=purple]- Purple[br][/color]
+## [color=pink]- Pink[br][/color]
+## - Custom[br]
+## If [code]Custom[/code] is selected, you can define a custom color
+## value with [member block_custom_color].[br]
+## All values, except [code]Custom[/code] will be automatically
+## adjusted according their background.
+@export var block_color:int:
+	set(value):
+		if block_color == value:
+			return
+		block_color = value
+		emit_changed()
+		notify_property_list_changed()
+
+## Color used to tint the vertical bar and background of the
+## block representation.[br]
+## This value is used when [member block_color] value is 
+## [code]Custom (8)[/code].
+@export var block_custom_color:Color:
+	set(value):
+		if block_custom_color == value:
+			return
+		block_custom_color = value
+		emit_changed()
+
+## Texture icon used in the block representation.
+@export var block_icon:Texture:
+	set(value):
+		if block_icon == value:
+			return
+		block_icon = value
+		emit_changed()
 
 ## [CommandBlock] item assigned by editor.
 ## [br]This reference is assigned by Block Editor.
@@ -165,6 +203,12 @@ var editor_block:Object
 ## Layout data used by editor. This data is saved in editor
 ## and is not shared between projects.
 var editor_state:Dictionary
+#endregion
+
+## Execution steps that will be called to execute the command behaviour.
+## By default, it uses [method _execution_steps], you can override
+## that method to define your own steps.
+var execution_steps:Callable = _execution_steps
 
 ## Target node that [member target] points to. This value is assigned by
 ## [member command_manager] before command execution if [member target] is a
@@ -467,51 +511,113 @@ func _notification(what: int) -> void:
 						collection.remove_at(command_index)
 						collection.insert(command_index, branch)
 
+
+func _set(property: StringName, value: Variant) -> bool:
+	return false
+
+
 func _get(property: StringName):
 	match property:
-		"advanced/name":
-			return ""
-		"debug/position":
+		#region debug
+		&"debug/position":
 			return position
-		"debug/index":
+		&"debug/index":
 			return index
-		"debug/owner":
+		&"debug/owner":
+			return weak_owner
 			return get_command_owner()
-		"debug/main_collection":
+		&"debug/main_collection":
+			return weak_collection
 			return get_main_collection()
-		_:
+		#endregion
+
+func _property_can_revert(property: StringName) -> bool:
+	return property.begins_with(&"block_")
+
+func _property_get_revert(property: StringName) -> Variant:
+	match property:
+		&"block_name":
+			return ""
+		&"block_color":
+			return 0
+		&"block_custom_color":
+			return Color()
+		&"block_icon":
+			return null
+	return
+
+func _validate_property(property: Dictionary) -> void:
+	super(property)
+	
+	var property_name:StringName = property.get(&"name", &"")
+	
+	if property_name.begins_with(&"command_"):
+		const cmd_data = [
+			&"command_name",
+			&"command_icon",
+			&"command_description",
+			&"command_hint",
+			&"command_category",
+		]
+		if not property_name in cmd_data: return
+		
+		property[&"usage"] = PROPERTY_USAGE_READ_ONLY | PROPERTY_USAGE_EDITOR
+		return
+	
+	match property_name:
+		&"resource_local_to_scene", &"resource_path", &"resource_name", &"script":
+			property[&"usage"] |= PROPERTY_USAGE_READ_ONLY
 			return
+		
+		&"block_name":
+			property[&"hint"] = PROPERTY_HINT_PLACEHOLDER_TEXT
+			property[&"hint_string"] = command_name
+			
+			if block_name.is_empty():
+				property[&"usage"] = PROPERTY_USAGE_EDITOR
+			else:
+				property[&"usage"] = PROPERTY_USAGE_DEFAULT
+		
+		&"block_color":
+			property[&"hint"] = PROPERTY_HINT_ENUM
+			property[&"hint_string"] = "[None],Red,Yellow,Green,Aqua,Blue,Purple,Pink,Custom"
+			
+			if block_color <= 0:
+				property[&"usage"] = PROPERTY_USAGE_EDITOR
+			else:
+				property[&"usage"] = PROPERTY_USAGE_DEFAULT
+			
+		&"block_custom_color":
+			property[&"hint"] = PROPERTY_HINT_COLOR_NO_ALPHA
+			
+			if block_color < 8:
+				property[&"usage"] = PROPERTY_USAGE_NONE
+			else:
+				property[&"usage"] = PROPERTY_USAGE_DEFAULT
 
 func _get_property_list() -> Array[Dictionary]:
 	var p:Array[Dictionary] = []
-	p.append(
-		{
-			"name":"advanced/name",
-			"type":TYPE_STRING,
-			"usage":PROPERTY_USAGE_EDITOR|PROPERTY_USAGE_READ_ONLY,
-			"hint":PROPERTY_HINT_PLACEHOLDER_TEXT,
-			"hint_string":command_name,
-		})
+	
 	if OS.is_stdout_verbose():
 		p.append({
-				"name":"debug/position",
-				"type":TYPE_INT,
-				"usage":PROPERTY_USAGE_EDITOR|PROPERTY_USAGE_READ_ONLY,
+			&"name":&"debug/position",
+			&"type":TYPE_INT,
+			&"usage":PROPERTY_USAGE_EDITOR|PROPERTY_USAGE_READ_ONLY,
 		})
 		p.append({
-			"name":"debug/index",
-			"type":TYPE_INT,
-			"usage":PROPERTY_USAGE_EDITOR|PROPERTY_USAGE_READ_ONLY
+			&"name":&"debug/index",
+			&"type":TYPE_INT,
+			&"usage":PROPERTY_USAGE_EDITOR|PROPERTY_USAGE_READ_ONLY
 		})
 		p.append({
-			"name":"debug/owner",
-			"type":TYPE_OBJECT,
-			"usage":PROPERTY_USAGE_EDITOR|PROPERTY_USAGE_READ_ONLY,
+			&"name":&"debug/owner",
+			&"type":TYPE_OBJECT,
+			&"usage":PROPERTY_USAGE_EDITOR|PROPERTY_USAGE_READ_ONLY,
 		})
 		p.append({
-			"name":"debug/main_collection",
-			"type":TYPE_OBJECT,
-			"usage":PROPERTY_USAGE_EDITOR|PROPERTY_USAGE_READ_ONLY,
+			&"name":&"debug/main_collection",
+			&"type":TYPE_OBJECT,
+			&"usage":PROPERTY_USAGE_EDITOR|PROPERTY_USAGE_READ_ONLY,
 		})
 	return p
 
