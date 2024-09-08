@@ -13,6 +13,7 @@ signal command_started
 ## Emmited when the command finishes its execution.
 signal command_finished
 
+## @deprecated
 const Group = preload("res://addons/blockflow/commands/group.gd")
 const Branch = preload("res://addons/blockflow/commands/branch.gd")
 
@@ -35,14 +36,6 @@ const Branch = preload("res://addons/blockflow/commands/branch.gd")
 		continue_at_end = value
 		emit_changed()
 	get: return continue_at_end
-
-## What color to paint this command with.
-## Purely visual!
-@export_enum("Blank", "Red", "Yellow", "Green", "Aqua", "Blue", "Purple", "Pink") var background_color:int:
-	set(value):
-		background_color = value
-		emit_changed()
-	get: return background_color
 
 ## Target [NodePath] this command points to.
 ## This value is used in runtime by its [member command_manager] 
@@ -96,9 +89,40 @@ var command_icon:Texture :
 ## func _get_hint() -> String:
 ##     return "Hi, I'm command %s" % command_name
 ## [/codeblock]
-var command_hint:String :
+@export_multiline var command_hint:String :
 	set(value): return
 	get: return _get_hint()
+
+## Command color. See [member block_color] for more information.
+@export_color_no_alpha var command_color:Color:
+	set(value): return
+	get: return _get_color()
+
+## Command category where this command be grouped with
+## in editor.
+@export var command_category:StringName:
+	set(value): return
+	get: return _get_category()
+
+@export_group("")
+
+## [CommandProcessor] node that is executing this command.
+## This value is assigned by its current command manager and
+## should not be assigned manually.
+var command_manager:Node
+
+#endregion
+
+#region BLOCK DATA
+
+## What color to paint this command with.
+## Purely visual!
+## @deprecated: Use [member block_color] instead.
+@export_enum("Blank", "Red", "Yellow", "Green", "Aqua", "Blue", "Purple", "Pink") var background_color:int:
+	set(value):
+		background_color = value
+		emit_changed()
+	get: return background_color
 
 ## Command hint icon. Use [method _get_hint_icon] to define the texture.
 ## [br]This texture will be displayed before [member command_hint].
@@ -106,6 +130,7 @@ var command_hint:String :
 ## func _get_hint_icon() -> Texture:
 ##     return load("res://icon.svg")
 ## [/codeblock]
+## @deprecated: Use [member block_icon] instead.
 var command_hint_icon:Texture :
 	set(value): return
 	get: return _get_hint_icon()
@@ -122,6 +147,7 @@ var command_description:String :
 
 ## The color of this command's text
 ## Used by the Comment command to fade the text out
+## @deprecated
 var command_text_color:Color :
 	set(value): return
 	get: return _get_color()
@@ -180,6 +206,7 @@ var can_hold_commands:bool :
 ## func _defines_default_branches() -> bool:
 ##     return true
 ## [/codeblock]
+## @deprecated: Property defines a non supported behavior
 var defines_default_branches:bool:
 	set(value): return
 	get: return _defines_default_branches()
@@ -192,6 +219,7 @@ var defines_default_branches:bool:
 ## func _can_be_moved() -> bool:
 ##     return true
 ## [/codeblock]
+## @deprecated: This is block_ related but is unused
 var can_be_moved:bool :
 	set(value): return
 	get: return _can_be_moved()
@@ -205,6 +233,7 @@ var can_be_moved:bool :
 ## func _can_be_selected() -> bool:
 ##     return true
 ## [/codeblock]
+## @deprecated: This is block_ related but is unused
 var can_be_selected:bool :
 	set(value): return
 	get: return _can_be_selected()
@@ -281,6 +310,7 @@ func go_to_command(command_position:int) -> void:
 ## branch names must be unique or it'll use last match
 ## [br]  - [int] value, it'll use the branch according 
 ## [member branches.get_command]
+## @deprecated
 func go_to_branch(branch) -> void:
 	assert(false, "Not implemented")
 	return
@@ -330,12 +360,15 @@ func _get_icon() -> Texture:
 func _get_hint() -> String:
 	return ""
 
+## @deprecated
 func _get_hint_icon() -> Texture:
 	return null
 
+## @deprecated
 func _can_be_moved() -> bool:
 	return true
 
+## @deprecated
 func _can_be_selected() -> bool:
 	return true
 
@@ -351,16 +384,56 @@ func _get_category() -> StringName:
 func _can_hold_commands() -> bool:
 	return false
 
+## @deprecated
 func _defines_default_branches() -> bool:
 	return false
 
+## @deprecated
 func _get_default_branch_names() -> PackedStringArray:
 	return []
 
+## @deprecated: This function is unused and will be removed in future versions.
 func _get_default_branch_for(branch_name:StringName) -> Branch:
 	var branch := Branch.new()
 	branch.branch_name = branch_name
 	return branch
+
+## Changes a variable of the target node.
+## @experimental
+func _add_variable(varname: String, vartype, varvalue, target_node: Node):
+	if varname in target_node:
+		target_node.set(varname, varvalue)
+		return
+	target_node.set_meta(varname, varvalue)
+
+## Removes a variable from the target node. NOTE: This is currently [b]unused[/b]
+## This function has the side effect of preventing [code]_add_variable[/code] from setting the original if the variable was originally part of the node.
+## @experimental
+func _remove_variable(varname):
+	if target_node.is_instance_valid(varname) != null:
+		target_node.set(varname, null)
+		return
+	target_node.set_meta(varname, null)
+
+# TODO: This is not needed yet
+## @experimental
+func _add_signal(signalname: String, signalconnections, target_node):
+	pass
+	
+# TODO: This is not needed yet, and I don't know how to implement it :shrug:
+## @experimental
+func _remove_signal(signalname):
+	pass
+
+# TODO: This is not needed yet
+## @experimental
+func _add_function(funcname, funcargs, funcblocks,):
+	pass
+
+# TODO: This is not needed yet
+## @experimental
+func _remove_function(funcname,):
+	pass
 
 func _to_string() -> String:
 	return "<%s [%s:%s] # %d>" % [command_name,position,index, get_instance_id()]
@@ -442,31 +515,5 @@ func _get_property_list() -> Array[Dictionary]:
 		})
 	return p
 
-## Changes a variable of the target node.
-func _add_variable(varname: String, vartype, varvalue, target_node: Node):
-	if varname in target_node:
-		target_node.set(varname, varvalue)
-		return
-	target_node.set_meta(varname, varvalue)
-## Removes a variable from the target node. NOTE: This is currently [b]unused[/b]
-## This function has the side effect of preventing [code]_add_variable[/code] from setting the original if the variable was originally part of the node.
-func _remove_variable(varname):
-	if target_node.is_instance_valid(varname) != null:
-		target_node.set(varname, null)
-		return
-	target_node.set_meta(varname, null)
-# TODO: This is not needed yet
-func _add_signal(signalname: String, signalconnections, target_node):
-	pass
-	
-# TODO: This is not needed yet, and I don't know how to implement it :shrug:
-func _remove_signal(signalname):
-	pass
-
-# TODO: This is not needed yet
-func _add_function(funcname, funcargs, funcblocks,):
-	pass
-
-# TODO: This is not needed yet
-func _remove_function(funcname,):
-	pass
+func _get_editor_name():
+	return block_name if not(block_name.is_empty()) else command_name
