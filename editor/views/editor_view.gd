@@ -45,6 +45,8 @@ var command_popup:PopupMenu
 var command_list:CommandList
 
 var file_dialog:Node
+
+var section_left:PanelContainer
 #endregion
 
 var selected_commands:Array
@@ -83,6 +85,9 @@ func edit(object:Object) -> void:
 		return
 
 func enable() -> void:
+	if not _current_timeline:
+		left_section_hide()
+	
 	propagate_call("set", ["editor", self])
 	propagate_notification(Constants.NOTIFICATION_EDITOR_ENABLED)
 
@@ -246,10 +251,10 @@ func toolbar_update_menu_recent() -> void:
 			menu_recent.set_item_disabled(i, true)
 
 func left_section_hide() -> void:
-	pass
+	section_left.visible = false
 
 func left_section_show() -> void:
-	pass
+	section_left.visible = true
 
 
 func request_new_command_collection() -> void:
@@ -495,6 +500,7 @@ func _notification(what: int) -> void:
 	match what:
 		NOTIFICATION_READY:
 			if not edited_object:
+				left_section_hide()
 				disable()
 
 
@@ -550,13 +556,13 @@ func _init() -> void:
 	split_left.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	hb.add_child(split_left)
 	
-	var section_left := PanelContainer.new()
-	section_left.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	section_left.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	section_left.size_flags_stretch_ratio = 0.15
+	section_left = PanelContainer.new()
+	#section_left.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	#section_left.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	#section_left.size_flags_stretch_ratio = 0.15
 	var split_center := SplitContainer.new()
-	split_center.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	split_center.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	#split_center.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	#split_center.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	split_left.add_child(section_left)
 	split_left.add_child(split_center)
 	
