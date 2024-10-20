@@ -168,10 +168,11 @@ func _notification(what: int) -> void:
 			return
 		
 		NOTIFICATION_READY:
-			var command_record:CommandRecord = CommandRecord.get_record()
+			var command_record:CommandRecord = CommandRecord.new().get_record()
 			command_record.command_list_changed.connect(build_command_list)
 			build_command_list()
 
+var editor:Node
 func _init() -> void:
 	size_flags_vertical = Control.SIZE_EXPAND_FILL
 	custom_minimum_size = Vector2(128, 64)
@@ -179,4 +180,5 @@ func _init() -> void:
 	scroll_container = ScrollContainer.new()
 	scroll_container.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	scroll_container.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	add_child(scroll_container)

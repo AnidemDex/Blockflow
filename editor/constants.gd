@@ -7,6 +7,30 @@ enum {
 	NOTIFICATION_EDITOR_ENABLED = 9004,
 }
 
+enum ItemPopup {
+	NAME,
+	MOVE_UP, 
+	MOVE_DOWN, 
+	DUPLICATE,
+	REMOVE,
+	COPY,
+	PASTE,
+	CREATE_TEMPLATE,
+	}
+
+enum DropSection {
+	NO_ITEM = -100, 
+	ABOVE_ITEM = -1,
+	ON_ITEM,
+	BELOW_ITEM,
+	}
+
+enum Section {
+	LEFT,
+	CENTER,
+	RIGHT
+}
+
 const DEFAULT_LAYOUT_FILE =\
 &"res://.godot/editor/block_editor_cache.cfg"
 
@@ -19,3 +43,4 @@ const SHORTCUT_DUPLICATE = preload("res://addons/blockflow/editor/shortcuts/dupl
 const SHORTCUT_DELETE = preload("res://addons/blockflow/editor/shortcuts/delete.tres")
 const SHORTCUT_COPY = preload("res://addons/blockflow/editor/shortcuts/copy.tres")
 const SHORTCUT_PASTE = preload("res://addons/blockflow/editor/shortcuts/paste.tres")
+const SHORTCUT_OPEN_MENU = preload("res://addons/blockflow/editor/shortcuts/open_menu.tres")

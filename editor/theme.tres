@@ -4,7 +4,16 @@
 [ext_resource type="Texture2D" uid="uid://bmpioqcojkwso" path="res://addons/blockflow/icons/branch.svg" id="1_wf2ny"]
 [ext_resource type="Texture2D" uid="uid://bjpgrlbxe2frx" path="res://addons/blockflow/icons/plugin_icon_flat.svg" id="2_bbrvm"]
 
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_j0yct"]
+
 [resource]
+Block/base_type = &"HBoxContainer"
+Block/constants/indent_size = 16
+Block/constants/rect_width = 4
+Block/constants/separation = 0
+BlockCell/base_type = &"PanelContainer"
+BlockCell/styles/panel = SubResource("StyleBoxEmpty_j0yct")
+BlockEditor/base_type = &"PanelContainer"
 BlockEditor/constants/icon_min_size = 32
 Category/icons/Flow = ExtResource("1_wf2ny")
 PluginIcons/icons/plugin_icon = ExtResource("1_jlt6l")

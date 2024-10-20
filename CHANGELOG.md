@@ -3,13 +3,47 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres loosely to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+<!--
+FYI here's a hint about versioning:
+
+    Added for new features.
+    Changed for changes in existing functionality.
+    Deprecated for soon-to-be removed features.
+    Removed for now removed features.
+    Fixed for any bug fixes.
+    Security in case of vulnerabilities.
+
+-->
+
 ## Unreleased 
 ### Added
 - More documentation about project structure and usage.
+- A simple example. It just prints something in console.
+- **Multiple selection of commands**. This is part of our new UI.
+- `Command` properties:
+  - `block_name` as `command_name` alias to change the display name in editor.
+  - `block_color` to tint the block representation in editor.
+  - `block_icon` to define the texture used in the block representation in editor.
 ### Changed
 - `Set` command behavior. Now includes more operations and hints to be done in the command - [#153](https://github.com/AnidemDex/Blockflow/pull/153).
+- **Editor UI**. We now have a new custom displayer.
+- `Command.background_color` to `Command.block_color`.
+- `Command.command_hint_icon` to `Command.block_icon`
 ### Deprecated
 - `Set.PlusOperables` constant. Now `Operables` is used instead.
+- `Command.Group`. Unused constant.
+- `Command.background_color`.
+- `Command.command_hint_icon`.
+- `Command.command_text_color`.
+- `Command.defines_default_branches`.
+- `Command.can_be_moved`.
+- `Command.go_to_branch()`.
+- `Command._get_hint_icon()`.
+- `Command._can_be_selected()`.
+- `Command._defines_default_branches()`.
+- `Command._get_default_branch_for()`.
+### Removed
+- Old `Timeline` references. You _really_ should not be using those, they were not meant to exist in 1.0 but it was keep to preserve an older project stability.
 ## \[[1.1](https://github.com/AnidemDex/Blockflow/releases/tag/1.1)] 2024-06-02
 ### Added
 - Copy and paste command functionality - [#105](https://github.com/AnidemDex/Blockflow/pull/105).

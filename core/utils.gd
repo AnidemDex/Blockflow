@@ -180,3 +180,10 @@ static func get_default_value_for_type(type:Variant.Type):
 		_, TYPE_MAX:
 			push_error("get_default_value_for_type:: UNKNOW_TYPE %s"%type)
 	return value
+
+func toast(message:String, severity:int = 0, tooltip:String = "") -> void:
+	var toaster:Object = Engine.get_meta(&"editor_toaster", null)
+	if not is_instance_valid(toaster):
+		return
+	
+	toaster.call("_popup_str", message, severity, tooltip)
