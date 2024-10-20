@@ -22,6 +22,7 @@ var _vb:VBoxContainer
 func clear() -> void:
 	if is_instance_valid(_root):
 		_root.queue_free()
+		_sc.remove_child(_root)
 	_create_root()
 
 func display(object:Object) -> void:
