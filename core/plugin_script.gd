@@ -2,7 +2,7 @@
 extends EditorPlugin
 
 const Blockflow = preload("res://addons/blockflow/blockflow.gd")
-const BlockEditor = preload("res://addons/blockflow/editor/views/editor_view.gd")
+const BlockEditor = preload("res://addons/blockflow/editor/views/in_editor_view.gd")
 const InspectorTools = preload("res://addons/blockflow/editor/inspector/inspector_tools.gd")
 const CollectionInspector = preload("res://addons/blockflow/editor/inspector/collection_inspector.gd")
 const CommandInspector = preload("res://addons/blockflow/editor/inspector/command_inspector.gd")
@@ -68,8 +68,7 @@ func _edit(object: Object) -> void:
 	if self_called_to_edit:
 		return
 	
-	var editor_undoredo := get_undo_redo()
-	block_editor.undo_redo = editor_undoredo.get_history_undo_redo(editor_undoredo.get_object_history_id(object))
+	block_editor.editor_undo_redo = get_undo_redo()
 	block_editor.edit(object)
 	last_edited_object = object
 
@@ -175,7 +174,7 @@ func _init() -> void:
 	
 	debugger = BlockflowDebugger.new()
 	
-	command_record = Blockflow.CommandRecord.get_record()
+	command_record = Blockflow.CommandRecord.new().get_record()
 	project_settings_changed.connect(command_record.reload_from_project_settings)
 	
 	# Add the plugin to the list when we're created as soon as possible.

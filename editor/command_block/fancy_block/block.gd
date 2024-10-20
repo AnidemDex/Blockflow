@@ -78,6 +78,7 @@ var _button:BlockButton
 var _sb_section:StyleBox
 
 func select() -> void:
+	if not is_inside_tree(): return
 	_button.button_pressed = true
 	_button.grab_focus()
 

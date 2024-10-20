@@ -188,11 +188,6 @@ func _validate_property(property: Dictionary) -> void:
 		else:
 			property.usage = PROPERTY_USAGE_NO_EDITOR | PROPERTY_USAGE_ALWAYS_DUPLICATE
 
-func _get_property_list() -> Array:
-	var p:Array = []
-	p.append({"name":"collection", "type":TYPE_ARRAY, "usage":PROPERTY_USAGE_NO_EDITOR|PROPERTY_USAGE_ALWAYS_DUPLICATE})
-	return p
-
 func _to_string() -> String:
 	return "<Collection:%d>" % get_instance_id()
 

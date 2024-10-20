@@ -29,7 +29,7 @@ var _paths:Dictionary = {}
 var _updating:bool = false
 
 ## Get the command record "singleton".
-static func get_record() -> Object:
+static func get_record():
 	if not Engine.has_meta("CommandRecord"): 
 		return null
 	

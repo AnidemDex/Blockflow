@@ -21,7 +21,6 @@ var _vb:VBoxContainer
 
 func clear() -> void:
 	if is_instance_valid(_root):
-		_sc.remove_child(_root)
 		_root.queue_free()
 	_create_root()
 
@@ -63,7 +62,7 @@ func _display_command_collection(command_collection:CCollectionClass) -> void:
 	for block in blocks:
 		_root.add_child(block)
 	
-	emit_signal.bind("display_finished").call_deferred()
+	display_finished.emit.call_deferred()
 
 func _display_collection(collection:CollectionClass) -> void:
 	_create_root()
