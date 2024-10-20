@@ -22,7 +22,6 @@ enum ToolbarFileMenu {
 	RECENT,
 }
 
-static var editors := {}
 static var command_clipboard:CommandClass
 
 var edited_object:Object:
@@ -460,9 +459,6 @@ func _init() -> void:
 	section_right.add_child(command_list)
 	
 	command_record = CommandRecord.new().get_record()
-	
-	editors[&"unknow_editors"] = editors.get(&"unknow_editors", [])
-	editors[&"unknow_editors"].append(self)
 	
 	displayer = DisplayerFancy.new()
 	displayer.command_selected.connect(_displayer_command_selected)
