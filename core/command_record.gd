@@ -1,4 +1,5 @@
 @tool
+extends Resource
 ## CommandRecord
 ##
 ## Object in charge of keep track of the registered commands
@@ -10,30 +11,59 @@ signal command_list_changed
 const Constants = preload("res://addons/blockflow/core/constants.gd")
 const CommandClass = preload("res://addons/blockflow/commands/command.gd")
 
+## Path to a record file. Made as property and not constant just in case
+## user defines its own record
+var RECORD_PATH = "res://addons/blockflow/core/command_record.tres"
+
 ## Registered and tracked commands. 
 ## A duplicated array is returned when you get this value.
 var commands:Array:
 	get: return _commands.duplicate()
 
 # Registered and tracked commands
-var _commands:Array = []
+var _commands:Array = []:
+	set(value):
+		if _is_main_record():
+			_commands = value
+			emit_changed()
+		
+	get:
+		if _is_main_record():
+			return _commands
+		return get_record()._commands
 
-# script: [commands] <- 1:many
-var _scripts:Dictionary = {}
+# <script>: [commands] <- 1:many
+var _scripts:Dictionary = {}:
+	set(value):
+		if _is_main_record():
+			_scripts = value
+			emit_changed()
+	get:
+		if _is_main_record():
+			return _scripts
+		return get_record()._scripts
 
-# "path": command <- 1:1
-var _paths:Dictionary = {}
+# "resource_path": command <- 1:1
+var _paths:Dictionary = {}:
+	set(value):
+		if _is_main_record():
+			_paths = value
+			emit_changed()
+	get:
+		if _is_main_record():
+			return _paths
+		return get_record()._paths
 
 # Little flag to prevent recursion in case we're
 # playing with project settings here.
 var _updating:bool = false
 
 ## Get the command record "singleton".
-static func get_record():
-	if not Engine.has_meta("CommandRecord"): 
-		return null
+func get_record():
+	if resource_path.is_empty():
+		return weakref(load(RECORD_PATH)).get_ref()
 	
-	return (Engine.get_meta("CommandRecord", null) as WeakRef).get_ref()
+	return weakref(self).get_ref()
 
 ## Add a command to record.
 ## [param command_data] can be [Script], [Command] or a path.
@@ -59,11 +89,24 @@ func register(command_data:Variant, update_project_settings:bool = true) -> void
 	if command_data is Script:
 		command_script = command_data
 		command_path = command_data.resource_path
+		if command_script in _scripts:
+			# Already registered?
+			return
+		
+		if command_path.is_empty():
+			push_error("CommandRecord: Can't register scripts with empty path.")
+			return
+		
+		if command_path.is_valid_filename():
+			push_error("CommandRecord: Can't register script with invalid path.")
+			return
+		
 		command_data = command_script.new()
 		
 	if command_data is CommandClass:
 		command = command_data
 		if command in _commands:
+			# Already registered?
 			return
 	else:
 		push_error("CommandRecord: %s is not a valid type" % command_data )
@@ -102,7 +145,7 @@ func register(command_data:Variant, update_project_settings:bool = true) -> void
 			if error:
 				push_error("CommandRecord: %s while saving ProjectSettings" % error_string(error))
 	
-	command_list_changed.emit()
+	notify_record_changed()
 	
 	_updating = false
 
@@ -125,7 +168,7 @@ func unregister(command_data:Variant) -> void:
 		
 		_scripts.erase(command_script)
 		
-		command_list_changed.emit()
+		notify_record_changed()
 		
 		_updating = false
 		return
@@ -147,13 +190,59 @@ func unregister(command_data:Variant) -> void:
 	_paths.erase(command_path)
 	_scripts.get(command_script, []).erase(command)
 	
-	command_list_changed.emit()
+	notify_record_changed()
 	
 	_updating = false
 
 
-func reload_from_project_settings() -> void:
+func reload_from_project_settings(add_plugin_commands:bool = false) -> void:
 	if _updating:
+		return
+	
+	if not ProjectSettings.has_setting(Constants.PROJECT_SETTING_CUSTOM_COMMANDS):
+		# No settings to load?
+		return
+	
+	var new_paths:PackedStringArray = ProjectSettings.get_setting(Constants.PROJECT_SETTING_CUSTOM_COMMANDS, [])
+	new_paths.sort()
+	
+	var old_paths := PackedStringArray(_paths.keys())
+	old_paths.sort()
+	
+	if  old_paths == new_paths:
+		# Same paths, probably, no need to update anything.
+		return
+	
+	_commands.clear()
+	_scripts.clear()
+	_paths.clear()
+	
+	if add_plugin_commands:
+		_register_default_commands()
+	
+	for path in new_paths:
+		_updating = true
+		register(path, false)
+		_updating = false
+
+
+func notify_record_changed() -> void:
+	command_list_changed.emit()
+	get_record().command_list_changed.emit()
+
+
+func _register_default_commands() -> void:
+	for command_path in Constants.DEFAULT_COMMAND_PATHS:
+		_updating = true
+		register(command_path, false)
+		_updating = false
+
+func _is_main_record() -> bool:
+	return get_record() == self
+
+
+func _init() -> void:
+	if not Engine.is_editor_hint():
 		return
 	
 	if not ProjectSettings.has_setting(Constants.PROJECT_SETTING_CUSTOM_COMMANDS):
@@ -165,40 +254,6 @@ func reload_from_project_settings() -> void:
 			"hint_string": "*.gd"
 		}
 		ProjectSettings.add_property_info(setting_info)
-		ProjectSettings.save()
-	
-	var new_paths:PackedStringArray = ProjectSettings.get_setting(Constants.PROJECT_SETTING_CUSTOM_COMMANDS, [])
-	
-	if PackedStringArray(_paths.keys()) == new_paths:
-		# Same paths, probably, no need to update anything.
-		return
-	
-	_commands.clear()
-	_scripts.clear()
-	_paths.clear()
-	
-	_register_default_commands()
-	
-	for path in new_paths:
-		_updating = true
-		register(path, false)
-		_updating = false
-
-
-func _register_default_commands() -> void:
-	for command_path in Constants.DEFAULT_COMMAND_PATHS:
-		_updating = true
-		register(command_path, false)
-		_updating = false
-
-
-func _init() -> void:
-	if is_instance_valid(get_record()):
-		return
-	
-	_updating = true
-	reload_from_project_settings()
-	_updating = false
-	
-	# Let's not contribute to reference counter, shall we?
-	Engine.set_meta("CommandRecord", weakref(self))
+		var error:= ProjectSettings.save()
+		if error:
+			push_error("CommandRecord: Failed saving settings %s" % error_string(error))

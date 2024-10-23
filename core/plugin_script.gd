@@ -53,6 +53,9 @@ func _enter_tree():
 	
 	_setup_theme()
 
+func _enable_plugin() -> void:
+	command_record._register_default_commands()
+
 
 func _handles(object: Object) -> bool:
 	var condition:bool = false
@@ -175,7 +178,7 @@ func _init() -> void:
 	debugger = BlockflowDebugger.new()
 	
 	command_record = Blockflow.CommandRecord.new().get_record()
-	project_settings_changed.connect(command_record.reload_from_project_settings)
+	project_settings_changed.connect(command_record.reload_from_project_settings.bind(true))
 	
 	# Add the plugin to the list when we're created as soon as possible.
 	# Existing doesn't mean that plugin is ready, be careful with that.
