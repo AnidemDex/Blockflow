@@ -29,7 +29,7 @@ This class implements the necessary tools to show and manipulate a single `Colle
 ### in_editor_view.gd
 Editor view made for **in editor** usage only.
 
-## in_runtime_editor_view.gd
+### in_runtime_editor_view.gd
 Editor view made for runtime usage. Its usage in editor is not recommended.
 
 ## shortcuts
