@@ -421,6 +421,9 @@ func _notification(what):
 		NOTIFICATION_MOUSE_EXIT:
 			_sb_section = null
 			queue_redraw()
+		
+		NOTIFICATION_READY:
+			_update_block()
 
 func _button_toggled(_toggled_on:bool) -> void:
 	queue_redraw()
