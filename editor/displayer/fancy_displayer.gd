@@ -5,6 +5,7 @@ const CollectionClass = preload("res://addons/blockflow/collection.gd")
 const CommandClass = preload("res://addons/blockflow/commands/command.gd")
 const CCollectionClass = preload("res://addons/blockflow/command_collection.gd")
 const Block = preload("res://addons/blockflow/editor/command_block/fancy_block/block.gd")
+const BlockGenericPath = "res://addons/blockflow/editor/command_block/fancy_block/generic_block.tscn"
 
 signal display_finished
 signal command_selected(command)
@@ -70,12 +71,21 @@ func _display_collection(collection:CollectionClass) -> void:
 	pass
 
 func _build_fake_tree(curr_c, blocks, itr_lvl=0):
+	var generic_block_scene = load(BlockGenericPath) as PackedScene
+	if not generic_block_scene:
+		push_error("We can't create default block scene")
+	
 	if curr_c is CommandClass:
 		if curr_c.get_command_owner() is CommandClass:
 			itr_lvl += 1
 	
 	for command in curr_c:
-		var block := Block.new()
+		var block:Block
+		if not generic_block_scene:
+			block = Block.new()
+		else:
+			block = generic_block_scene.instantiate()
+		
 		block._button.button_group = _group
 		block.indent_level = itr_lvl
 		block.command = command
