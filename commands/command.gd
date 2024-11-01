@@ -196,6 +196,15 @@ var command_text_color:Color :
 		block_icon = value
 		emit_changed()
 
+## Custom [Block] scene used in editor.[br]
+## This scene must extend [Block] and must be `@tool`
+@export var block_custom_scene:PackedScene:
+	set(value):
+		if block_custom_scene == value:
+			return
+		block_custom_scene = value
+		emit_changed()
+
 ## [CommandBlock] item assigned by editor.
 ## [br]This reference is assigned by Block Editor.
 var editor_block:Object
