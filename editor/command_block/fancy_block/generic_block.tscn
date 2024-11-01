@@ -1,0 +1,38 @@
+[gd_scene load_steps=3 format=3 uid="uid://dylo8j3dhj1fq"]
+
+[ext_resource type="Script" path="res://addons/blockflow/editor/command_block/fancy_block/generic_block.gd" id="1_m6q1m"]
+[ext_resource type="Script" path="res://addons/blockflow/editor/command_block/fancy_block/block_cell.gd" id="2_kv4t1"]
+
+[node name="BlockNode" type="HBoxContainer"]
+offset_right = 402.0
+offset_bottom = 23.0
+size_flags_horizontal = 3
+mouse_filter = 0
+theme_type_variation = &"Block"
+script = ExtResource("1_m6q1m")
+
+[node name="0" type="PanelContainer" parent="."]
+show_behind_parent = true
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+theme_type_variation = &"BlockCell"
+script = ExtResource("2_kv4t1")
+
+[node name="LabelHint" type="Label" parent="0"]
+layout_mode = 2
+text = "{Command.command_hint}"
+text_overrun_behavior = 3
+
+[node name="1" type="PanelContainer" parent="."]
+show_behind_parent = true
+layout_mode = 2
+mouse_filter = 2
+theme_type_variation = &"BlockCell"
+script = ExtResource("2_kv4t1")
+
+[node name="BtnCollapse" type="Button" parent="1"]
+layout_mode = 2
+toggle_mode = true
+
+[connection signal="toggled" from="1/BtnCollapse" to="." method="_on_btn_collapse_toggled"]
