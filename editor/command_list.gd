@@ -107,14 +107,10 @@ func build_command_list() -> void:
 	categories.clear()
 	create_category_container()
 	
-	for command in Settings.get_default_command_scripts():
-		add_command(command)
-	
-	for command in Settings.get_custom_commands():
+	for command in CommandRecord.new().commands:
 		add_command(command)
 	
 	sort_categories()
-		
 
 
 func create_category_container() -> void:
