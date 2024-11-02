@@ -151,6 +151,10 @@ func size() -> int:
 func is_empty() -> bool:
 	return collection.is_empty()
 
+## Forces an update to contained data.
+func update() -> void:
+	_notify_changed()
+
 func _notify_changed() -> void: 
 	notification(NOTIFICATION_UPDATE_STRUCTURE)
 	Blockflow.generate_tree(self)
@@ -177,10 +181,12 @@ func _notification(what: int) -> void:
 			command.index = command_index
 			command.weak_collection = weak_collection
 
-func _get_property_list() -> Array:
-	var p:Array = []
-	p.append({"name":"collection", "type":TYPE_ARRAY, "usage":PROPERTY_USAGE_NO_EDITOR|PROPERTY_USAGE_SCRIPT_VARIABLE|PROPERTY_USAGE_ALWAYS_DUPLICATE})
-	return p
+func _validate_property(property: Dictionary) -> void:
+	if property.name == "collection":
+		if collection.is_empty():
+			property.usage = PROPERTY_USAGE_ALWAYS_DUPLICATE
+		else:
+			property.usage = PROPERTY_USAGE_NO_EDITOR | PROPERTY_USAGE_ALWAYS_DUPLICATE
 
 func _to_string() -> String:
 	return "<Collection:%d>" % get_instance_id()

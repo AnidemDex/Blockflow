@@ -2,14 +2,17 @@
 extends EditorPlugin
 
 const Blockflow = preload("res://addons/blockflow/blockflow.gd")
-const BlockEditor = preload("res://addons/blockflow/editor/editor.gd")
+const BlockEditor = preload("res://addons/blockflow/editor/views/in_editor_view.gd")
 const InspectorTools = preload("res://addons/blockflow/editor/inspector/inspector_tools.gd")
+const CollectionInspector = preload("res://addons/blockflow/editor/inspector/collection_inspector.gd")
 const CommandInspector = preload("res://addons/blockflow/editor/inspector/command_inspector.gd")
 const CommandCallInspector = preload("res://addons/blockflow/editor/inspector/call_inspector.gd")
 const BlockflowDebugger = preload("res://addons/blockflow/debugger/blockflow_debugger.gd")
 
 const Constants = preload("res://addons/blockflow/core/constants.gd")
 const EditorConstants = preload("res://addons/blockflow/editor/constants.gd")
+
+const Utils = preload("res://addons/blockflow/core/utils.gd")
 
 
 var block_editor:BlockEditor
@@ -21,6 +24,7 @@ var last_handled_object:Object
 var node_selector:InspectorTools.NodeSelector
 var method_selector:InspectorTools.MethodSelector
 
+var collection_inspector:CollectionInspector
 var command_inspector:CommandInspector
 var command_call_inspector:CommandCallInspector
 
@@ -32,27 +36,22 @@ var theme:Theme = load(EditorConstants.DEFAULT_THEME_PATH) as Theme
 
 var command_record:Blockflow.CommandRecord
 
-func toast(message:String, severity:int = 0, tooltip:String = ""):
-	if not is_inside_tree():
-		return
-	if not is_instance_valid(editor_toaster):
-		return
-	
-	editor_toaster.call("_popup_str", message, severity, tooltip)
+var self_called_to_edit:bool = false
 
 func _enter_tree():
 	_define_toaster()
-	block_editor.toast_callback = toast
+	
+	add_inspector_plugin(collection_inspector)
+	add_inspector_plugin(command_inspector)
+	add_inspector_plugin(command_call_inspector)
+	add_debugger_plugin(debugger)
 	
 	get_editor_interface().get_editor_main_screen().add_child(block_editor)
 	get_editor_interface().get_base_control().add_child(node_selector)
 	get_editor_interface().get_base_control().add_child(method_selector)
 	_make_visible(false)
 	
-	add_inspector_plugin(command_inspector)
-	add_inspector_plugin(command_call_inspector)
-	
-	add_debugger_plugin(debugger)
+	_setup_theme()
 
 
 func _handles(object: Object) -> bool:
@@ -66,7 +65,10 @@ func _handles(object: Object) -> bool:
 
 
 func _edit(object: Object) -> void:
-	block_editor.editor_undoredo = get_undo_redo()
+	if self_called_to_edit:
+		return
+	
+	block_editor.editor_undo_redo = get_undo_redo()
 	block_editor.edit(object)
 	last_edited_object = object
 
@@ -90,7 +92,7 @@ func _save_external_data() -> void:
 	queue_save_layout()
 
 func _get_window_layout(configuration: ConfigFile) -> void:
-	block_editor.save_layout()
+	pass
 
 func _define_toaster() -> void:
 	var dummy = Control.new()
@@ -105,12 +107,35 @@ func _define_toaster() -> void:
 
 	remove_control_from_bottom_panel(dummy)
 	dummy.queue_free()
+	Engine.set_meta(&"editor_toaster", editor_toaster)
+
+
+func _setup_theme() -> void:
+	theme = theme.duplicate() as Theme
+	var editor_theme:Theme = EditorInterface.get_editor_theme()
+	theme.set_stylebox("panel", "PanelContainer", StyleBoxEmpty.new())
+	theme.set_stylebox("panel", "ScrollContainer", editor_theme.get_stylebox("panel", "Tree"))
+	
+	theme.set_constant("separation", "BoxContainer", 0)
+	theme.set_constant("separation", "VBoxContainer", 0)
+	theme.set_constant("separation", "HBoxContainer", 0)
+	
+	theme.set_constant("separation", "SplitContainer", 4)
+	theme.set_constant("minimum_grab_thickness", "SplitContainer", 4)
+	
+	theme.set_stylebox("panel", "BlockEditor", editor_theme.get_stylebox("PanelForeground", "EditorStyles"))
+	
+	
+	block_editor.theme = theme
+	block_editor.queue_redraw()
+
 
 func _exit_tree():
 	queue_save_layout()
 	block_editor.queue_free()
 	
 	
+	remove_inspector_plugin(collection_inspector)
 	remove_inspector_plugin(command_inspector)
 	remove_inspector_plugin(command_call_inspector)
 	command_inspector = null
@@ -119,12 +144,18 @@ func _exit_tree():
 	remove_debugger_plugin(debugger)
 
 
+func _block_editor_command_selected(command) -> void:
+	self_called_to_edit = true
+	EditorInterface.edit_resource(command)
+	self_called_to_edit = false
+
 func _init() -> void:
 	block_editor = BlockEditor.new()
-	block_editor.edit_callback = Callable(get_editor_interface(), "edit_resource")
 	block_editor.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	block_editor.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	block_editor.command_selected.connect(_block_editor_command_selected)
 	
+	collection_inspector = CollectionInspector.new()
 	command_inspector = CommandInspector.new()
 	
 	node_selector = InspectorTools.NodeSelector.new()
@@ -143,7 +174,7 @@ func _init() -> void:
 	
 	debugger = BlockflowDebugger.new()
 	
-	command_record = Blockflow.CommandRecord.get_record()
+	command_record = Blockflow.CommandRecord.new().get_record()
 	project_settings_changed.connect(command_record.reload_from_project_settings)
 	
 	# Add the plugin to the list when we're created as soon as possible.

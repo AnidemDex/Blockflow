@@ -1,0 +1,8 @@
+[gd_resource type="Shortcut" load_steps=2 format=3 uid="uid://br6vdg8wq21eq"]
+
+[sub_resource type="InputEventMouseButton" id="InputEventMouseButton_pjkbj"]
+button_mask = 2
+button_index = 2
+
+[resource]
+events = [SubResource("InputEventMouseButton_pjkbj")]
