@@ -161,14 +161,20 @@ func _get_rect_width() -> int:
 
 
 func _update_block() -> void:
-	name_node.text = command.command_name
-	icon_node.texture = command.command_icon
+	var _name = "UNKNOW"
+	var _icon = EditorInterface.get_editor_theme().get_theme_icon("MissingNode", "EditorIcons")
+	if command:
+		_name = command.command_name
+		_icon = command.command_icon
+		
+		if not command.block_name.is_empty():
+			_name = command.block_name
+		
+		if command.block_icon:
+			_icon = command.block_icon
 	
-	if not command.block_name.is_empty():
-		name_node.text = command.block_name
-	
-	if command.block_icon:
-		icon_node.texture = command.block_icon
+	name_node.text = _name
+	icon_node.texture = _icon
 
 
 func _show_item_popup(popup:PopupMenu) -> void:

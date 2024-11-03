@@ -21,6 +21,8 @@ func _update_toggle_icon() -> void:
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_VISIBILITY_CHANGED:
+		if not command: return
+		
 		for subcommand in command.collection:
 			if is_instance_valid(subcommand.editor_block):
 				subcommand.editor_block.visible = visible
