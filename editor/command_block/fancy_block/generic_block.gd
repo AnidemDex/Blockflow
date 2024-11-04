@@ -5,7 +5,6 @@ extends "res://addons/blockflow/editor/command_block/fancy_block/block.gd"
 @onready var btn_collapse:Button = get_node_or_null(^"1/BtnCollapse") as Button
 
 func _update_block() -> void:
-	super()
 	if is_instance_valid(label_hint):
 		label_hint.text = command.command_hint
 	

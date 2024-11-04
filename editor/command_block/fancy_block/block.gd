@@ -123,10 +123,8 @@ func set_command(value:CommandClass) -> void:
 		return
 	
 	if command:
-		if command.changed.is_connected(_update_block):
-			command.changed.disconnect(_update_block)
-		if command.changed.is_connected(queue_redraw):
-			command.changed.disconnect(queue_redraw)
+		if command.changed.is_connected(notification):
+			command.changed.disconnect(notification)
 	
 	command = value
 	
@@ -136,16 +134,13 @@ func set_command(value:CommandClass) -> void:
 		name = "BlockNode"
 		return
 	
-	if not command.changed.is_connected(_update_block):
-		command.changed.connect(_update_block)
-	if not command.changed.is_connected(queue_redraw):
-		command.changed.connect(queue_redraw)
+	if not command.changed.is_connected(notification):
+		command.changed.connect(notification.bind(EditorConstants.NOTIFICATION_UPDATE_BLOCK))
 	
 	if command.get_command_owner() is CommandClass:
 		indent_level += 1
 	
-	_update_block()
-	queue_redraw()
+	notification(EditorConstants.NOTIFICATION_UPDATE_BLOCK)
 
 func _get_indent_size() -> int:
 	var s:int = get_theme_constant(&"indent_size")
@@ -161,20 +156,7 @@ func _get_rect_width() -> int:
 
 
 func _update_block() -> void:
-	var _name = "UNKNOW"
-	var _icon = EditorInterface.get_editor_theme().get_theme_icon("MissingNode", "EditorIcons")
-	if command:
-		_name = command.command_name
-		_icon = command.command_icon
-		
-		if not command.block_name.is_empty():
-			_name = command.block_name
-		
-		if command.block_icon:
-			_icon = command.block_icon
-	
-	name_node.text = _name
-	icon_node.texture = _icon
+	pass
 
 
 func _show_item_popup(popup:PopupMenu) -> void:
@@ -429,7 +411,32 @@ func _notification(what):
 			queue_redraw()
 		
 		NOTIFICATION_READY:
-			_update_block()
+			notification(EditorConstants.NOTIFICATION_UPDATE_BLOCK)
+		
+		EditorConstants.NOTIFICATION_UPDATE_BLOCK:
+			if not is_node_ready():
+				return
+			
+			var _name = "UNKNOW"
+			var _icon = get_theme_icon("MissingNode", "EditorIcons")
+			if command:
+				_name = command.command_name
+				_icon = command.command_icon
+				
+				if not command.block_name.is_empty():
+					_name = command.block_name
+				
+				if command.block_icon:
+					_icon = command.block_icon
+			
+			name_node.text = _name
+			icon_node.texture = _icon
+			
+			if command:
+				_update_block()
+			
+			queue_redraw()
+			
 
 func _button_toggled(_toggled_on:bool) -> void:
 	queue_redraw()
