@@ -137,6 +137,11 @@ We added some example scenes in particular cases that we found very good situati
 
 ![]()
 
+## Credits
+AnidemDex - Project Manager, Lead Developer
+Aleksandr Varnavskii (Crystalwarrior) - Developer, Playtester, directed by CrazyJC. Developer of the [NovelTest](https://github.com/Crystalwarrior/NovelTest) project template
+John Comeau (CrazyJC) - Software Director, UI Design and UX Assistance, Playtesting
+
 ## Contributing
 This plugin is fully open source, feel free to dive into the code and adapt every aspect to it to your needs.
 
