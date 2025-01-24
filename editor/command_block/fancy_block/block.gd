@@ -507,10 +507,10 @@ func _init():
 	icon_cell.name = &"IconCell"
 	icon_node = TextureRect.new()
 	icon_node.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT
-	icon_node.expand_mode = TextureRect.EXPAND_FIT_WIDTH
+	icon_node.expand_mode = TextureRect.EXPAND_FIT_HEIGHT
 	icon_node.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	icon_node.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	icon_node.custom_minimum_size = Vector2(16,16)
+	icon_node.custom_minimum_size = Vector2(24,24)
 	icon_node.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	icon_cell.add_child(icon_node)
 	

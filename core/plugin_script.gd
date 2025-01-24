@@ -71,7 +71,6 @@ func _edit(object: Object) -> void:
 	if self_called_to_edit:
 		return
 	
-	block_editor.editor_undo_redo = get_undo_redo()
 	block_editor.edit(object)
 	last_edited_object = object
 
@@ -154,6 +153,7 @@ func _block_editor_command_selected(command) -> void:
 
 func _init() -> void:
 	block_editor = BlockEditor.new()
+	block_editor.editor_undo_redo = get_undo_redo()
 	block_editor.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	block_editor.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	block_editor.command_selected.connect(_block_editor_command_selected)
