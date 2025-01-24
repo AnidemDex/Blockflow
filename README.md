@@ -137,6 +137,13 @@ We added some example scenes in particular cases that we found very good situati
 
 ![]()
 
+## Credits
+AnidemDex - Project Lead, Developer
+
+Aleksandr Varnavskii (Crystalwarrior) - Core Contributor, Developer, Playtester, directed by CrazyJC. Developer of the [Textalog](https://github.com/Crystalwarrior/textalog) dialogue add-on and the [NovelTest](https://github.com/Crystalwarrior/NovelTest) project template.
+
+John Comeau (CrazyJC) - Software Director, UI Design and UX Assistance, Playtesting
+
 ## Contributing
 This plugin is fully open source, feel free to dive into the code and adapt every aspect to it to your needs.
 
