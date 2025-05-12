@@ -99,6 +99,9 @@ var misc_category:Category
 
 var categories:Dictionary = {}
 
+var button_add_new_command:Button
+var file_dialog_new_command:FileDialog
+
 
 func build_command_list() -> void:
 	if is_instance_valid(category_container):
@@ -157,6 +160,17 @@ func sort_categories() -> void:
 		category_container.move_child(categories[&"Commands"], 0)
 
 
+func _button_add_new_command_pressed() -> void:
+	file_dialog_new_command.file_mode = FileDialog.FILE_MODE_OPEN_FILE
+	file_dialog_new_command.add_filter("*.tres", "Resource")
+	file_dialog_new_command.add_filter("*.gd", "GDScript")
+	file_dialog_new_command.popup_centered_ratio()
+
+
+func _file_dialog_new_command_file_selected(path:String) -> void:
+	var command_record:CommandRecord = CommandRecord.new().get_record()
+	command_record.register(path)
+
 func _notification(what: int) -> void:
 	match what:
 		NOTIFICATION_ENTER_TREE, NOTIFICATION_THEME_CHANGED:
@@ -173,8 +187,22 @@ func _init() -> void:
 	size_flags_vertical = Control.SIZE_EXPAND_FILL
 	custom_minimum_size = Vector2(128, 64)
 	
+	var vb := VBoxContainer.new()
+	vb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	vb.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	add_child(vb)
+	
 	scroll_container = ScrollContainer.new()
 	scroll_container.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	scroll_container.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	add_child(scroll_container)
+	vb.add_child(scroll_container)
+	
+	button_add_new_command = Button.new()
+	button_add_new_command.text = "Add Command"
+	button_add_new_command.pressed.connect(_button_add_new_command_pressed)
+	vb.add_child(button_add_new_command)
+	
+	file_dialog_new_command = FileDialog.new()
+	file_dialog_new_command.file_selected.connect(_file_dialog_new_command_file_selected)
+	add_child(file_dialog_new_command)
