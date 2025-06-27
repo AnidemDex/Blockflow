@@ -61,7 +61,7 @@ class Category extends VBoxContainer:
 	
 	func _notification(what: int) -> void:
 		match what:
-			NOTIFICATION_ENTER_TREE, NOTIFICATION_THEME_CHANGED:
+			NOTIFICATION_THEME_CHANGED:
 				var font := get_theme_font("bold","EditorFonts")
 				var font_size := get_theme_font_size("bold_size", "EditorFonts")
 				var sb := get_theme_stylebox("bg", "EditorInspectorCategory")
@@ -73,6 +73,10 @@ class Category extends VBoxContainer:
 				title.add_theme_icon_override("unchecked", get_theme_icon("GuiTreeArrowDown", "EditorIcons"))
 				title.add_theme_icon_override("checked_disabled", get_theme_icon("GuiTreeArrowRight", "EditorIcons"))
 				title.add_theme_icon_override("unchecked_disabled", get_theme_icon("GuiTreeArrowDown", "EditorIcons"))
+				
+				title.icon = get_theme_icon("Object", "EditorIcons")
+				if has_theme_icon(title.text, "Category"):
+					title.icon = get_theme_icon(title.text, "Category")
 			
 			9003:
 				propagate_call("set", ["disabled", true])
@@ -83,6 +87,8 @@ class Category extends VBoxContainer:
 		title = CheckButton.new()
 		title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		title.text = "Category"
+		title.add_theme_constant_override("icon_max_width", 64)
+		title.expand_icon = true
 		title.alignment = HORIZONTAL_ALIGNMENT_CENTER
 		title.toggled.connect(_toggle)
 		add_child(title)
@@ -105,7 +111,7 @@ var file_dialog_new_command:FileDialog
 
 func build_command_list() -> void:
 	if is_instance_valid(category_container):
-		category_container.queue_free()
+		category_container.free()
 		category_container = null
 	categories.clear()
 	create_category_container()
@@ -129,6 +135,7 @@ func add_category(category_name:StringName) -> void:
 	
 	var category = Category.new()
 	category.command_button_pressed_callback = command_button_pressed_callback
+	category.name = category_name
 	category.title.text = category_name
 	category.title.icon = get_theme_icon("Object", "EditorIcons")
 	categories[category_name] = category
