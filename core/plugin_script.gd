@@ -113,7 +113,7 @@ func _define_toaster() -> void:
 
 
 func _setup_theme() -> void:
-	theme = theme.duplicate() as Theme
+	#theme = theme.duplicate() as Theme
 	var editor_theme:Theme = EditorInterface.get_editor_theme()
 	theme.set_stylebox("panel", "PanelContainer", StyleBoxEmpty.new())
 	theme.set_stylebox("panel", "ScrollContainer", editor_theme.get_stylebox("panel", "Tree"))
