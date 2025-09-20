@@ -1,5 +1,5 @@
 @tool
-extends PanelContainer
+extends ScrollContainer
 
 const CollectionClass = preload("res://addons/blockflow/collection.gd")
 const CommandClass = preload("res://addons/blockflow/commands/command.gd")
@@ -17,13 +17,11 @@ var selected_item:Block
 
 var _group:ButtonGroup
 var _root:VBoxContainer
-var _sc:ScrollContainer
-var _vb:VBoxContainer
 
 func clear() -> void:
 	if is_instance_valid(_root):
 		_root.queue_free()
-		_sc.remove_child(_root)
+		remove_child(_root)
 	_create_root()
 
 func display(object:Object) -> void:
@@ -61,8 +59,9 @@ func _display_command_collection(command_collection:CCollectionClass) -> void:
 	_group.pressed.connect(_group_pressed)
 	_build_fake_tree(current_collection, blocks,0)
 	
-	for block in blocks:
+	for block:Control in blocks:
 		_root.add_child(block)
+		block.shortcut_context = shortcut_context
 	
 	display_finished.emit.call_deferred()
 
@@ -103,21 +102,30 @@ func _create_root() -> void:
 	_root = VBoxContainer.new()
 	_root.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_root.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	_sc.add_child(_root)
+	add_child(_root)
 
 
 func _group_pressed(button:BaseButton) -> void:
 	command_selected.emit(button.get_parent().get("command"))
 	selected_item = button.get_parent()
+	queue_redraw()
+
+func _notification(what: int) -> void:
+	match what:
+		NOTIFICATION_DRAW:
+			var focus_owner:Control = get_viewport().gui_get_focus_owner()
+	
+			if not is_instance_valid(focus_owner):
+				return
+			
+			if not (is_ancestor_of(focus_owner) or self == focus_owner):
+				return
+			
+			draw_style_box(
+					get_theme_stylebox("focus", "Tree"),
+					Rect2(Vector2(), size)
+				)
 
 
 func _init():
-	_vb = VBoxContainer.new()
-	_vb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_vb.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	add_child(_vb)
-	
-	_sc = ScrollContainer.new()
-	_sc.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_sc.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	_vb.add_child(_sc)
+	name = &"FancyDisplayer"

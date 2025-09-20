@@ -1,7 +1,5 @@
 extends "res://addons/blockflow/editor/views/editor_view.gd"
 
-var undo_redo:UndoRedo
-
 func add_command(command:CommandClass, at_position:int = -1, to_collection:CollectionClass = null) -> void:
 	if not _current_collection: return
 	if not command: return

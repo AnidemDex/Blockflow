@@ -1,0 +1,10 @@
+[gd_resource type="Shortcut" load_steps=2 format=3 uid="uid://on3hil8pvm5"]
+
+[sub_resource type="InputEventKey" id="InputEventKey_tdry3"]
+device = -1
+command_or_control_autoremap = true
+shift_pressed = true
+keycode = 90
+
+[resource]
+events = [SubResource("InputEventKey_tdry3")]

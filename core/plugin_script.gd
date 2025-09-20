@@ -2,7 +2,7 @@
 extends EditorPlugin
 
 const Blockflow = preload("res://addons/blockflow/blockflow.gd")
-const BlockEditor = preload("res://addons/blockflow/editor/views/in_editor_view.gd")
+const BlockEditor = preload("res://addons/blockflow/editor/views/editor_view.gd")
 const InspectorTools = preload("res://addons/blockflow/editor/inspector/inspector_tools.gd")
 const CollectionInspector = preload("res://addons/blockflow/editor/inspector/collection_inspector.gd")
 const CommandInspector = preload("res://addons/blockflow/editor/inspector/command_inspector.gd")
@@ -153,7 +153,6 @@ func _block_editor_command_selected(command) -> void:
 
 func _init() -> void:
 	block_editor = BlockEditor.new()
-	block_editor.editor_undo_redo = get_undo_redo()
 	block_editor.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	block_editor.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	block_editor.command_selected.connect(_block_editor_command_selected)

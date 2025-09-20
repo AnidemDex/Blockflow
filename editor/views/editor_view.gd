@@ -14,7 +14,7 @@ const CommandRecord = preload("res://addons/blockflow/core/command_record.gd")
 
 const DisplayerFancy = preload("res://addons/blockflow/editor/displayer/fancy_displayer.gd")
 const DisplayerSimple = preload("res://addons/blockflow/editor/displayer/simple_displayer.gd")
-
+# TODO: Change FileMenu to MenuFile
 enum ToolbarFileMenu {
 	NEW,
 	OPEN,
@@ -22,10 +22,17 @@ enum ToolbarFileMenu {
 	RECENT,
 }
 
+enum ToolbarMenuEdit {
+	UNDO,
+	REDO
+}
+
 static var command_clipboard:CommandClass
 
 var edited_object:Object:
 	set=edit
+
+var undo_redo:UndoRedo
 
 var history:Dictionary
 var last_selected_command:CommandClass
@@ -37,6 +44,7 @@ var displayer:Node
 var toolbar:MenuBar
 var menu_file:PopupMenu
 var menu_recent:PopupMenu
+var menu_edit:PopupMenu
 
 var command_popup:PopupMenu
 
@@ -62,7 +70,20 @@ var _current_command:CommandClass
 
 
 func edit(object:Object) -> void:
+	if edited_object:
+		if edited_object == object:
+			return
+		# Discard undoredo, always. We probably should save undoredo state somewhere
+		undo_redo.free()
+		edited_object = null
+	
 	edited_object = null
+	
+	if not undo_redo:
+		undo_redo = UndoRedo.new()
+		tree_exited.connect(undo_redo.free)
+		undo_redo.version_changed.connect(_undo_redo_version_changed)
+	_undo_redo_version_changed()
 	#if object is TimelineClass:
 		#left_section_show()
 		#_edit_timeline()
@@ -96,16 +117,136 @@ func close() -> void:
 	assert("NOT_IMPLEMENTED")
 
 func add_command(command:CommandClass, at_position:int = -1, to_collection:CollectionClass = null) -> void:
-	assert("NOT_IMPLEMENTED")
+	if not _current_collection: return
+	if not command: return
+	if not to_collection:
+		to_collection = _current_collection
+	
+	var action_name:String = "Add command '%s'" % [command.command_name]
+	last_selected_command = command
+	
+	disable()
+	undo_redo.create_action(action_name)
+		
+	if at_position < 0:
+		undo_redo.add_do_method(to_collection.add.bind(command))
+	else:
+		undo_redo.add_do_method(to_collection.insert.bind(command, at_position))
+	
+	undo_redo.add_undo_method(to_collection.erase.bind(command))
+	
+	undo_redo.add_do_method(_current_collection.update)
+	undo_redo.add_undo_method(_current_collection.update)
+	
+	undo_redo.commit_action()
+	enable()
 
 func move_command(command:CommandClass, to_position:int, from_collection:CollectionClass=null, to_collection:CollectionClass=null) -> void:
-	assert("NOT_IMPLEMENTED")
+	if not _current_collection: return
+	if not command: return
+	
+	if not from_collection:
+		from_collection = command.get_command_owner()
+	if not to_collection:
+		to_collection = command.get_command_owner()
+	
+	if not from_collection:
+		# It comes from nowhere, maybe we're adding instead of moving?
+		add_command(command, to_position, to_collection)
+		return
+
+	if to_collection == command:
+		push_error("Can't move into self!")
+		return
+
+	var weak_owner = to_collection.weak_owner
+	if weak_owner:
+		weak_owner = weak_owner.get_ref()
+	while weak_owner:
+		if weak_owner is WeakRef:
+			weak_owner = weak_owner.get_ref()
+		if weak_owner == command:
+			push_error("Found self in parents, can't move into self!")
+			return
+		weak_owner = weak_owner.weak_owner
+
+	var from_position:int = from_collection.get_command_position(command)
+	var action_name:String = "Move command '%s'" % [command.command_name]
+	
+	disable()
+	undo_redo.create_action(action_name)
+	if from_collection == to_collection:
+		undo_redo.add_do_method(from_collection.move.bind(command, to_position))
+		undo_redo.add_undo_method(from_collection.move.bind(command, from_position))
+	else:
+		undo_redo.add_do_method(from_collection.erase.bind(command))
+		undo_redo.add_undo_method(from_collection.insert.bind(command, from_position))
+		undo_redo.add_do_method(to_collection.insert.bind(command, to_position))
+		undo_redo.add_undo_method(to_collection.erase.bind(command))
+	
+	undo_redo.add_do_method(_current_collection.update)
+	undo_redo.add_undo_method(_current_collection.update)
+	
+	undo_redo.commit_action()
+	enable()
 
 func duplicate_command(command:CommandClass, to_index:int) -> void:
-	assert("NOT_IMPLEMENTED")
+	if not _current_collection: return
+	if not command: return
+	var command_collection:CollectionClass
+	if not command.weak_owner:
+		push_error("!command.weak_owner")
+		return
+	command_collection = command.get_command_owner()
+	if not command_collection:
+		push_error("!command_collection")
+		return
+	
+	var action_name:String = "Duplicate command '%s'" % [command.command_name]
+	var duplicated_command = command.get_duplicated()
+	last_selected_command = duplicated_command
+	var idx = to_index if to_index > -1 else command_collection.size()
+	
+	disable()
+	undo_redo.create_action(action_name)
+		
+	undo_redo.add_do_method(command_collection.insert.bind(duplicated_command, to_index))
+	undo_redo.add_undo_method(command_collection.erase.bind(duplicated_command))
+	
+	undo_redo.add_do_method(_current_collection.update)
+	undo_redo.add_undo_method(_current_collection.update)
+	
+	undo_redo.commit_action()
+	enable()
 
 func remove_command(command:CommandClass) -> void:
-	assert("NOT_IMPLEMENTED")
+	if not _current_collection: return
+	if not command: return
+	var command_collection:CollectionClass
+	if not command.weak_owner:
+		push_error("not command.weak_owner")
+		return
+	command_collection = command.get_command_owner()
+	if not command_collection:
+		push_error("not command_collection")
+		return
+	
+	var action_name:String = "Remove command '%s'" % [command.command_name]
+	
+	disable()
+	undo_redo.create_action(action_name)
+		
+	undo_redo.add_do_method(command_collection.remove.bind(command.index))
+	undo_redo.add_undo_method(command_collection.insert.bind(command, command.index))
+	
+	undo_redo.add_do_method(_current_collection.update)
+	undo_redo.add_undo_method(_current_collection.update)
+	
+	undo_redo.add_do_method(grab_focus.call_deferred)
+	undo_redo.add_undo_method(grab_focus.call_deferred)
+	
+	undo_redo.commit_action()
+	enable()
 
 
 func copy_command(command:CommandClass) -> void:
@@ -246,6 +387,14 @@ func _toolbar_menu_recent_item_selected(index:int) -> void:
 	pass
 
 
+func _toolbar_menu_edit_id_pressed(id:int) -> void:
+	match id:
+		ToolbarMenuEdit.UNDO:
+			undo_redo.undo()
+		ToolbarMenuEdit.REDO:
+			undo_redo.redo()
+
+
 func _command_list_button_pressed(command:CommandClass) -> void:
 	if not edited_object:
 		return
@@ -329,8 +478,21 @@ func _file_dialog_file_selected(path:String) -> void:
 	edit(resource)
 
 
+func _undo_redo_version_changed() -> void:
+	menu_edit.set_item_disabled(ToolbarMenuEdit.UNDO, !undo_redo.has_undo())
+	menu_edit.set_item_disabled(ToolbarMenuEdit.REDO, !undo_redo.has_redo())
+
 func _shortcut_input(event: InputEvent) -> void:
 	var focus_owner:Control = get_viewport().gui_get_focus_owner()
+	
+	if Constants.SHORTCUT_UNDO.matches_event(event) and event.is_released():
+		undo_redo.undo()
+		accept_event()
+	
+	if Constants.SHORTCUT_REDO.matches_event(event) and event.is_released():
+		undo_redo.redo()
+		accept_event()
+	
 	if not is_instance_valid(focus_owner):
 		return
 	
@@ -379,9 +541,31 @@ func _shortcut_input(event: InputEvent) -> void:
 func _notification(what: int) -> void:
 	match what:
 		NOTIFICATION_READY:
+			disable()
+			left_section_hide()
+			toolbar_update_menu_recent()
+		
+		Constants.NOTIFICATION_EDITOR_ENABLED:
 			if not edited_object:
-				left_section_hide()
-				disable()
+				push_warning("Why is the editor enabled when there is no edited object?")
+				return
+			
+			toolbar.set_menu_hidden(1, false)
+			toolbar.set_menu_disabled(1, false)
+			# Force redraw, because somehow it doesn't show the button after setting it 'hidden'
+			# TODO: Sidequest - Isolate, replicate and report to godotengine/godot
+			toolbar.queue_redraw()
+			
+		
+		Constants.NOTIFICATION_EDITOR_DISABLED:
+			if not edited_object:
+				toolbar.set_menu_hidden(1, true)
+				toolbar.queue_redraw()
+				return
+			
+			# Don't allow edits while performing blocking operations.
+			toolbar.set_menu_disabled(1, true)
+			toolbar.queue_redraw()
 
 
 func _init() -> void:
@@ -427,6 +611,18 @@ func _init() -> void:
 	
 	toolbar.set_menu_title(0, "File")
 	
+	menu_edit = PopupMenu.new()
+	menu_edit.allow_search = false
+	menu_edit.id_pressed.connect(_toolbar_menu_edit_id_pressed)
+	menu_edit.add_item("Undo", ToolbarMenuEdit.UNDO)
+	menu_edit.add_item("Redo", ToolbarMenuEdit.REDO)
+	menu_edit.set_item_disabled(ToolbarMenuEdit.UNDO, true)
+	menu_edit.set_item_disabled(ToolbarMenuEdit.REDO, true)
+	toolbar.add_child(menu_edit)
+	
+	toolbar.set_menu_title(1, &"Edit")
+	toolbar.set_menu_hidden(1, true)
+	
 	var hb := HBoxContainer.new()
 	hb.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	vb.add_child(hb)
@@ -447,6 +643,7 @@ func _init() -> void:
 	split_left.add_child(split_center)
 	
 	var section_center := PanelContainer.new()
+	section_center.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
 	section_center.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	section_center.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var section_right := PanelContainer.new()
@@ -464,6 +661,9 @@ func _init() -> void:
 	displayer.command_selected.connect(_displayer_command_selected)
 	displayer.display_finished.connect(_displayer_display_finished)
 	displayer.set_drag_forwarding(Callable(), _displayer_can_drop_data, _displayer_drop_data)
+	displayer.focus_mode = Control.FOCUS_ALL
+	displayer.mouse_filter = Control.MOUSE_FILTER_STOP
+	displayer.shortcut_context = self
 	section_center.add_child(displayer)
 	
 	file_dialog = FileDialog.new()
