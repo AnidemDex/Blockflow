@@ -45,3 +45,5 @@ const SHORTCUT_DELETE = preload("res://addons/blockflow/editor/shortcuts/delete.
 const SHORTCUT_COPY = preload("res://addons/blockflow/editor/shortcuts/copy.tres")
 const SHORTCUT_PASTE = preload("res://addons/blockflow/editor/shortcuts/paste.tres")
 const SHORTCUT_OPEN_MENU = preload("res://addons/blockflow/editor/shortcuts/open_menu.tres")
+const SHORTCUT_UNDO = preload("res://addons/blockflow/editor/shortcuts/undo.tres")
+const SHORTCUT_REDO = preload("res://addons/blockflow/editor/shortcuts/redo.tres")
