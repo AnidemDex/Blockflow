@@ -14,12 +14,17 @@ const CommandRecord = preload("res://addons/blockflow/core/command_record.gd")
 
 const DisplayerFancy = preload("res://addons/blockflow/editor/displayer/fancy_displayer.gd")
 const DisplayerSimple = preload("res://addons/blockflow/editor/displayer/simple_displayer.gd")
-
+# TODO: Change FileMenu to MenuFile
 enum ToolbarFileMenu {
 	NEW,
 	OPEN,
 	CLOSE,
 	RECENT,
+}
+
+enum ToolbarMenuEdit {
+	UNDO,
+	REDO
 }
 
 static var command_clipboard:CommandClass
@@ -39,6 +44,7 @@ var displayer:Node
 var toolbar:MenuBar
 var menu_file:PopupMenu
 var menu_recent:PopupMenu
+var menu_edit:PopupMenu
 
 var command_popup:PopupMenu
 
@@ -64,10 +70,20 @@ var _current_command:CommandClass
 
 
 func edit(object:Object) -> void:
+	if edited_object:
+		if edited_object == object:
+			return
+		# Discard undoredo, always. We probably should save undoredo state somewhere
+		undo_redo.free()
+		edited_object = null
+	
 	edited_object = null
+	
 	if not undo_redo:
 		undo_redo = UndoRedo.new()
 		tree_exited.connect(undo_redo.free)
+		undo_redo.version_changed.connect(_undo_redo_version_changed)
+	_undo_redo_version_changed()
 	#if object is TimelineClass:
 		#left_section_show()
 		#_edit_timeline()
@@ -226,6 +242,9 @@ func remove_command(command:CommandClass) -> void:
 	undo_redo.add_do_method(_current_collection.update)
 	undo_redo.add_undo_method(_current_collection.update)
 	
+	undo_redo.add_do_method(grab_focus.call_deferred)
+	undo_redo.add_undo_method(grab_focus.call_deferred)
+	
 	undo_redo.commit_action()
 	enable()
 
@@ -368,6 +387,14 @@ func _toolbar_menu_recent_item_selected(index:int) -> void:
 	pass
 
 
+func _toolbar_menu_edit_id_pressed(id:int) -> void:
+	match id:
+		ToolbarMenuEdit.UNDO:
+			undo_redo.undo()
+		ToolbarMenuEdit.REDO:
+			undo_redo.redo()
+
+
 func _command_list_button_pressed(command:CommandClass) -> void:
 	if not edited_object:
 		return
@@ -451,8 +478,21 @@ func _file_dialog_file_selected(path:String) -> void:
 	edit(resource)
 
 
+func _undo_redo_version_changed() -> void:
+	menu_edit.set_item_disabled(ToolbarMenuEdit.UNDO, !undo_redo.has_undo())
+	menu_edit.set_item_disabled(ToolbarMenuEdit.REDO, !undo_redo.has_redo())
+
 func _shortcut_input(event: InputEvent) -> void:
 	var focus_owner:Control = get_viewport().gui_get_focus_owner()
+	
+	if Constants.SHORTCUT_UNDO.matches_event(event) and event.is_released():
+		undo_redo.undo()
+		accept_event()
+	
+	if Constants.SHORTCUT_REDO.matches_event(event) and event.is_released():
+		undo_redo.redo()
+		accept_event()
+	
 	if not is_instance_valid(focus_owner):
 		return
 	
@@ -501,9 +541,31 @@ func _shortcut_input(event: InputEvent) -> void:
 func _notification(what: int) -> void:
 	match what:
 		NOTIFICATION_READY:
+			disable()
+			left_section_hide()
+			toolbar_update_menu_recent()
+		
+		Constants.NOTIFICATION_EDITOR_ENABLED:
 			if not edited_object:
-				left_section_hide()
-				disable()
+				push_warning("Why is the editor enabled when there is no edited object?")
+				return
+			
+			toolbar.set_menu_hidden(1, false)
+			toolbar.set_menu_disabled(1, false)
+			# Force redraw, because somehow it doesn't show the button after setting it 'hidden'
+			# TODO: Sidequest - Isolate, replicate and report to godotengine/godot
+			toolbar.queue_redraw()
+			
+		
+		Constants.NOTIFICATION_EDITOR_DISABLED:
+			if not edited_object:
+				toolbar.set_menu_hidden(1, true)
+				toolbar.queue_redraw()
+				return
+			
+			# Don't allow edits while performing blocking operations.
+			toolbar.set_menu_disabled(1, true)
+			toolbar.queue_redraw()
 
 
 func _init() -> void:
@@ -549,6 +611,18 @@ func _init() -> void:
 	
 	toolbar.set_menu_title(0, "File")
 	
+	menu_edit = PopupMenu.new()
+	menu_edit.allow_search = false
+	menu_edit.id_pressed.connect(_toolbar_menu_edit_id_pressed)
+	menu_edit.add_item("Undo", ToolbarMenuEdit.UNDO)
+	menu_edit.add_item("Redo", ToolbarMenuEdit.REDO)
+	menu_edit.set_item_disabled(ToolbarMenuEdit.UNDO, true)
+	menu_edit.set_item_disabled(ToolbarMenuEdit.REDO, true)
+	toolbar.add_child(menu_edit)
+	
+	toolbar.set_menu_title(1, &"Edit")
+	toolbar.set_menu_hidden(1, true)
+	
 	var hb := HBoxContainer.new()
 	hb.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	vb.add_child(hb)
@@ -569,6 +643,7 @@ func _init() -> void:
 	split_left.add_child(split_center)
 	
 	var section_center := PanelContainer.new()
+	section_center.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
 	section_center.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	section_center.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var section_right := PanelContainer.new()
@@ -586,6 +661,9 @@ func _init() -> void:
 	displayer.command_selected.connect(_displayer_command_selected)
 	displayer.display_finished.connect(_displayer_display_finished)
 	displayer.set_drag_forwarding(Callable(), _displayer_can_drop_data, _displayer_drop_data)
+	displayer.focus_mode = Control.FOCUS_ALL
+	displayer.mouse_filter = Control.MOUSE_FILTER_STOP
+	displayer.shortcut_context = self
 	section_center.add_child(displayer)
 	
 	file_dialog = FileDialog.new()
