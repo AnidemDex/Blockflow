@@ -1,20 +1,83 @@
-[gd_resource type="Theme" load_steps=4 format=3 uid="uid://bqoxlvagvusb0"]
+[gd_resource type="Theme" load_steps=11 format=3 uid="uid://bqoxlvagvusb0"]
 
 [ext_resource type="Texture2D" uid="uid://cldg1emv8w4g4" path="res://addons/blockflow/icons/plugin_icon.svg" id="1_jlt6l"]
 [ext_resource type="Texture2D" uid="uid://bmpioqcojkwso" path="res://addons/blockflow/icons/branch.svg" id="1_wf2ny"]
 [ext_resource type="Texture2D" uid="uid://bjpgrlbxe2frx" path="res://addons/blockflow/icons/plugin_icon_flat.svg" id="2_bbrvm"]
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_5iw7u"]
+draw_center = false
+border_width_top = 2
+border_color = Color(0.4392157, 0.7294118, 0.98039216, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_yf0xw"]
+draw_center = false
+border_width_bottom = 2
+border_color = Color(0.4392157, 0.7294118, 0.98039216, 1)
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hqbis"]
+bg_color = Color(0.4392157, 0.7294118, 0.98039216, 0.5294118)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.3825, 0.6318334, 0.85, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_j0yct"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_8vklj"]
+content_margin_left = 4.0
+content_margin_top = 4.0
+content_margin_right = 4.0
+content_margin_bottom = 4.0
+bg_color = Color(0.21, 0.24, 0.29, 1)
+border_color = Color(0.21, 0.24, 0.29, 1)
+corner_detail = 3
+anti_aliasing = false
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_5iw7u"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_d2484"]
+content_margin_left = 4.0
+content_margin_top = 4.0
+content_margin_right = 4.0
+content_margin_bottom = 4.0
+bg_color = Color(0.13125, 0.15, 0.18125, 1)
+border_color = Color(0.084, 0.096, 0.116, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+corner_detail = 3
+anti_aliasing = false
 
 [resource]
 Block/base_type = &"HBoxContainer"
 Block/constants/indent_size = 16
 Block/constants/rect_width = 4
 Block/constants/separation = 0
+Block/styles/section_above = SubResource("StyleBoxFlat_5iw7u")
+Block/styles/section_below = SubResource("StyleBoxFlat_yf0xw")
+Block/styles/section_on = SubResource("StyleBoxFlat_hqbis")
 BlockCell/base_type = &"PanelContainer"
 BlockCell/styles/panel = SubResource("StyleBoxEmpty_j0yct")
 BlockEditor/base_type = &"PanelContainer"
 BlockEditor/constants/icon_min_size = 32
+BlockEditor/styles/panel = SubResource("StyleBoxFlat_8vklj")
+BoxContainer/constants/separation = 0
 Category/icons/Flow = ExtResource("1_wf2ny")
+HBoxContainer/constants/separation = 0
+PanelContainer/styles/panel = SubResource("StyleBoxEmpty_5iw7u")
 PluginIcons/icons/plugin_icon = ExtResource("1_jlt6l")
 PluginIcons/icons/plugin_icon_flat = ExtResource("2_bbrvm")
+ScrollContainer/styles/panel = SubResource("StyleBoxFlat_d2484")
+SplitContainer/constants/minimum_grab_thickness = 4
+SplitContainer/constants/separation = 4
+VBoxContainer/constants/separation = 0
