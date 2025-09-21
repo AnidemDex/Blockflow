@@ -1,6 +1,6 @@
 [gd_resource type="Resource" load_steps=2 format=3 uid="uid://ndf2s274go0o"]
 
-[ext_resource type="Script" path="res://addons/blockflow/core/command_record.gd" id="1_wh5ha"]
+[ext_resource type="Script" uid="uid://co5q54xnpvfqs" path="res://addons/blockflow/core/command_record.gd" id="1_wh5ha"]
 
 [resource]
 script = ExtResource("1_wh5ha")
