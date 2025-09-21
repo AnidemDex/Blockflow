@@ -258,6 +258,7 @@ func _get_drag_data(at_position: Vector2) -> Variant:
 	var drag_data = {&"type":&"resource", &"resource":null, &"from":self}
 	drag_data[&"resource"] = command
 	
+	select()
 	var drag_preview := Button.new()
 	drag_preview.text = command.command_name
 	set_drag_preview(drag_preview)
@@ -511,6 +512,9 @@ func _init():
 	icon_node.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	icon_node.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	icon_node.custom_minimum_size = Vector2(24,24)
+	#icon_node.resized.connect(
+		#func(): icon_node.size = clamp(icon_node.size, Vector2(24,24), Vector2(64,64))
+		#)
 	icon_node.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	icon_cell.add_child(icon_node)
 	
