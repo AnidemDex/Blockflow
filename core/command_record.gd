@@ -209,7 +209,7 @@ func reload_from_project_settings(add_plugin_commands:bool = false) -> void:
 	var old_paths := PackedStringArray(_paths.keys())
 	old_paths.sort()
 	
-	if  old_paths == new_paths:
+	if not old_paths.is_empty() and old_paths == new_paths:
 		# Same paths, probably, no need to update anything.
 		return
 	
