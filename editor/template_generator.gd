@@ -54,7 +54,7 @@ func _save_template() -> void:
 		push_error("Failed saving template: %s"%error_string(error))
 
 func _register_template() -> void:
-	var record:CommandRecord = CommandRecord.get_record()
+	var record:CommandRecord = CommandRecord.new().get_record()
 	record.register(template, false)
 
 func _clean() -> void:
