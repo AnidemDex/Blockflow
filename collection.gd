@@ -8,7 +8,7 @@ class_name Collection
 ## to interact with the array easily.
 
 enum {
-	NOTIFICATION_UPDATE_STRUCTURE = 1<<2 ## Notify that internal structure must be updated.
+	NOTIFICATION_UPDATE_STRUCTURE = 1 << 2 ## Notify that internal structure must be updated.
 	}
 
 ## Blockflow constant
@@ -23,19 +23,19 @@ signal collection_changed
 ## [br]  - A [Command], meaning this command is a subcommand of that command.
 ## [br]  - A [code]null[/code] value, meaning it doesn't has an owner or the
 ## owner failed setting its own reference.
-var weak_owner:WeakRef
+var weak_owner: WeakRef
 
 ## [WeakRef] [CommandCollection] owner of this collection.
 ## [br][method weak_collection.get_ref] value can be:
 ## [br]  - A [CommandCollection]
 ## [br]  - A [code]null[/code] value, meaning it's the "main" [CommandCollection]
-var weak_collection:WeakRef
+var weak_collection: WeakRef
 
 ## Array of [Command]
-var collection:Array = []:
+var collection: Array = []:
 	set = _set_collection
 
-var is_updating_data:bool
+var is_updating_data: bool
 
 ## Adds a [Command] to [member collection]
 func add(command) -> void:
@@ -47,7 +47,7 @@ func add(command) -> void:
 	_notify_changed()
 
 ## Insert [Command] [param command] at [param position] in [member collection]
-func insert(command, at_position:int) -> void:
+func insert(command, at_position: int) -> void:
 	if has(command):
 		push_error("Trying to add a command to the collection, but the command already exists.")
 		return
@@ -59,7 +59,7 @@ func insert(command, at_position:int) -> void:
 
 # can't use duplicate lmao
 ## Copy a [Command] in position [param to_position] of [member collection]
-func copy(command, to_position:int) -> void:
+func copy(command, to_position: int) -> void:
 	var duplicated = command.get_duplicated()
 	var idx = to_position if to_position > -1 else collection.size()
 	
@@ -69,12 +69,12 @@ func copy(command, to_position:int) -> void:
 
 
 ## Moves a [Command] from its current [Command.index] to [param to_position]
-func move(command, to_position:int) -> void:
+func move(command, to_position: int) -> void:
 	if !has(command):
 		push_error("Trying to move an command in the collection, but the command is not added.")
 		return
 	
-	var old_position:int = get_command_position(command)
+	var old_position: int = get_command_position(command)
 	if old_position < 0:
 		return
 	
@@ -93,23 +93,31 @@ func move(command, to_position:int) -> void:
 	_notify_changed()
 
 ## Erases a [Command] from [member collection]
-func erase(command:Blockflow.CommandClass) -> void:
+func erase(command) -> void:
 	collection.erase(command)
+	command.weak_owner = null
+	command.weak_collection = null
 	_notify_changed()
 
 ## Removes a command from [member collection] at [param position]
-func remove(position:int) -> void:
+func remove(position: int) -> void:
+	var command = collection[position]
+	command.weak_owner = null
+	command.weak_collection = null
 	collection.remove_at(position)
 	_notify_changed()
 
 ## Clear [member collection]
 func clear() -> void:
+	for command in collection:
+		command.weak_owner = null
+		command.weak_collection = null
 	collection.clear()
 	_notify_changed()
 
 ## Get the command at [param position]. 
 ## [br]You can also use [method get] instead.
-func get_command(position:int):
+func get_command(position: int):
 	if position < collection.size():
 		return collection[position]
 	
@@ -119,7 +127,7 @@ func get_command(position:int):
 ## Get the last command in [member collection] or null if collection is empty.
 func get_last_command():
 	if not collection.is_empty():
-		return collection[collection.size()-1]
+		return collection[collection.size() - 1]
 	return null
 	
 
@@ -155,13 +163,19 @@ func is_empty() -> bool:
 func update() -> void:
 	_notify_changed()
 
-func _notify_changed() -> void: 
+func _notify_changed() -> void:
 	notification(NOTIFICATION_UPDATE_STRUCTURE)
-	Blockflow.generate_tree(self)
+	
+	var root = weak_collection.get_ref() if weak_collection else null
+	if root:
+		root.update()
+	elif self.get_script().resource_path.ends_with("command_collection.gd"):
+		self.call("rebuild_tree")
+	
 	collection_changed.emit()
 	emit_changed()
 
-func _set_collection(value:Array) -> void:
+func _set_collection(value: Array) -> void:
 	for command in collection:
 		command.weak_owner = null
 	
@@ -176,7 +190,7 @@ func _get(property: StringName):
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_UPDATE_STRUCTURE:
 		for command_index in collection.size():
-			var command:Command = collection[command_index]
+			var command = collection[command_index]
 			command.weak_owner = weakref(self)
 			command.index = command_index
 			command.weak_collection = weak_collection
@@ -195,7 +209,7 @@ func _init() -> void:
 	notification(NOTIFICATION_UPDATE_STRUCTURE)
 
 # ITERATOR
-var __itr_cnt:int
+var __itr_cnt: int
 func _should_continue() -> bool: return __itr_cnt < _get_iterator_ref().size()
 
 func _get_iterator_ref() -> Array: return collection
@@ -209,4 +223,4 @@ func _iter_next(_d) -> bool:
 	return _should_continue()
 	
 func _iter_get(_d):
-	return _get_iterator_ref()[__itr_cnt]	
+	return _get_iterator_ref()[__itr_cnt]

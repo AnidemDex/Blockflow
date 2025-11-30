@@ -27,7 +27,7 @@ static func get_default_command_scripts() -> Array:
 			push_warning("!ResourceLoader.exists(%s) == true, continuing"%command_path)
 			continue
 		
-		var command_script:Script = load(command_path) as Script
+		var command_script: Script = load(command_path) as Script
 		if not command_script:
 			push_warning("CommandList: Resource at '%s' is not an Script."%command_path)
 			continue
@@ -48,7 +48,7 @@ static func get_custom_commands() -> Array:
 		
 		# We can't guess the type, so let's load it as generic 
 		# and let the caller handle it.
-		var command:Resource = ResourceLoader.load(command_path)
+		var command: Resource = ResourceLoader.load(command_path)
 		if not command:
 			# HOW?
 			push_warning("CommandList: Resource at '%s' is not valid."%command_path)
@@ -72,58 +72,13 @@ enum Toast {
 	SEVERITY_ERROR
 	}
 
-class CollectionData:
-	var main_collection:CollectionClass
-	var command_list:Array[CommandClass]
-	var bookmarks:Dictionary
-
-static func generate_tree(collection:CollectionClass) -> CollectionData:
-#	if collection.is_updating_data: return
-	collection.is_updating_data = true
-	
-	var data := CollectionData.new()
-	
-	var command_pt:CommandClass
-	
-	if collection.is_empty():
-		return data
-	
-	var command_list:Array[CommandClass] = []
-	var owner:CollectionClass
-	command_pt = collection.collection[0]
-	
-	for command in collection.collection:
-		_recursive_add(command, command_list)
-	
-	var position:int = 0
-	var bookmarks := {}
-	for command_position in command_list.size():
-		command_pt = command_list[command_position]
-		command_pt.position = command_position
-		command_pt.weak_collection = weakref(collection as CommandCollectionClass)
-		if not command_pt.bookmark.is_empty():
-			bookmarks[command_pt.bookmark] = command_pt
-	
-	data.command_list = command_list
-	data.bookmarks = bookmarks
-	data.main_collection = collection
-	
-	if collection is CommandCollectionClass:
-		command_list.make_read_only()
-		collection._bookmarks = bookmarks
-		collection._command_list = command_list
-#	collection.set("data", data)
-	
-	collection.is_updating_data = false
-	
-	return data
 
 static func _recursive_add(command, to) -> void:
 	to.append(command)
 	for subcommand in command:
 		_recursive_add(subcommand, to)
 
-static func move_to_collection(command, to_collection, to_position=0) -> void:
+static func move_to_collection(command, to_collection, to_position = 0) -> void:
 	var owner_collection = command.get_command_owner()
 	owner_collection.erase(command)
 	to_collection.insert(command, to_position)
