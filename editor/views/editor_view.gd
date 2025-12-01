@@ -27,35 +27,35 @@ enum ToolbarMenuEdit {
 	REDO
 }
 
-static var command_clipboard:CommandClass
+static var command_clipboard: Array[CommandClass]
 
-var edited_object:Object:
-	set=edit
+var edited_object: Object:
+	set = edit
 
-var undo_redo:UndoRedo
+var undo_redo: UndoRedo
 
-var history:Dictionary
-var last_selected_command:CommandClass
-var command_record:CommandRecord
+var history: Dictionary
+var last_selected_command: CommandClass
+var command_record: CommandRecord
 
 #region Editor Nodes
-var displayer:Node
+var displayer: Node
 
-var toolbar:MenuBar
-var menu_file:PopupMenu
-var menu_recent:PopupMenu
-var menu_edit:PopupMenu
+var toolbar: MenuBar
+var menu_file: PopupMenu
+var menu_recent: PopupMenu
+var menu_edit: PopupMenu
 
-var command_popup:PopupMenu
+var command_popup: PopupMenu
 
-var command_list:CommandList
+var command_list: CommandList
 
-var file_dialog:Node
+var file_dialog: Node
 
-var section_left:PanelContainer
+var section_left: PanelContainer
 #endregion
 
-var selected_commands:Array
+var selected_commands: Array
 
 #region EDITOR PRIVATE DATA
 # Current edited timeline
@@ -63,13 +63,21 @@ var _current_timeline
 # Current edited event
 var _current_event
 # Current edited collection
-var _current_collection:CollectionClass
+var _current_collection: CollectionClass
 # Current edited command
-var _current_command:CommandClass
+var _current_command: CommandClass
 #endregion
 
 
-func edit(object:Object) -> void:
+func _get_selected_commands() -> Array[CommandClass]:
+	var commands: Array[CommandClass] = []
+	commands.assign(selected_commands)
+	if last_selected_command and not commands.has(last_selected_command):
+		commands.append(last_selected_command)
+	return commands
+
+
+func edit(object: Object) -> void:
 	if edited_object:
 		if edited_object == object:
 			return
@@ -116,24 +124,45 @@ func disable() -> void:
 func close() -> void:
 	assert("NOT_IMPLEMENTED")
 
-func add_command(command:CommandClass, at_position:int = -1, to_collection:CollectionClass = null) -> void:
+func add_command(command_or_commands, at_position: int = -1, to_collection: CollectionClass = null) -> void:
 	if not _current_collection: return
-	if not command: return
+	if not command_or_commands: return
 	if not to_collection:
 		to_collection = _current_collection
 	
-	var action_name:String = "Add command '%s'" % [command.command_name]
-	last_selected_command = command
+	var commands: Array[CommandClass] = []
+	if command_or_commands is Array:
+		commands.assign(command_or_commands)
+	else:
+		commands.append(command_or_commands)
+	
+	if commands.is_empty(): return
+	
+	var action_name: String
+	if commands.size() == 1:
+		action_name = "Add command '%s'" % [commands[0].command_name]
+	else:
+		action_name = "Add %d commands" % commands.size()
+	
+	last_selected_command = commands.back()
 	
 	disable()
 	undo_redo.create_action(action_name)
-		
-	if at_position < 0:
-		undo_redo.add_do_method(to_collection.add.bind(command))
-	else:
-		undo_redo.add_do_method(to_collection.insert.bind(command, at_position))
 	
-	undo_redo.add_undo_method(to_collection.erase.bind(command))
+	# We need to insert them in order so they appear contiguous
+	# If at_position is -1 (append), we just append them one by one
+	# Just increment position for each insert to keep them in order and hope nothing explodes
+	
+	var current_pos = at_position
+	
+	for cmd in commands:
+		if current_pos < 0:
+			undo_redo.add_do_method(to_collection.add.bind(cmd))
+		else:
+			undo_redo.add_do_method(to_collection.insert.bind(cmd, current_pos))
+			current_pos += 1
+		
+		undo_redo.add_undo_method(to_collection.erase.bind(cmd))
 	
 	undo_redo.add_do_method(_current_collection.update)
 	undo_redo.add_undo_method(_current_collection.update)
@@ -141,48 +170,272 @@ func add_command(command:CommandClass, at_position:int = -1, to_collection:Colle
 	undo_redo.commit_action()
 	enable()
 
-func move_command(command:CommandClass, to_position:int, from_collection:CollectionClass=null, to_collection:CollectionClass=null) -> void:
+func move_command(command_or_commands, to_position: int, from_collection: CollectionClass = null, to_collection: CollectionClass = null) -> void:
 	if not _current_collection: return
-	if not command: return
+	if not command_or_commands: return
 	
-	if not from_collection:
-		from_collection = command.get_command_owner()
+	var commands: Array[CommandClass] = []
+	if command_or_commands is Array:
+		commands.assign(command_or_commands)
+	else:
+		commands.append(command_or_commands)
+	
+	if commands.is_empty(): return
+	# Here come dragons...
+	# Validate all commands have same owner if from_collection is not specified
+	# Theorically, we can support moving from different collections if we handle it carefully
+	# But for now let's assume they might come from different places if we are dragging, you never know
+	# If we are dragging from the tree, they likely share the owner or we can find it.
+	
+	# Single command case logic extended to array
+	
 	if not to_collection:
-		to_collection = command.get_command_owner()
+		# If no target collection, assume target is the owner of the first command
+		# (Moving within same list logic usually)
+		to_collection = commands[0].get_command_owner()
 	
-	if not from_collection:
-		# It comes from nowhere, maybe we're adding instead of moving?
-		add_command(command, to_position, to_collection)
+	if not to_collection:
+		# If still no collection, we can't move
 		return
 
-	if to_collection == command:
-		push_error("Can't move into self!")
-		return
-
+	# Check for self-inclusion (moving a parent into a child)
 	var weak_owner = to_collection.weak_owner
 	if weak_owner:
 		weak_owner = weak_owner.get_ref()
 	while weak_owner:
 		if weak_owner is WeakRef:
 			weak_owner = weak_owner.get_ref()
-		if weak_owner == command:
-			push_error("Found self in parents, can't move into self!")
-			return
+		
+		for cmd in commands:
+			if weak_owner == cmd:
+				push_error("Found self in parents, can't move into self!")
+				return
+		# Readable as a puzzle
 		weak_owner = weak_owner.weak_owner
 
-	var from_position:int = from_collection.get_command_position(command)
-	var action_name:String = "Move command '%s'" % [command.command_name]
-	
-	disable()
-	undo_redo.create_action(action_name)
-	if from_collection == to_collection:
-		undo_redo.add_do_method(from_collection.move.bind(command, to_position))
-		undo_redo.add_undo_method(from_collection.move.bind(command, from_position))
+	var action_name: String
+	if commands.size() == 1:
+		action_name = "Move command '%s'" % [commands[0].command_name]
 	else:
-		undo_redo.add_do_method(from_collection.erase.bind(command))
-		undo_redo.add_undo_method(from_collection.insert.bind(command, from_position))
-		undo_redo.add_do_method(to_collection.insert.bind(command, to_position))
-		undo_redo.add_undo_method(to_collection.erase.bind(command))
+		action_name = "Move %d commands" % commands.size()
+	
+	disable()
+	undo_redo.create_action(action_name)
+	
+	# We need to sort commands by index if they are in the same collection
+	# to avoid index shifting issues when moving.
+	# However, they might be in different collections.
+	
+	# Group by collection to handle removals
+	var commands_by_collection = {}
+	for cmd in commands:
+		var owner_col = cmd.get_command_owner()
+		if not owner_col: continue # Should not happen for existing commands
+		if not commands_by_collection.has(owner_col):
+			commands_by_collection[owner_col] = []
+		commands_by_collection[owner_col].append(cmd)
+	
+	# For removal, we should process from highest index to lowest index 
+	# to avoid shifting affecting subsequent removals in the same list
+	# If we use 'undo' (insert at index), we need to know the ORIGINAL index.
+	
+	# Get original indices and pray yo don't mix position term with index term
+	var command_info = [] # Stores {cmd, from_col, from_idx}
+	
+	for cmd in commands:
+		var owner_col = cmd.get_command_owner()
+		if not owner_col:
+			# New command?
+			command_info.append({
+				"cmd": cmd,
+				"from_col": null,
+				"from_idx": - 1
+			})
+		else:
+			command_info.append({
+				"cmd": cmd,
+				"from_col": owner_col,
+				"from_idx": owner_col.get_command_position(cmd)
+			})
+
+	# If moving within the SAME collection, we need to be careful.
+	# If we remove all then insert all, it works.
+	
+	# DO PHASE:
+	# 1. Remove from old locations
+	# 2. Insert into new location
+	
+	# UNDO PHASE:
+	# 1. Remove from new location
+	# 2. Insert into old locations (must be done in correct order to restore indices)
+	
+	# Sort command_info by from_idx descending for correct restoration if in same collection?
+	# Actually, if we restore using 'insert' at original index, we should restore 
+	# from lowest index to highest index? 
+	# Example: List [A, B, C]. Remove A (0), B (1). List [C].
+	# Restore A at 0 -> [A, C]. Restore B at 1 -> [A, B, C]. Correct.
+	# So for UNDO (restoration), we want to insert in ascending order of original index.
+	
+	# Sort command_info for consistent handling
+	# We can't easily sort if they are from different collections, but usually they are from one.
+	# If multiple collections, order doesn't matter between collections.
+	
+	command_info.sort_custom(func(a, b):
+		if a.from_col != b.from_col: return false # Arbitrary
+		return a.from_idx < b.from_idx
+	)
+	
+	# --- DO METHOD GENERATION ---
+	
+	# 1. Remove from source
+	# If we use 'erase', it's safe.
+	for info in command_info:
+		if info.from_col:
+			undo_redo.add_do_method(info.from_col.erase.bind(info.cmd))
+	
+	# 2. Insert into destination
+	# We want to insert them at 'to_position'.
+	# If to_position is -1, we append.
+	# If we have multiple commands, we insert them sequentially.
+	
+	var current_insert_pos = to_position
+	
+	# If we are moving DOWN in the SAME collection, the indices will shift after removal.
+	# But we are doing Remove-Then-Insert strategy.
+	# So we need to calculate the *effective* insertion index if we were to do it atomically?
+	# Or just trust that after removal, the indices are what they are.
+	
+	# Wait, if we use 'erase', the command is gone. 
+	# Then we 'insert' into the collection which is now smaller.
+	# If to_collection == from_collection:
+	#   We need to adjust to_position?
+	#   Example: [A, B, C, D, E]. Move [B, C] to after D (index 4).
+	#   Remove B, C. List: [A, D, E].
+	#   Target index was 4 (after D). But D is now at index 1.
+	#   So we want to insert after D.
+	#   This is tricky.
+	
+	# Simpler approach for same-collection move:
+	# Use the `move` method of Collection if it's a single item.
+	# But for multiple items, `move` isn't enough.
+	
+	# Let's stick to Remove-Then-Insert.
+	# We need to know where to insert relative to the *remaining* items.
+	
+	# If to_position is based on the state *before* removal (which it usually is from drag data),
+	# we need to adjust it by subtracting the count of items removed that were *before* to_position.
+	
+	if to_collection:
+		var adjustment = 0
+		if to_position != -1:
+			for info in command_info:
+				if info.from_col == to_collection and info.from_idx != -1 and info.from_idx < to_position:
+					adjustment += 1
+		
+		var final_start_pos = to_position
+		if final_start_pos != -1:
+			final_start_pos -= adjustment
+			# Clamp to 0
+			final_start_pos = max(0, final_start_pos)
+			# Clamp to size (after removal)
+			# We need to know the size of to_collection AFTER removal.
+			# But we haven't removed yet.
+			# We can calculate it: current_size - count_of_removed_items_in_to_collection
+			var removed_count = 0
+			for info in command_info:
+				if info.from_col == to_collection:
+					removed_count += 1
+			
+			var max_pos = to_collection.size() - removed_count
+			if final_start_pos > max_pos:
+				final_start_pos = max_pos
+		
+		var loop_pos = final_start_pos
+		for info in command_info:
+			if loop_pos == -1:
+				undo_redo.add_do_method(to_collection.add.bind(info.cmd))
+			else:
+				undo_redo.add_do_method(to_collection.insert.bind(info.cmd, loop_pos))
+				loop_pos += 1
+
+	# --- UNDO METHOD GENERATION ---
+	
+	# 1. Remove from destination
+	for info in command_info:
+		if to_collection:
+			undo_redo.add_undo_method(to_collection.erase.bind(info.cmd))
+	
+	# 2. Insert back to source
+	# We must do this in the order that preserves indices.
+	# Since we sorted command_info by index ascending, if we insert in that order:
+	# [A, B, C]. Remove A, B. -> [C].
+	# Restore A (0) -> [A, C].
+	# Restore B (1) -> [A, B, C].
+	
+	for info in command_info:
+		if info.from_col:
+			undo_redo.add_undo_method(info.from_col.insert.bind(info.cmd, info.from_idx))
+
+	undo_redo.add_do_method(_current_collection.update)
+	undo_redo.add_undo_method(_current_collection.update)
+	
+	# Hello, future me. If you are reading this it implies that you f-c'd up, somewhere. 
+	#Good luck solving this puzzle.
+	undo_redo.commit_action()
+	enable()
+
+func duplicate_command(command_or_commands, to_index: int) -> void:
+	if not _current_collection: return
+	if not command_or_commands: return
+	
+	var commands: Array[CommandClass] = []
+	if command_or_commands is Array:
+		commands.assign(command_or_commands)
+	else:
+		commands.append(command_or_commands)
+	
+	if commands.is_empty(): return
+	
+	var target_collection = commands[0].get_command_owner()
+	if not target_collection: return
+	
+	var action_name: String
+	if commands.size() == 1:
+		action_name = "Duplicate command '%s'" % [commands[0].command_name]
+	else:
+		action_name = "Duplicate %d commands" % commands.size()
+	
+	disable()
+	undo_redo.create_action(action_name)
+	
+	var insert_pos = to_index
+	if insert_pos == -1:
+		# Find the max index in the selection to insert after it
+		var max_idx = -1
+		for cmd in commands:
+			if cmd.get_command_owner() == target_collection:
+				var idx = target_collection.get_command_position(cmd)
+				if idx > max_idx: max_idx = idx
+		if max_idx != -1:
+			insert_pos = max_idx + 1
+		else:
+			insert_pos = target_collection.size()
+	
+	var new_commands = []
+	for cmd in commands:
+		var dup = cmd.get_duplicated()
+		new_commands.append(dup)
+	
+	# Select the new commands
+	selected_commands.clear()
+	selected_commands.append_array(new_commands)
+	last_selected_command = new_commands.back()
+	
+	var current_pos = insert_pos
+	for cmd in new_commands:
+		undo_redo.add_do_method(target_collection.insert.bind(cmd, current_pos))
+		undo_redo.add_undo_method(target_collection.erase.bind(cmd))
+		current_pos += 1
 	
 	undo_redo.add_do_method(_current_collection.update)
 	undo_redo.add_undo_method(_current_collection.update)
@@ -190,54 +443,48 @@ func move_command(command:CommandClass, to_position:int, from_collection:Collect
 	undo_redo.commit_action()
 	enable()
 
-func duplicate_command(command:CommandClass, to_index:int) -> void:
+func remove_command(command_or_commands) -> void:
 	if not _current_collection: return
-	if not command: return
-	var command_collection:CollectionClass
-	if not command.weak_owner:
-		push_error("!command.weak_owner")
-		return
-	command_collection = command.get_command_owner()
-	if not command_collection:
-		push_error("!command_collection")
-		return
+	if not command_or_commands: return
 	
-	var action_name:String = "Duplicate command '%s'" % [command.command_name]
-	var duplicated_command = command.get_duplicated()
-	last_selected_command = duplicated_command
-	var idx = to_index if to_index > -1 else command_collection.size()
+	var commands: Array[CommandClass] = []
+	if command_or_commands is Array:
+		commands.assign(command_or_commands)
+	else:
+		commands.append(command_or_commands)
+	
+	if commands.is_empty(): return
+	
+	var action_name: String
+	if commands.size() == 1:
+		action_name = "Remove command '%s'" % [commands[0].command_name]
+	else:
+		action_name = "Remove %d commands" % commands.size()
 	
 	disable()
 	undo_redo.create_action(action_name)
-		
-	undo_redo.add_do_method(command_collection.insert.bind(duplicated_command, to_index))
-	undo_redo.add_undo_method(command_collection.erase.bind(duplicated_command))
 	
-	undo_redo.add_do_method(_current_collection.update)
-	undo_redo.add_undo_method(_current_collection.update)
+	# Gather info for undo
+	var command_info = []
+	for cmd in commands:
+		var owner_col = cmd.get_command_owner()
+		if owner_col:
+			command_info.append({
+				"cmd": cmd,
+				"col": owner_col,
+				"idx": owner_col.get_command_position(cmd)
+			})
 	
-	undo_redo.commit_action()
-	enable()
-
-func remove_command(command:CommandClass) -> void:
-	if not _current_collection: return
-	if not command: return
-	var command_collection:CollectionClass
-	if not command.weak_owner:
-		push_error("not command.weak_owner")
-		return
-	command_collection = command.get_command_owner()
-	if not command_collection:
-		push_error("not command_collection")
-		return
+	# Sort by index ascending for correct restoration
+	command_info.sort_custom(func(a, b): return a.idx < b.idx)
 	
-	var action_name:String = "Remove command '%s'" % [command.command_name]
+	# Do: Remove
+	for info in command_info:
+		undo_redo.add_do_method(info.col.erase.bind(info.cmd))
 	
-	disable()
-	undo_redo.create_action(action_name)
-		
-	undo_redo.add_do_method(command_collection.remove.bind(command.index))
-	undo_redo.add_undo_method(command_collection.insert.bind(command, command.index))
+	# Undo: Insert back
+	for info in command_info:
+		undo_redo.add_undo_method(info.col.insert.bind(info.cmd, info.idx))
 	
 	undo_redo.add_do_method(_current_collection.update)
 	undo_redo.add_undo_method(_current_collection.update)
@@ -249,8 +496,11 @@ func remove_command(command:CommandClass) -> void:
 	enable()
 
 
-func copy_command(command:CommandClass) -> void:
-	command_clipboard = command
+func copy_command(command_or_commands) -> void:
+	if command_or_commands is Array:
+		command_clipboard.assign(command_or_commands)
+	else:
+		command_clipboard = [command_or_commands]
 
 
 func toolbar_update_menu_recent() -> void:
@@ -262,7 +512,7 @@ func toolbar_update_menu_recent() -> void:
 	
 	var keys := history.keys()
 	for i in keys.size():
-		var history_key:String = keys[i]
+		var history_key: String = keys[i]
 		menu_recent.add_item(history_key)
 		menu_recent.set_item_tooltip(i, history[history_key])
 		
@@ -299,7 +549,7 @@ func _edit_timeline() -> void:
 
 
 func _edit_command_collection() -> void:
-	var object:CCollectionClass = edited_object as CCollectionClass
+	var object: CCollectionClass = edited_object as CCollectionClass
 	displayer.display(object)
 	
 	if not object:
@@ -316,12 +566,12 @@ func _edit_command_collection() -> void:
 
 
 func _edit_command() -> void:
-	var object:CommandClass = edited_object as CommandClass
+	var object: CommandClass = edited_object as CommandClass
 	displayer.display(object)
 
 
 func _edit_collection() -> void:
-	var object:CollectionClass = edited_object as CollectionClass
+	var object: CollectionClass = edited_object as CollectionClass
 	displayer.display(object)
 
 
@@ -345,35 +595,66 @@ func _disconnect_current_collection_signals() -> void:
 
 
 # Resource.changed signal was emited
-func _edited_object_changed(object:Object) -> void:
+func _edited_object_changed(object: Object) -> void:
 	if object == _current_collection:
 		displayer.display(object)
 
 
-func _command_popup_id_pressed(id:int) -> void:
-	var command:CommandClass = _current_command
-	var command_idx:int = command.index
+func _command_popup_id_pressed(id: int) -> void:
+	var commands: Array = _get_selected_commands()
+		
+	if commands.is_empty(): return
+	
+	# For single-command specific logic (like move up/down one step), 
+	# we might want to iterate or handle differently.
+	# But move_command now handles arrays.
+	
 	match id:
 		Constants.ItemPopup.MOVE_UP:
-			move_command(command, max(0, command_idx - 1))
+			var min_idx = 9999999
+			for cmd in commands:
+				if cmd.index < min_idx: min_idx = cmd.index
+			move_command(commands, max(0, min_idx - 1))
 			
 		Constants.ItemPopup.MOVE_DOWN:
-			move_command(command, command_idx + 1)
+			var max_idx = -1
+			var collection_size = 0
+			if not commands.is_empty():
+				var cmd_owner = commands[0].get_command_owner()
+				if cmd_owner: collection_size = cmd_owner.size()
+				
+			for cmd in commands:
+				if cmd.index > max_idx: max_idx = cmd.index
+			
+			# If max_idx is already at the bottom, don't move
+			if max_idx < collection_size - 1:
+				move_command(commands, max_idx + 2)
 
 		Constants.ItemPopup.DUPLICATE:
-			duplicate_command(command, command_idx + 1)
+			duplicate_command(commands, -1)
 			
 		Constants.ItemPopup.REMOVE:
-			remove_command(command)
+			remove_command(commands)
 		
 		Constants.ItemPopup.COPY:
-			copy_command(command)
+			copy_command(commands)
 		
 		Constants.ItemPopup.PASTE:
-			add_command(command_clipboard.get_duplicated(), command_idx + 1, command.get_command_owner())
+			# Paste inserts clipboard content.
+			# If we have a selection, we paste after it.
+			# If multiple selected, paste after the last one
+			var target_cmd = commands.back()
+			var target_idx = target_cmd.index + 1
+			var target_col = target_cmd.get_command_owner()
+			
+			var to_paste = []
+			for cmd in command_clipboard:
+				to_paste.append(cmd.get_duplicated())
+				
+			add_command(to_paste, target_idx, target_col)
 
 
-func _toolbar_menu_file_id_pressed(id:int) -> void:
+func _toolbar_menu_file_id_pressed(id: int) -> void:
 	match id:
 		ToolbarFileMenu.NEW:
 			request_new_command_collection()
@@ -383,11 +664,11 @@ func _toolbar_menu_file_id_pressed(id:int) -> void:
 			close()
 
 
-func _toolbar_menu_recent_item_selected(index:int) -> void:
+func _toolbar_menu_recent_item_selected(index: int) -> void:
 	pass
 
 
-func _toolbar_menu_edit_id_pressed(id:int) -> void:
+func _toolbar_menu_edit_id_pressed(id: int) -> void:
 	match id:
 		ToolbarMenuEdit.UNDO:
 			undo_redo.undo()
@@ -395,12 +676,12 @@ func _toolbar_menu_edit_id_pressed(id:int) -> void:
 			undo_redo.redo()
 
 
-func _command_list_button_pressed(command:CommandClass) -> void:
+func _command_list_button_pressed(command: CommandClass) -> void:
 	if not edited_object:
 		return
 	
-	var command_idx:int = -1
-	var new_command:CommandClass = command.get_duplicated()
+	var command_idx: int = -1
+	var new_command: CommandClass = command.get_duplicated()
 	var in_collection = _current_collection
 	if last_selected_command:
 		if last_selected_command.can_hold_commands:
@@ -414,14 +695,17 @@ func _command_list_button_pressed(command:CommandClass) -> void:
 	add_command(new_command, command_idx, in_collection)
 
 
-func _displayer_command_selected(command:CommandClass) -> void:
+func _displayer_command_selected(command: CommandClass) -> void:
 	if Input.is_physical_key_pressed(KEY_CTRL):
 		if last_selected_command:
-			last_selected_command.editor_block.keep_selected = true
-			selected_commands.append(last_selected_command)
+			if is_instance_valid(last_selected_command.editor_block):
+				last_selected_command.editor_block.keep_selected = true
+			if not selected_commands.has(last_selected_command):
+				selected_commands.append(last_selected_command)
 	else:
 		for selected_command in selected_commands:
-			selected_command.editor_block.keep_selected = false
+			if is_instance_valid(selected_command.editor_block):
+				selected_command.editor_block.keep_selected = false
 		selected_commands.clear()
 	
 	_current_command = command
@@ -429,19 +713,24 @@ func _displayer_command_selected(command:CommandClass) -> void:
 	command_selected.emit(last_selected_command)
 
 func _displayer_display_finished() -> void:
-	if not last_selected_command:
-		return
+	# Ensure all new blocks have the editor reference
+	displayer.propagate_call("set", ["editor", self])
 	
-	if is_instance_valid(last_selected_command.editor_block):
-		if last_selected_command.editor_block.is_queued_for_deletion(): return
-		last_selected_command.editor_block.select()
+	if last_selected_command:
+		if is_instance_valid(last_selected_command.editor_block):
+			if not last_selected_command.editor_block.is_queued_for_deletion():
+				last_selected_command.editor_block.select_no_signal()
+	
+	for cmd in selected_commands:
+		if is_instance_valid(cmd.editor_block) and not cmd.editor_block.is_queued_for_deletion():
+			cmd.editor_block.keep_selected = true
 
 
 func _displayer_can_drop_data(at_position: Vector2, data: Variant) -> bool:
 	if typeof(data) != TYPE_DICTIONARY:
 		return false
 	
-	var moved_command:CommandClass = data.get(&"resource", null) as CommandClass
+	var moved_command: CommandClass = data.get(&"resource", null) as CommandClass
 	if not moved_command:
 		return false
 	
@@ -449,28 +738,33 @@ func _displayer_can_drop_data(at_position: Vector2, data: Variant) -> bool:
 
 
 func _displayer_drop_data(at_position: Vector2, data: Variant) -> void:
-	var drag_command:CommandClass = data.get(&"resource", null)
-	if not drag_command:
+	var drag_commands = data.get(&"commands", [])
+	if drag_commands.is_empty():
+		var single = data.get(&"resource", null)
+		if single:
+			drag_commands.append(single)
+			
+	if drag_commands.is_empty():
 		return
 	
-	move_command(drag_command, -1, null, _current_collection)
+	move_command(drag_commands, -1, null, _current_collection)
 
 
-func _file_dialog_file_selected(path:String) -> void:
-	var collection:CCollectionClass
+func _file_dialog_file_selected(path: String) -> void:
+	var collection: CCollectionClass
 		
 	if file_dialog.file_mode == EditorFileDialog.FILE_MODE_SAVE_FILE:
 		collection = CCollectionClass.new()
 		collection.resource_name = path.get_file()
 		
-		var err:int = ResourceSaver.save(collection, path)
+		var err: int = ResourceSaver.save(collection, path)
 		if err != 0:
 			push_error("Saving CommandCollection failed with Error '%s'(%s)" % [err, error_string(err)])
 			return
 		collection = load(path)
 	
-	var resource:Resource = load(path)
-	var condition:bool = resource is CollectionClass
+	var resource: Resource = load(path)
+	var condition: bool = resource is CollectionClass
 	if not resource or not condition:
 		push_error("CollectionEditor: '%s' is not a valid Collection" % path)
 		return
@@ -483,7 +777,7 @@ func _undo_redo_version_changed() -> void:
 	menu_edit.set_item_disabled(ToolbarMenuEdit.REDO, !undo_redo.has_redo())
 
 func _shortcut_input(event: InputEvent) -> void:
-	var focus_owner:Control = get_viewport().gui_get_focus_owner()
+	var focus_owner: Control = get_viewport().gui_get_focus_owner()
 	
 	if Constants.SHORTCUT_UNDO.matches_event(event) and event.is_released():
 		undo_redo.undo()
@@ -502,40 +796,63 @@ func _shortcut_input(event: InputEvent) -> void:
 	if not is_instance_valid(displayer.selected_item):
 		return
 	
-	var command:CommandClass = displayer.selected_item.command
-	if not command:
+	var commands: Array = _get_selected_commands()
+		
+	if commands.is_empty():
 		return
 	
-	var command_idx:int = command.index
+	# Use the first command for context if needed (e.g. paste location)
+	var primary_command = commands[0]
 	
 	if Constants.SHORTCUT_MOVE_UP.matches_event(event) and event.is_released():
-		move_command(command, max(0, command_idx - 1))
+		var min_idx = 9999999
+		for cmd in commands:
+			if cmd.index < min_idx: min_idx = cmd.index
+		move_command(commands, max(0, min_idx - 1))
 		accept_event()
 		return
 
 	if Constants.SHORTCUT_MOVE_DOWN.matches_event(event) and event.is_released():
-		move_command(command, command_idx + 1)
+		var max_idx = -1
+		var collection_size = 0
+		if not commands.is_empty():
+			var cmd_owner = commands[0].get_command_owner()
+			if cmd_owner: collection_size = cmd_owner.size()
+
+		for cmd in commands:
+			if cmd.index > max_idx: max_idx = cmd.index
+		
+		if max_idx < collection_size - 1:
+			move_command(commands, max_idx + 2)
 		accept_event()
 		return
 
 	if Constants.SHORTCUT_DUPLICATE.matches_event(event) and event.is_released():
-		duplicate_command(command, command_idx + 1)
+		duplicate_command(commands, -1)
 		accept_event()
 		return
 	
 	if Constants.SHORTCUT_DELETE.matches_event(event) and event.is_released():
-		remove_command(command)
+		remove_command(commands)
 		accept_event()
 		return
 	
 	if Constants.SHORTCUT_COPY.matches_event(event) and event.is_released():
-		copy_command(command)
+		copy_command(commands)
 	
 	if Constants.SHORTCUT_PASTE.matches_event(event) and event.is_released():
-		if not command_clipboard:
+		if command_clipboard.is_empty():
 			return
 		
-		add_command(command_clipboard.get_duplicated(), command_idx + 1, command.get_command_owner())
+		var target_cmd = primary_command
+		var target_idx = target_cmd.index + 1
+		var target_col = target_cmd.get_command_owner()
+		
+		var to_paste = []
+		for cmd in command_clipboard:
+			to_paste.append(cmd.get_duplicated())
+			
+		add_command(to_paste, target_idx, target_col)
 
 
 func _notification(what: int) -> void:
