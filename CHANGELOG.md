@@ -15,7 +15,7 @@ FYI here's a hint about versioning:
 
 -->
 
-## Unreleased 
+## \[[1.2](https://github.com/AnidemDex/Blockflow/releases/tag/1.2)] 2025-12-31
 ### Added
 - More documentation about project structure and usage.
 - A simple example. It just prints something in console.
@@ -24,11 +24,18 @@ FYI here's a hint about versioning:
   - `block_name` as `command_name` alias to change the display name in editor.
   - `block_color` to tint the block representation in editor.
   - `block_icon` to define the texture used in the block representation in editor.
+- **Generic Block scene**
+- Custom button to register new commands by path to CommandRecord
 ### Changed
 - `Set` command behavior. Now includes more operations and hints to be done in the command - [#153](https://github.com/AnidemDex/Blockflow/pull/153).
 - **Editor UI**. We now have a new custom displayer.
 - `Command.background_color` to `Command.block_color`.
 - `Command.command_hint_icon` to `Command.block_icon`
+- **UndoRedo**. Replaced EditorUndoRedo with a custom UndoRedo solution in EditorView
+- **Drag and Drop**. Improved drag and drop functionality
+- **Theme**. Updated Blockflow base theme
+- **TemplateGenerator and CommandRecord**. Updated logic
+- **Tree Generation**. Optimized tree generation behavior
 ### Deprecated
 - `Set.PlusOperables` constant. Now `Operables` is used instead.
 - `Command.Group`. Unused constant.
@@ -42,6 +49,12 @@ FYI here's a hint about versioning:
 - `Command._can_be_selected()`.
 - `Command._defines_default_branches()`.
 - `Command._get_default_branch_for()`.
+### Fixed
+- Issues with `CommandList` - [#157](https://github.com/AnidemDex/Blockflow/pull/157), [#125](https://github.com/AnidemDex/Blockflow/pull/125).
+- Issues with `GenericBlock` - [#49](https://github.com/AnidemDex/Blockflow/pull/49).
+- Issues with `FancyBlock` - [#178](https://github.com/AnidemDex/Blockflow/pull/178).
+- Major stability fixes in `EditorView` and `Collection` - [#180](https://github.com/AnidemDex/Blockflow/pull/180).
+- Showstopper bugs making the plugin not functional - [#177](https://github.com/AnidemDex/Blockflow/pull/177).
 ### Removed
 - Old `Timeline` references. You _really_ should not be using those, they were not meant to exist in 1.0 but it was keep to preserve an older project stability.
 ## \[[1.1](https://github.com/AnidemDex/Blockflow/releases/tag/1.1)] 2024-06-02
