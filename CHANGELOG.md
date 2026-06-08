@@ -14,6 +14,9 @@ FYI here's a hint about versioning:
     Security in case of vulnerabilities.
 
 -->
+## Unreleased
+###
+- editor/editor.gd script. Plugin should use editor/views/editor_view.gd
 
 ## \[[1.2](https://github.com/AnidemDex/Blockflow/releases/tag/1.2)] 2025-12-31
 ### Added
