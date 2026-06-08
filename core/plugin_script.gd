@@ -97,18 +97,7 @@ func _get_window_layout(configuration: ConfigFile) -> void:
 	pass
 
 func _define_toaster() -> void:
-	var dummy = Control.new()
-	dummy.name = "Dummy"
-	var d_btn = add_control_to_bottom_panel(dummy, "test")
-	d_btn.name = "dummy test"
-
-	for child in d_btn.get_parent().get_parent().get_children():
-		if child.get_class() == "EditorToaster":
-			editor_toaster = child
-			break
-
-	remove_control_from_bottom_panel(dummy)
-	dummy.queue_free()
+	editor_toaster = EditorInterface.get_editor_toaster()
 	Engine.set_meta(&"editor_toaster", editor_toaster)
 
 
