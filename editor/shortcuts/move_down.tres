@@ -1,4 +1,4 @@
-[gd_resource type="Shortcut" load_steps=2 format=3 uid="uid://c11cicu4ltqia"]
+[gd_resource type="Shortcut" format=3 uid="uid://c11cicu4ltqia"]
 
 [sub_resource type="InputEventKey" id="InputEventKey_wyhbg"]
 alt_pressed = true
